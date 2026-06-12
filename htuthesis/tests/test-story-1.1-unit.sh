@@ -180,11 +180,16 @@ test_readme_header() {
 }
 run_test "P2" "ATDD-1.1-17" "README.md header = # htuthesis" test_readme_header
 
-# ATDD-1.1-18: \ifhtu@bachelor in main.tex (AC-5)
+# ATDD-1.1-18: \ifhtu@bachelor should NOT exist in main.tex (AC-5)
+# Superseded by Story 1.3: bachelor references intentionally removed
 test_main_bachelor_ref() {
-  grep -q 'ifhtu@bachelor' main.tex 2>/dev/null
+  [[ -f "main.tex" ]] || return 1
+  local count
+  count=$(grep -c 'ifhtu@bachelor' main.tex 2>/dev/null || true)
+  count=$(echo "$count" | tr -d '[:space:]' | head -1)
+  [[ "$count" -eq 0 ]]
 }
-run_test "P2" "ATDD-1.1-18" "main.tex uses ifhtu@bachelor" test_main_bachelor_ref
+run_test "P2" "ATDD-1.1-18" "main.tex has no ifhtu@bachelor (superseded by Story 1.3)" test_main_bachelor_ref
 
 # ATDD-1.1-19: .chktexrc does not reference zzuthesis (Edge)
 test_chktexrc() {

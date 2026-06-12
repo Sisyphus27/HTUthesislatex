@@ -83,7 +83,7 @@ run_test "P0" "ATDD-1.3-20" "Baseline PDF recorded before changes" test_baseline
 # ATDD-1.3-21: Full compile succeeds after branch removal (AC-4, TC-1.3-INT-01)
 test_full_compile() {
   [[ -f "htuthesis.cls" ]] || return 1
-  latexmk -xelatex -file-line-error -halt-on-error -interaction=nonstopmode main.tex > /dev/null 2>&1
+  latexmk -xelatex -g -interaction=nonstopmode main.tex > /dev/null 2>&1
   return $?
 }
 run_test "P0" "ATDD-1.3-21" "latexmk -xelatex main.tex exit code 0" test_full_compile

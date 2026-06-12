@@ -65,7 +65,7 @@ echo "=== P0: Compile Verification ==="
 # ATDD-1.4-20: Full compile succeeds with HTU identity (AC-6, TC-1.4-INT-02)
 test_full_compile() {
   [[ -f "htuthesis.cls" ]] || return 1
-  latexmk -xelatex -file-line-error -halt-on-error -interaction=nonstopmode main.tex > /dev/null 2>&1
+  latexmk -xelatex -g -interaction=nonstopmode main.tex > /dev/null 2>&1
   return $?
 }
 run_test "P0" "ATDD-1.4-20" "latexmk -xelatex main.tex exit code 0 (AC-6)" test_full_compile

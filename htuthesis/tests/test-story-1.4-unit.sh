@@ -125,12 +125,13 @@ test_font_package_error() {
 }
 run_test "P1" "ATDD-1.4-08" "PackageError format in font checks (AC-5)" test_font_package_error
 
-# ATDD-1.4-10: School name is 河南师范大学 in cls (AC-1)
+# ATDD-1.4-10: School name is 河南师范大学 in cls or def (AC-1)
+# Per architecture three-layer design: name defined in .def, consumed by .cls
 test_school_name_htu() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -q '河南师范大学' htuthesis.cls 2>/dev/null
+  grep -q '河南师范大学' htuthesis.cls htuthesis.def 2>/dev/null
 }
-run_test "P1" "ATDD-1.4-10" "School name = 河南师范大学 in cls (AC-1)" test_school_name_htu
+run_test "P1" "ATDD-1.4-10" "School name = 河南师范大学 in cls or def (AC-1)" test_school_name_htu
 
 echo ""
 

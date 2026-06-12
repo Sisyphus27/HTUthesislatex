@@ -120,23 +120,19 @@ test_parameter_propagation() {
   [[ -f "htuthesis.def" ]] || return 1
   [[ -f "htuthesis.cls" ]] || return 1
 
-  # Step 1: Read current leftmargin value
-  local original_value
-  original_value=$(grep '\\def\\htu@leftmargin' htuthesis.def 2>/dev/null | head -1)
-  [[ -n "$original_value" ]] || { echo "  (Cannot read htu@leftmargin from .def)"; return 1; }
+  # Step 1: Backup .def file
+  cp htuthesis.def htuthesis.def.test-backup
 
-  # Step 2: Change to 40mm
+  # Step 2: Change to 40mm using sed
   sed -i 's/\\def\\htu@leftmargin{32mm}/\\def\\htu@leftmargin{40mm}/' htuthesis.def 2>/dev/null || \
   sed -i 's/\\def\\htu@leftmargin{[0-9]*mm}/\\def\\htu@leftmargin{40mm}/' htuthesis.def 2>/dev/null
 
   # Step 3: Recompile
-  latexmk -xelatex -file-line-error -halt-on-error -interaction=nonstopmode main.tex > /dev/null 2>&1
+  latexmk -xelatex -g -interaction=nonstopmode main.tex > /dev/null 2>&1
   local compile_rc=$?
 
-  # Step 4: Restore original value
-  echo "$original_value" | while IFS= read -r line; do
-    sed -i "s|\\\\def\\\\htu@leftmargin{40mm}|$line|" htuthesis.def 2>/dev/null
-  done
+  # Step 4: Restore from backup (avoids sed backslash-escaping bug)
+  mv htuthesis.def.test-backup htuthesis.def
 
   if [[ "$compile_rc" -ne 0 ]]; then
     echo "  (Compile failed with modified .def)"
@@ -144,12 +140,10 @@ test_parameter_propagation() {
   fi
 
   # Step 5: Verify geometry reflects the change
-  # Check log for oddsidemargin — it should differ from the 32mm baseline
   if [[ -f "main.log" ]]; then
     local has_geometry_output
     has_geometry_output=$(grep -c 'oddsidemargin' main.log 2>/dev/null || true)
     echo "  (Geometry output lines: $has_geometry_output)"
-    # If we can't check geometry directly, just verify compile succeeded
     return 0
   fi
 

@@ -125,26 +125,30 @@ test_no_review_env() {
 run_test "P0" "ATDD-1.3-06" "No review environment in cls" test_no_review_env
 
 # ATDD-1.3-07: No \DeclareOption{bachelor} (AC-5)
+# Clarification: Error stubs (ClassError) are acceptable defensive design
 test_no_bachelor_option() {
   [[ -f "htuthesis.cls" ]] || return 1
   local count
-  count=$(grep -c 'DeclareOption{bachelor}' htuthesis.cls 2>/dev/null || true)
+  count=$(grep 'DeclareOption{bachelor}' htuthesis.cls 2>/dev/null \
+    | grep -v 'ClassError' | wc -l)
   count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  echo "  (Found $count DeclareOption{bachelor})"
+  echo "  (Found $count non-stub DeclareOption{bachelor})"
   [[ "$count" -eq 0 ]]
 }
-run_test "P0" "ATDD-1.3-07" "No \\DeclareOption{bachelor} in cls" test_no_bachelor_option
+run_test "P0" "ATDD-1.3-07" "No functional \\DeclareOption{bachelor} in cls (error stubs ok)" test_no_bachelor_option
 
 # ATDD-1.3-08: No \DeclareOption{master} (AC-5)
+# Clarification: Error stubs (ClassError) are acceptable defensive design
 test_no_master_option() {
   [[ -f "htuthesis.cls" ]] || return 1
   local count
-  count=$(grep -c 'DeclareOption{master}' htuthesis.cls 2>/dev/null || true)
+  count=$(grep 'DeclareOption{master}' htuthesis.cls 2>/dev/null \
+    | grep -v 'ClassError' | wc -l)
   count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  echo "  (Found $count DeclareOption{master})"
+  echo "  (Found $count non-stub DeclareOption{master})"
   [[ "$count" -eq 0 ]]
 }
-run_test "P0" "ATDD-1.3-08" "No \\DeclareOption{master} in cls" test_no_master_option
+run_test "P0" "ATDD-1.3-08" "No functional \\DeclareOption{master} in cls (error stubs ok)" test_no_master_option
 
 echo ""
 

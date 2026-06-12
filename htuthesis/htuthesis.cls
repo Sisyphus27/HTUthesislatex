@@ -76,9 +76,9 @@
 \RequirePackage{multirow}%跨行表格
 \RequirePackage{longtable}%长表格，可替换supertabular
 \RequirePackage{booktabs}%三线表格
-\RequirePackage[labelformat=simple]{subcaption}
+\RequirePackage[labelformat=simple]{subcaption}% subcaption with labelformat=simple
 \RequirePackage{graphicx}%图形支持
-\RequirePackage[numbers,super,sort&compress]{natbib}%参考文献引用
+\RequirePackage[numbers,super,sort&compress]{natbib}% natbib with numbers,super,sort&compress
 \RequirePackage{hyperref}%超链接、书签
   \hypersetup{%
     linktoc=all,
