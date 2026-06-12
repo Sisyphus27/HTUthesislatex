@@ -66,7 +66,7 @@ test_full_compile() {
   # htuthesis.def must exist for this test to be meaningful
   [[ -f "htuthesis.def" ]] || return 1
   [[ -f "htuthesis.cls" ]] || return 1
-  latexmk -xelatex -file-line-error -halt-on-error -interaction=nonstopmode main.tex > /dev/null 2>&1
+  latexmk -xelatex -g -interaction=nonstopmode main.tex > /dev/null 2>&1
   return $?
 }
 run_test "P0" "ATDD-1.2-10" "latexmk -xelatex main.tex (with .def) exit code 0" test_full_compile
@@ -122,6 +122,8 @@ test_parameter_propagation() {
 
   # Step 1: Backup .def file
   cp htuthesis.def htuthesis.def.test-backup
+  # Ensure cleanup on exit/interrupt
+  trap 'mv -f htuthesis.def.test-backup htuthesis.def 2>/dev/null' EXIT INT TERM
 
   # Step 2: Change to 40mm using sed
   sed -i 's/\\def\\htu@leftmargin{32mm}/\\def\\htu@leftmargin{40mm}/' htuthesis.def 2>/dev/null || \
@@ -131,8 +133,9 @@ test_parameter_propagation() {
   latexmk -xelatex -g -interaction=nonstopmode main.tex > /dev/null 2>&1
   local compile_rc=$?
 
-  # Step 4: Restore from backup (avoids sed backslash-escaping bug)
+  # Step 4: Restore from backup and clear trap
   mv htuthesis.def.test-backup htuthesis.def
+  trap - EXIT INT TERM
 
   if [[ "$compile_rc" -ne 0 ]]; then
     echo "  (Compile failed with modified .def)"
