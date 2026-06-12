@@ -17,34 +17,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 声明选项(Declaration options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newif\ifhtu@bachelor\htu@bachelorfalse
-\newif\ifhtu@master\htu@masterfalse
-\newif\ifhtu@doctor\htu@doctorfalse
-\DeclareOption{bachelor}{\htu@bachelortrue}
-\DeclareOption{master}{\htu@mastertrue}
+\newif\ifhtu@doctor\htu@doctortrue
 \DeclareOption{doctor}{\htu@doctortrue}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{ctexbook}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 选项处理 (Option processing)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \ProcessOptions\relax
-\ifhtu@bachelor\relax\else
-  \ifhtu@master\relax\else
-    \ifhtu@doctor\relax\else
-        \ClassError{htuthesis}%Reporting errors
-                   {You have to specify one of thesis options:%
-                    bachelor, master or doctor.}{}
-    \fi
-  \fi
-\fi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 装载类与宏包 (Loading classes & packages)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\ifhtu@doctor%博士论文双面打印
-  \LoadClass[zihao=-4,a4paper,UTF8,scheme=plain]{ctexbook}
-\else%其它单面打印
-  \LoadClass[zihao=-4,a4paper,UTF8,scheme=plain,openany]{ctexbook}
-\fi
+\LoadClass[zihao=-4,a4paper,UTF8,scheme=plain]{ctexbook}
 \RequirePackage{ifxetex}
 \ifxetex\else
   \ClassError{htuthesis}{You should use XeLaTeX}{}
@@ -88,19 +71,18 @@
 %% 文前，正文，文后格式
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand\frontmatter{%
-  \ifhtu@doctor\cleardoublepage\else\clearpage\fi
+  \cleardoublepage
   \ctexset{chapter/format+=\centering}
   \@mainmatterfalse
   \pagenumbering{Roman}
   \pagestyle{htu@headings}}
 \renewcommand\mainmatter{%
-  \ifhtu@doctor\cleardoublepage\else\clearpage\fi
-  \ctexset{chapter/format+={\ifhtu@bachelor\centering%本科居中
-                            \else\raggedright\fi}}%顶左
+  \cleardoublepage
+  \ctexset{chapter/format+=\raggedright}
   \@mainmattertrue
   \pagenumbering{arabic}}
 \renewcommand\backmatter{%
-  \ifhtu@doctor\cleardoublepage\else\clearpage\fi
+  \cleardoublepage
   \ctexset{chapter/format+=\centering}
   \@mainmattertrue}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,32 +105,14 @@
 \newcommand\htu@corollary@name{推论}
 \def\htu@schoolname{郑州大学}
 \def\htu@title@sep{：}
-\ifhtu@bachelor
-  \def\htu@subtitle{毕业设计（论文）}
-  \def\htu@bachelor@title@pre{题\hspace{2\ccwd} 目}
-  \def\htu@supervisor@title{指导教师}
-  \def\htu@protitle@title{职称}
-  \def\htu@author@title{学生姓名}
-  \def\htu@stuno@title{学号}
-  \def\htu@major@title{专业}
-  \def\htu@department@title{院（系）}
-\else
   \def\htu@schoolcode@title{学校代码}
   \def\htu@id@title{学号或申请号}
   \def\htu@secretlevel@title{密级}
-  \ifhtu@master
-    \def\htu@subtitle{硕士学位论文}
-  \else
-    \def\htu@subtitle{博士学位论文}
-  \fi
+  \def\htu@subtitle{博士学位论文}
   \def\htu@author@title{作者姓名}
   \def\htu@supervisor@title{导师姓名}
   \def\htu@subject@title{学科门类}
   \def\htu@major@title{专业名称}
-  \ifhtu@master
-    \def\htu@department@title{培养院系}
-  \else\fi
-\fi
 \def\htu@cdate@title{完成时间}
 \let\CJK@todaysave=\today
 \def\CJK@todaysmall@short{\the\year 年 \the\month 月}
@@ -170,12 +134,7 @@
 \newcommand{\htu@ekeywords@title}{Key words:\enskip}
 \newcommand{\htu@denotation@name}{主要符号对照表}
 \newcommand{\htu@ackname}{致\hspace{\ccwd} 谢}
-\newcommand{\htu@review@title}{综述}
-\ifhtu@bachelor
-  \newcommand{\htu@resume@title}{在学期间参加课题的研究成果}
-\else
   \newcommand{\htu@resume@title}{个人简历、在学期间发表的学术论文与研究成果}
-\fi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  字号设置
 %%  模板使用thuthesis论文模板的字号定义
@@ -246,14 +205,14 @@
   \let\@oddfoot\@empty\let\@evenfoot\@empty}
 \def\ps@htu@plain{%%No head, centred or right page number in foot.
   \let\@oddhead\@empty\let\@evenhead\@empty%
-  \def\@oddfoot{\hfil\wuhao\thepage\ifhtu@bachelor\relax\else\hfil\fi}%
+  \def\@oddfoot{\hfil\wuhao\thepage\hfil}%
   \let\@evenfoot=\@oddfoot}
 \def\ps@htu@headings{%%Centred head, centred page number in foot.
   \def\@oddhead{\vbox to\headheight{\vfill%
     \hb@xt@\textwidth{\wuhao\rmfamily\hfill\leftmark\hfill}%
       \vskip\htu@header@rule@gap\hbox{\vrule width\textwidth height\htu@header@rule@thickness depth\z@}}}
   \let\@evenhead=\@oddhead
-  \def\@oddfoot{\wuhao\hfil\thepage\ifhtu@bachelor\relax\else\hfil\fi}
+  \def\@oddfoot{\wuhao\hfil\thepage\hfil}
   \let\@evenfoot=\@oddfoot}
 \renewcommand{\chaptermark}[1]{\@mkboth{\thechapter\  ~~#1}{}}
 \newcommand*{\htu@textcircled}[1]{\lower.7ex\hbox{\tikz\draw (0pt, 0pt)%
@@ -285,30 +244,23 @@
 \renewcommand{\floatpagefraction}{\htu@floatpagefraction}%浮动页由浮动对象占用的最小比例(0.5)
 \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}%搜索指定扩展名
 \DeclareCaptionLabelSeparator{htu}{\hspace{\ccwd}}%图表序与图表名之间空一个汉字
-\DeclareCaptionFont{htu}{\ifhtu@bachelor\xiaosi[1.25]\kaishu%
-                         \else\wuhao[1.5]\fi}
+\DeclareCaptionFont{htu}{\wuhao[1.5]}
 \captionsetup{
   font           = htu,
   labelsep       = htu,
   figureposition = bottom,
   tableposition  = top,
 }
-\ifhtu@bachelor%段前空6磅，段后空12磅
-  \captionsetup[table]{belowskip={12bp-\intextsep},aboveskip=\htu@caption@table@aboveskip}
-\else%段前空6磅，段后空6磅
-  \captionsetup[table]{belowskip={\htu@caption@table@belowskip},aboveskip=\htu@caption@table@aboveskip}
-\fi
+\captionsetup[table]{belowskip={\htu@caption@table@belowskip},aboveskip=\htu@caption@table@aboveskip}
 \captionsetup[figure]{%段前空6磅，段后空12磅
   belowskip={\htu@caption@figure@belowskip-\intextsep},aboveskip=\htu@caption@figure@aboveskip}
 \captionsetup[sub]{font=htu,skip=\htu@caption@sub@skip}
 \renewcommand{\thesubfigure}{(\alph{subfigure})}%子图形编号：字母
 \renewcommand{\thesubtable}{(\alph{subtable})}%子表格编号：字母
 \let\old@tabular\@tabular
-\def\htu@tabular{\ifhtu@bachelor\xiaosi[1.25]\kaishu%
-                 \else\wuhao[1.5]\fi\old@tabular}%
+\def\htu@tabular{\wuhao[1.5]\old@tabular}%
 \let\htu@LT@array\LT@array%长表格
-\def\LT@array{\ifhtu@bachelor\xiaosi[1.25]\kaishu%
-              \else\wuhao[1.5]\fi\htu@LT@array}
+\def\LT@array{\wuhao[1.5]\htu@LT@array}
 \newcolumntype{Z}{>{\centering\arraybackslash}X}%居中自动调整
 \newcommand\Xhline[1]{\noalign{\ifnum0=`}\fi\arrayrulewidth#1%
         \ifx\hline\LT@hline\let\@xhline\LT@@hline\fi
@@ -349,9 +301,9 @@
   chapter={%一级标题：黑体16磅，段前24磅，段后18磅
     afterindent=true,
     pagestyle={htu@headings},
-    beforeskip={\ifhtu@bachelor 15bp\else \htu@chapter@beforeskip\fi},
+    beforeskip=\htu@chapter@beforeskip,
     aftername=\hskip\ccwd,
-    afterskip={\ifhtu@bachelor 20bp\else \htu@chapter@afterskip\fi},
+    afterskip=\htu@chapter@afterskip,
     format={\sffamily\sanhao[\htu@chapter@linespread]},
     name=\relax,
     nameformat=\relax,
@@ -361,27 +313,23 @@
   },
   section={%二级标题：黑体14磅，段前24磅，段后6磅
     afterindent=true,
-    beforeskip={\ifhtu@bachelor 25bp\else \htu@section@beforeskip\fi\@plus .5ex \@minus .2ex},
-    afterskip={\ifhtu@bachelor 12bp\else \htu@section@afterskip\fi \@plus .2ex},
-    format={\sffamily\ifhtu@bachelor\sihao[1.286]\else\sihao[\htu@section@linespread]\fi},
+    beforeskip={\htu@section@beforeskip \@plus .5ex \@minus .2ex},
+    afterskip={\htu@section@afterskip \@plus .2ex},
+    format={\sffamily\sihao[\htu@section@linespread]},
   },
   subsection={%三级标题：段前12磅，段后6磅
     afterindent=true,
-    indent={\ifhtu@bachelor\parindent%本科缩进两字符
-            \else 0pt\fi},%硕博
+    indent=0pt,
     beforeskip={\htu@subsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsection@afterskip \@plus .2ex},
-    format={\sffamily\ifhtu@bachelor\xiaosi[1.25]%本科
-            \else\banxiaosi[\htu@subsection@linespread]\fi},%硕博黑体13磅
+    format={\sffamily\banxiaosi[\htu@subsection@linespread]},
   },
   subsubsection={%四级标题：段前12磅，段后6磅
     afterindent=true,
-    indent={\ifhtu@bachelor\parindent%本科缩进两字符
-            \else 0pt\fi},%硕博
+    indent=0pt,
     beforeskip={\htu@subsubsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsubsection@afterskip \@plus .2ex},
-    format={\ifhtu@bachelor\xiaosi[1.25]%本科
-            \else\sffamily\xiaosi[\htu@subsubsection@linespread]\fi},%硕博
+    format={\sffamily\xiaosi[\htu@subsubsection@linespread]},
   },
   paragraph/afterindent=true,
   subparagraph/afterindent=true}
@@ -398,7 +346,7 @@
     {\htu@@@chapter[#1]{#2}}
     {\htu@@@chapter[#1]{#2}[]}}
 \def\htu@@@chapter[#1]#2[#3]{%
-  \ifhtu@doctor\cleardoublepage\else\clearpage\fi\phantomsection%
+  \cleardoublepage\phantomsection%
   \def\@tmpa{#1}
   \def\@tmpb{#3}
   \ifx\@tmpa\@empty
@@ -430,14 +378,12 @@
 \renewcommand\tableofcontents{%
   \htu@chapter*[]{\contentsname}
   \@starttoc{toc}\normalsize}
-\renewcommand\listoffigures{%本科无图和附表清单
-  \ifhtu@bachelor\relax\else
+\renewcommand\listoffigures{%
   \htu@chapter*[]{\listfigurename}
-  \@starttoc{lof}\fi}
+  \@starttoc{lof}}
 \renewcommand\listoftables{%
-  \ifhtu@bachelor\relax\else
   \htu@chapter*[]{\listtablename}
-  \@starttoc{lot}\fi}
+  \@starttoc{lot}}
 \titlecontents{chapter}[\z@]{\vspace{6bp}\sihao[1]}
   {{\thecontentslabel}\quad}{}
   {\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
@@ -479,12 +425,7 @@
 \htu@def@term{emajor}
 \htu@def@term{edepartment}
 \htu@def@term{edate}
-\ifhtu@bachelor
-  \submitdate{\CJK@todaysmall}%
-  \cdate{\CJK@todaysmall}%
-\else
   \cdate{\CJK@todaysmall@short}%
-\fi
 \edate{\ifcase \month \or January\or February\or March\or April\or May%
        \or June\or July \or August\or September\or October\or November
        \or December\fi\unskip,\ \ \the\year}
@@ -495,112 +436,56 @@
 \newcommand{\htu@first@titlepage}{%论文中文封面
   \thispagestyle{htu@empty}
   \begin{center}
-    \ifhtu@bachelor%%本科毕业论文
-      \vspace*{2.4cm}
-      {\includegraphics{zzubachelor}}
-      \par\vskip2.4cm
-      \hspace*{1cm}\sffamily\sanhao\htu@bachelor@title@pre\htu@title@sep
-      \parbox[t]{10cm}{%
-        \setbox0=\hbox{{\sanhao[1.55]\htu@ctitle}}
-        \begin{picture}(0,0)(0,0)
-          \setlength\unitlength{1cm}
-          \linethickness{.5\p@}
-          \put(0,-0.25){\line(1,0){10}}
-          \ifdim\wd0>10cm
-            \put(0,-1.12){\line(1,0){10}}
-          \fi
-        \end{picture}%
-        \ignorespaces\sanhao[1.55]\htu@ctitle\par
-        \setbox0=\hbox{{\sanhao[1.55]\htu@etitle}}
-        \begin{picture}(0,0)(0,0)
-          \setlength\unitlength{1cm}
-          \linethickness{.5\p@}
-          \put(0,-0.25){\line(1,0){10}}
-          \ifdim\wd0>10cm
-            \put(0,-1.12){\line(1,0){10}}
-          \fi
-        \end{picture}%
-        \ignorespaces\sanhao[1.55]\htu@etitle\par
-        \vskip.5cm
-        \setlength{\htu@title@width}{2.8cm}
-        \htu@put@title{\htu@supervisor@title\htu@title@sep}%
-          \htu@underline[3cm]{\hfill\htu@csupervisor\hfill}\hfill
-        \setlength{\htu@title@width}{1.8cm}
-        \htu@put@title{\htu@protitle@title\htu@title@sep}%
-          \htu@underline[2cm]{\hfill\htu@protitle\hfill}}\par
-        \vspace*{\stretch{1}}
-        \hspace*{0.8cm}\parbox[t][4.0cm][t]{22em}{{\xiaosan[1.8]\rmfamily
-          \setlength{\htu@title@width}{4\ccwd}
-          \htu@put@title{\htu@author@title}\htu@title@sep%
-            \htu@underline[6em]{\htu@cauthor}\hspace*{8bp}
-          \htu@stuno@title\htu@title@sep\htu@underline[8em]{\htu@stuno}\par
-          \htu@put@title{\htu@major@title}\htu@title@sep%
-            \htu@underline[18em]{\htu@cmajor}\par
-          \htu@put@title{\htu@department@title}\htu@title@sep%
-            \htu@underline[18em]{\htu@cdepartment}\par
-          \htu@put@title{\htu@cdate@title}\htu@title@sep%
-            \htu@underline[18em]{\htu@cdate}\par}}
-        \vspace*{\stretch{1}}
-        \begin{center}
-          {\xiaosan\rmfamily\htu@submitdate}
-        \end{center}
-    \else%研究生学位论文
-      \noindent\begin{minipage}{.49\textwidth}
-        \begin{flushleft}
-          \includegraphics[width=3.35cm]{zzulogo}
-        \end{flushleft}
-      \end{minipage}
-      \hfill
-      \noindent\begin{minipage}{.49\textwidth}
-        \begin{flushright}
-          \kaishu\sihao
-        \setlength{\htu@title@width}{6em}
-        \begin{tabular}{p{\htu@title@width}@{~}l}
-          \htu@put@title{\htu@schoolcode@title} & 
-            \htu@underline[9em]{\htu@schoolcode}\\[1ex]
-          \htu@put@title{\htu@id@title} & 
-            \htu@underline[9em]{\htu@id}\\[1ex]
-          \htu@put@title{\htu@secretlevel@title} & 
-            \htu@underline[9em]{\htu@secretlevel}\\
-          \end{tabular}
-        \end{flushright}
-      \end{minipage}
+    \noindent\begin{minipage}{.49\textwidth}
+      \begin{flushleft}
+        \includegraphics[width=3.35cm]{zzulogo}
+      \end{flushleft}
+    \end{minipage}
+    \hfill
+    \noindent\begin{minipage}{.49\textwidth}
+      \begin{flushright}
+        \kaishu\sihao
+      \setlength{\htu@title@width}{6em}
+      \begin{tabular}{p{\htu@title@width}@{~}l}
+        \htu@put@title{\htu@schoolcode@title} &
+          \htu@underline[9em]{\htu@schoolcode}\\[1ex]
+        \htu@put@title{\htu@id@title} &
+          \htu@underline[9em]{\htu@id}\\[1ex]
+        \htu@put@title{\htu@secretlevel@title} &
+          \htu@underline[9em]{\htu@secretlevel}\\
+        \end{tabular}
+      \end{flushright}
+    \end{minipage}
+    \vskip \stretch{1}
+    \begin{center}
+      {\includegraphics{zzu}}
+      \par\vskip.6cm
+      {\ziju{0.5}\xiaochu\sffamily\htu@subtitle}
       \vskip \stretch{1}
-      \begin{center}
-        {\includegraphics{zzu}}
-        \par\vskip.6cm
-        {\ziju{0.5}\xiaochu\sffamily\htu@subtitle}
-        \vskip \stretch{1}
-        \kaishu\erhao[1.5] \htu@ctitle
-        \vskip \stretch{1}
-        \setlength{\htu@title@width}{4\ccwd}
-        \kaishu\sanhao[1.25]
-        \def\tabcolsep{\p@}%\tabcolsep：tabular环境中两列标准间隔的一半
-        \def\arraystretch{1.5}%\arraystretch表格行距的缩放比例因子（缺省为1）
-        \begin{tabular}{p{\htu@title@width}l@{}l}
-          \htu@put@title{\htu@author@title} &  \htu@title@sep & 
-            \htu@underline[150pt]{\htu@cauthor}
-        \\
-          \htu@put@title{\htu@supervisor@title} &  \htu@title@sep & 
-            \htu@underline[150pt]{\htu@csupervisor\hspace{\ccwd}\htu@protitle}
-        \\ 
-          \htu@put@title{\htu@subject@title} &  \htu@title@sep & 
-            \htu@underline[150pt]{\htu@csubject}
-        \\
-          \htu@put@title{\htu@major@title} &  \htu@title@sep & 
-            \htu@underline[150pt]{\htu@cmajor}
-        \\
-        \ifhtu@doctor\else
-          \htu@put@title{\htu@department@title} &  \htu@title@sep & 
-            \htu@underline[150pt]{\htu@cdepartment}
-        \\
-        \fi
-          \htu@put@title{\htu@cdate@title} &  \htu@title@sep & 
-            \htu@underline[150pt]{\htu@cdate}
-        \end{tabular}\\
-        \vskip \stretch{1}
-      \end{center}
-    \fi
+      \kaishu\erhao[1.5] \htu@ctitle
+      \vskip \stretch{1}
+      \setlength{\htu@title@width}{4\ccwd}
+      \kaishu\sanhao[1.25]
+      \def\tabcolsep{\p@}%\tabcolsep：tabular环境中两列标准间隔的一半
+      \def\arraystretch{1.5}%\arraystretch表格行距的缩放比例因子（缺省为1）
+      \begin{tabular}{p{\htu@title@width}l@{}l}
+        \htu@put@title{\htu@author@title} &  \htu@title@sep &
+          \htu@underline[150pt]{\htu@cauthor}
+      \\
+        \htu@put@title{\htu@supervisor@title} &  \htu@title@sep &
+          \htu@underline[150pt]{\htu@csupervisor\hspace{\ccwd}\htu@protitle}
+      \\
+        \htu@put@title{\htu@subject@title} &  \htu@title@sep &
+          \htu@underline[150pt]{\htu@csubject}
+      \\
+        \htu@put@title{\htu@major@title} &  \htu@title@sep &
+          \htu@underline[150pt]{\htu@cmajor}
+      \\
+        \htu@put@title{\htu@cdate@title} &  \htu@title@sep &
+          \htu@underline[150pt]{\htu@cdate}
+      \end{tabular}\\
+      \vskip \stretch{1}
+    \end{center}
   \end{center}} % end of titlepage
 \newcommand{\htu@engcover}{%硕士和博士论文英文封面
   \thispagestyle{htu@empty}
@@ -608,19 +493,11 @@
   \begin{center}
     \parbox[t][5.8cm][t]{\paperwidth-7.2cm}{
       \renewcommand{\baselinestretch}{1.5}
-      \ifhtu@master
-        \begin{center}
-          \sanhao A thesis submitted to\\
-          {\bfseries Zhengzhou University}\\
-          for the degree of Master\\
-        \end{center}
-      \else
         \begin{center}
           \sanhao A dissertation submitted to\\
           {\bfseries Zhengzhou University}\\
           for the degree of Doctor\\
-        \end{center}
-      \fi}
+        \end{center}}
     \vskip \stretch{1}
     \parbox[t][5.2cm][t]{\paperwidth-7.2cm}{
       \renewcommand{\baselinestretch}{1.5}
@@ -690,13 +567,10 @@
   \normalsize%
   \begin{titlepage}
     \htu@first@titlepage
-    \ifhtu@bachelor\clearpage
-    \else
-      \ifhtu@doctor\cleardoublepage\else\clearpage\fi
-      \htu@engcover
-      \ifhtu@doctor\cleardoublepage\else\clearpage\fi
-      \htu@authorization@mk
-    \fi%
+    \cleardoublepage
+    \htu@engcover
+    \cleardoublepage
+    \htu@authorization@mk
   \end{titlepage}
   \normalsize
   \htu@makeabstract
@@ -730,11 +604,11 @@
 \newcommand\htu@put@keywords[2]{%
   \begingroup
     \setbox\htu@kw=\hbox{#1}
-    \ifhtu@bachelor\indent\else\noindent\hangindent\wd\htu@kw\hangafter1\fi%
+    \noindent\hangindent\wd\htu@kw\hangafter1%
     \box\htu@kw#2\par
   \endgroup}
 \newcommand{\htu@makeabstract}{%
-  \ifhtu@doctor\cleardoublepage\else\clearpage\fi
+  \cleardoublepage
   \htu@chapter*[]{\cabstractname} % no tocline
   \pagestyle{htu@headings}
   \pagenumbering{Roman}
@@ -745,13 +619,13 @@
   \htu@eabstract
   \vskip\htu@abstract@keywordskip
   \htu@put@keywords{%
-    \textbf{\ifhtu@bachelor Keywords:\else Key Words:\fi\enskip}}{\htu@ekeywords}%
+    \textbf{Key Words:\enskip}}{\htu@ekeywords}%
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 主要符号对照表
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newenvironment{denotation}[1][2.5cm]{
-  \ifhtu@doctor\cleardoublepage\else\clearpage\fi
+  \cleardoublepage
   \htu@chapter*[]{\htu@denotation@name}
   \noindent\begin{list}{}%
     {\vskip-30bp\wuhao[1.524]%宋体五号(10.5磅)，行距16磅
@@ -770,22 +644,8 @@
 %% 致谢
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newenvironment{ack}{%
-    \ifhtu@doctor\cleardoublepage\else\clearpage\fi
+    \cleardoublepage
     \htu@chapter*{\htu@ackname}
-    \fangsong\xiaosi[1.524]%仿宋五号，固定行距16磅
-  }{}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 综述
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newenvironment{review}{%
-    \ifhtu@doctor\cleardoublepage\else\clearpage\fi
-    \ctexset{chapter/format+=\raggedright}
-    \htu@chapter*{\htu@review@title}
-    \begin{center}
-      \sanhao[1.55]
-      \htu@ctitle \\
-      综述 \htu@cauthor\hspace{2em} 审校 \htu@csupervisor
-    \end{center}
     \fangsong\xiaosi[1.524]%仿宋五号，固定行距16磅
   }{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
