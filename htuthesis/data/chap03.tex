@@ -1,0 +1,321 @@
+%%================================================
+%% Filename: chap03.tex
+%% Encoding: UTF-8
+%% Author: Yuan Xiaoshuai - yxshuai@gmail.com
+%% Created: 2012-04-27 19:47
+%% Last modified: 2019-11-07 14:38
+%%================================================
+\chapter{关于该模板的使用}
+\label{cha:usage}
+
+模板中定义了一系列的命令与环境来实现论文的排版，其主要分为格式控制和内容替换两类，格式控制如字体、字号、字距和行距等，内容替换如姓名、院系、专业、致谢等等。模板自带的示例文档里面基本涵盖了论文写作用到的所有命令和环境的使用方法，只需要用自己的内容进行相应替换就可以。本章将会对模板中的命令及其使用作一简要介绍。
+
+\section{\htuthesis{} 示例文件}
+
+下面的例子描述了模板中章节的组织形式，来自于示例文档，具体内容可以参考模板附
+带的 \emph{main.tex} 和 \emph{data}\//。
+
+\lstinputlisting[firstline=8,style=lstStyleLaTeX]{main.tex}
+
+\section{模板选项}
+\label{sec:option}
+
+\begin{latex}
+\documentclass[bachelor]{zzuthesis}|
+\end{latex}
+
+论文类型是模板的必选项，在使用该文档类时，必须指定论文类型。其中 \textbf{bachelor}、\textbf{master}、\textbf{doctor} 分别代表本科毕业设计论文、硕士研究生学位论文、博士研究生学位论文。除了必选项之外，\emph{zzuthesis.cls} 中载入ctexbook类时默认选项有：\texttt{zihao=-4}，\texttt{a4paper}，\texttt{UTF8} 和 \texttt{scheme=plain}。当指定必选项为\textbf{doctor} 选项时，默认载入 \textbf{openright} 选项，此时文档章节出现在奇数页，适合双面打印；指定 \textbf{bachelor} 或 \textbf{master} 选项时，默认载入 \textbf{openany} 选项，用于单面打印。如果需要更改，则需要修改 \emph{zzuthesis.cls} 的定义。
+
+示例文档 \emph{main.tex} 导言区还定义了图形文件的搜索路径，即命令
+\begin{latex}
+\graphicspath{}
+\end{latex}
+在模板 \emph{.cls} 文档中，命令
+\begin{latex}
+\DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}|
+\end{latex}
+定义了搜索图形文件的扩展名。
+
+此外，由于本科论文与研究生论文要求内容及排布次序不同，为了尽量减少更改文档类型
+时需要修改的选项，示例文档 \emph{main.tex} 中用到了 
+\begin{latex}
+\ifzzu@bachelor
+\end{latex}
+等条件判断命令，以自动控制内容的显示及插入次序。由于该命令中含有@字符，
+故在使用该命令前需要先用命令
+\begin{latex}
+\makeatletter
+\end{latex}
+之后还要用
+\begin{latex}
+\makeatother
+\end{latex}
+恢复其定义。事实上，完全可以删除这些不必要的内容。
+
+\section{基本控制命令}
+
+\subsection*{字体}
+
+模板采用 ctex 宏包中定义的字体命令对字体进行控制，比如
+\begin{latex}
+\songti     % 宋体
+\fangsong   % 仿宋
+\kaishu     % 楷书
+\heiti      % 黑体
+\end{latex}
+具体可参考相应文档。
+
+\subsection*{字号}
+
+\verb|\chuhao| 等命令定义了一组字体大小，分别为：
+
+\begin{center}
+\begin{tabular}{lllll}
+\hline
+\verb|\chuhao|&\verb|\xiaochu|&\verb|\yihao|&\verb|\xiaoyi|&\\
+\verb|\erhao|&\verb|\xiaoer|&\verb|\sanhao|&\verb|\xiaosan|&\\
+\verb|\sihao|&\verb|\banxiaosi|&\verb|\xiaosi|&\verb|\wuhao|&\verb|\xiaowu|\\
+\verb|\liuhao|&\verb|\xiaoliu|&\verb|\qihao|&\verb|\bahao|&\\\hline
+\end{tabular}
+\end{center}
+
+使用方法为：
+\begin{latex}
+\command[<num>]
+\end{latex}
+其中 \texttt{command} 为字号命令，
+\texttt{num} 为行距。比如
+\begin{latex}
+\xiaosi[1.5]
+\end{latex}
+表示选择小四字体，行距 1.5 倍。
+
+\subsection*{其它命令}
+
+以下命令是为了模板示例文档而定义的，一般不会用到：
+\begin{latex}
+\TeXLive   % TeXLive 发行版名称。
+\zzuthesis % 模板名称
+\version   % 模板版本号
+\end{latex}
+
+\section{封面及版权声明、摘要}
+\label{sec:cover}
+
+\subsection*{封面}
+
+封面格式已经在模板中定义，只需填入相应信息即可。
+\begin{itemize}
+\item 本科毕业设计论文：
+  \begin{itemize}
+    \item 中文标题 \verb|\ctitle{<title>}|
+    \item 英文标题 \verb|\etitle{<title>}|
+    \item 指导老师 \verb|\csupervisor{<name>}|
+    \item 职称 \verb|\protitle{<title>}|
+    \item 学生姓名 \verb|\cauthor{<name>}|
+    \item 学号 \verb|\stuno{<number>}|
+    \item 专业 \verb|\cmajor{<major>}|
+    \item 院系 \verb|\cdepartment{<department>}|
+    \item 完成时间 \verb|\cdate{<date>}|
+    \item 提交时间 \verb|\submitdate{<date>}|
+  \end{itemize}
+\item 硕士学位论文：
+  \begin{itemize}
+    \item 学校代码 \verb|\schoolcode{<number>}|
+    \item 学号或申请号 \verb|\id{<number>}|
+    \item 密级 \verb|\secretlevel{<level>}|
+    \item 中文标题 \verb|\ctitle{<title>}|
+    \item 作者姓名 \verb|\cauthor{<name>}|
+    \item 导师姓名 \verb|\csupervisor{<name>}|
+    \item 职称 \verb|\protitle{<title>}|
+    \item 学科门类 \verb|\csubject{<subject>}|
+    \item 专业名称 \verb|\cmajor{<major>}|
+    \item 培养院系 \verb|\cdepartment{<department>}|
+    \item 完成时间 \verb|\cdate{<date>}|
+  \end{itemize}
+\item 博士学位论文需要填入的信息无“培养院系”命令，其它与硕士相同。
+\item 硕士与博士学位论文英文封面需填入的信息相同，均为：
+  \begin{itemize}
+    \item 英文题目 \verb|\ctitle{<title>}|
+    \item 作者 \verb|\eauthor{<name>}|
+    \item 导师 \verb|\esupervisor{<name>}|
+    \item 专业 \verb|\emajor{<major>}|
+    \item 院系 \verb|\edepartment{<department>}|\footnote{《规范》中仅提供一个英文封面，博士似乎不应有此项信息。
+}
+    \item 时间 \verb|\edate{<date>}|。
+  \end{itemize}
+\end{itemize}
+以上信息及相应命令在 \emph{data/cover.tex} 均有示例，使用时一般也应在该文件中
+修改。其中，模板默认本科论文中提交时间为当前日期，研究生论文中完成时间也默认为
+当前日期，其它命令默认为空。
+
+版权声明在 \emph{zzuthesis.cls} 中定义，内容及格式已固定，一般不需要修改，也
+没有需要填入的信息。
+
+\subsection*{摘要}
+
+\begin{latex}
+\begin{cabstract}
+ 摘要请写在这里...
+\end{cabstract}
+\begin{eabstract}
+ here comes English abstract...
+\end{eabstract}
+\end{latex}
+
+摘要标题的定义用命令：
+\begin{latex}
+\zzu@chapter*[tocline]{title}[header]
+\end{latex}
+该命令通过两个可选项\texttt{tocline} 和 \texttt{header} ，可以控制标题是否在目
+录或者页眉中出现，非常强大。该模板中目录、图和附表清单、参考文献、符号说明、致
+谢、附录、个人简历等标题的定义均用到了该命令。
+
+\subsection*{关键词}
+
+关键词用英文逗号分割写入相应的命令中，模板会解析各关键词并生成符合不同论文格式
+要求的关键词格式。
+\begin{latex}
+\ckeywords{关键词 1, 关键词 2}
+\ekeywords{keyword 1, key word 2}
+\end{latex}
+
+\section{正文章节}
+\label{sec:mainbody}
+
+论文各章节标题的格式通过ctex宏包中的ctexset命令实现
+\begin{latex}
+\ctexset{
+  chapter={<format>},
+  section={<format>},
+  subsection={<format>},
+  subsubsection={<format>}
+}
+\end{latex}
+
+论文正文部分字号与行距的定义通过对文档类中 \verb|\normalsize| 命令修改而得到；
+其中本科论文要求行距为1.25倍，但由于\LaTeX{}中行距的定义与Word中存在区别，\LaTeX{}行
+距设置为1.25倍时略嫌小，采取与研究生论文同样的固定20磅行距时较为接近。
+
+\section{参考文献}
+\label{sec:bib}
+
+关于参考文献模板推荐使用\BibTeX{}，文献库采用 \emph{bib} 格式
+的文献引用信息，通常的文献管理软件均能比较方便的导出该格式的文件。
+
+模板中使用命令 \verb|\cite{}| 表示上标标注，并另外定义了 \verb|\onlinecite{}|
+命令，作为形文中的参考文献标注。
+
+下面是示例：
+
+上标引用 \cite{chen2001,nadkarni1992,hua1973,zhu1973,huo1981,timoshenko1959,zhang1991,dupont1974,ding2001,cairns1965,patent,standard,wang2005}。
+
+有时候不想要上标，那么可以这样 \onlinecite{chen2001}。如果有不如意的地方，请手动修改\emph{bbl} 文件。
+
+\section{其它部分}
+\label{sec:otherparts}
+
+\subsection*{符号对照表}
+
+简单定义的一个 list，跟 description 非常类似，使用方法参见示例文件。带一个可选
+参数，用来指定符号列的宽度（默认为 $2.5\,\mathrm{cm}$）。
+\begin{latex}
+\begin{denotation}[1.5cm]
+  \item[E] 能量
+  \item[m] 质量
+  \item[c] 光速
+\end{denotation}
+\end{latex}
+
+\subsection*{目录、图和附表清单}
+
+模板中章节编号深度 \texttt{secnumdepth} 定义为3，即四级编号；目录深度
+\texttt{tocdepth} 定义为2，即目录中显示三级标题。在 \emph{main.tex} 文件中使用
+命令 
+\begin{latex}
+\tableofcontents
+\end{latex}
+可以生成目录。
+
+模板将插图和附表清单分开，使用命令 
+\begin{latex}
+\listoffigures
+\listoftables
+\end{latex}
+可以分别生成插图清单和表格清单，将其插入到期望的位置即可。
+
+目录和插图及附表清单标题的格式分别通过重新定义上述三个命令实现；目录和清单条目格式的定义均是利用 \textbf{titletoc} 宏包中的
+\begin{latex}
+\titlecontents{<section>}[<left>]{<above>}
+              {<before with label>}{<before without label>}
+              {<filter and page>}[<after>]
+\end{latex}
+命令。
+
+需要注意的是，由于本科论文不要求插图和附表清单，故在重新定义相应命令时将其定义为空命令，从而避免本科论文显示插图和附表清单。
+
+\subsection*{简历}
+
+新定义的环境 \texttt{resume}，其中可以包含子标题，如发表的学术论文等，用
+\begin{latex}
+\resumeitem{}
+\end{latex}
+命令即可，例子在示例文档 \emph{data/resume.tex}。
+
+\subsection*{附录}
+
+附录会更改默认的 \texttt{chapter} 属性，故所有附录均插入到 \texttt{appendix} 环境中，避免影响后
+文内容。
+\begin{latex}
+\begin{appendix}
+ \input{data/app01}
+ \input{data/app02}
+\end{appendix}
+\end{latex}
+
+\subsection*{致谢}
+
+用法跟摘要、简历等类似，没什么可说的，看示例：\emph{data/ack.tex}。
+
+\subsection*{注释及文中数量符号}
+
+文中注释采用脚注，命令为 
+\begin{latex}
+\footnote{}
+\end{latex}
+显示格式为\LaTeX{}默认，仅修改了脚注字体大小及行距，通过对命令
+\begin{latex}
+\footnotesize
+\end{latex}
+进行修改实现。
+
+量的符号一般为单个拉丁字母或希腊字母，并一律采用斜体（$\mathrm{pH}$例外）。为
+区别不同情况，可在量符号上附加角标。在表达量值时，在公式、图、表和文字叙述中，
+一律使用单位的国际符号，且无例外地用正体。单位符号与数值间要留适当间隙。建议统
+一使用公式输入，其中单位需使用 \verb|\mathrm| 命令，单位符号与数值间的间隙用命
+令 \verb|$\,$|。示例：量的符号
+\begin{latex}
+$t_d$
+\end{latex}
+显示为$t_d$，单位数值
+\begin{latex}
+$12\,\mathrm{kg}$
+\end{latex}
+显示为$12\,\mathrm{kg}$。
+
+\subsection*{列表环境}
+
+为了适合中文习惯，模板调用 \textbf{enumitem} 宏包，对 \texttt{itemize}、 \texttt{enumerate} 和 \texttt{description} 三个常用的列表环境进行了调整，一方面减少了多余空间，另一方面可以自己指定标签的样式和符号。细节请参看 \textbf{enumitem} 文档，示例：
+\begin{enumerate}
+\item 编号列表示例
+  \begin{enumerate}
+    \item 次级编号列表
+      \begin{enumerate}
+        \item 三级编号列表
+        \item 三级编号列表
+        \item 三级编号列表
+      \end{enumerate}
+    \item 次级编号列表
+  \end{enumerate}
+\item 编号列表示例
+\end{enumerate}

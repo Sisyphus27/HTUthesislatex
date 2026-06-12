@@ -1,0 +1,84 @@
+%%================================================
+%% Filename: docutils.sty
+%% Encoding: UTF-8
+%% Author: Yuan Xiaoshuai - yxshuai@gmail.com
+%% Created: 2012-05-06 15:05
+%% Last modified: 2020-01-03 23:59
+%%================================================
+\ProvidesPackage{docutils}
+[2020/01/03 5.0.1 Packages used in Documentation.]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 长表格：模板中使用supertabular的脚注环境。TODO
+%%         但在本模板示例中使用该环境时，表格长度超过一页时，页面下边距过大！
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \RequirePackage{supertabular}%长表格
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 代码演示环境
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{xcolor}%颜色
+\RequirePackage{listings}
+\lstdefinestyle{lstStyleBase}{%
+   basicstyle=\small\ttfamily,
+   aboveskip=\medskipamount,
+   belowskip=\medskipamount,
+   lineskip=0pt,
+   boxpos=c,
+   showlines=false,
+   extendedchars=true,
+   upquote=true,
+   tabsize=2,
+   showtabs=false,
+   showspaces=false,
+   showstringspaces=false,
+   numbers=none,
+   linewidth=\linewidth,
+   xleftmargin=4pt,
+   xrightmargin=0pt,
+   resetmargins=false,
+   breaklines=true,
+   breakatwhitespace=false,
+   breakindent=0pt,
+   breakautoindent=true,
+   columns=flexible,
+   keepspaces=true,
+   gobble=0,
+   framesep=3pt,
+   rulesep=1pt,
+   framerule=1pt,
+   backgroundcolor=\color{gray!5},
+   stringstyle=\color{green!40!black!100},
+   keywordstyle=\bfseries\color{blue!50!black},
+   commentstyle=\color{black!50}}
+
+\lstdefinestyle{lstStyleShell}{%
+   style=lstStyleBase,
+   frame=l,
+   rulecolor=\color{purple},
+   language=bash}
+
+\lstdefinestyle{lstStyleLaTeX}{%
+   style=lstStyleBase,
+   frame=l,
+   rulecolor=\color{violet},
+   language=[LaTeX]TeX}
+
+\lstnewenvironment{latex}{\lstset{style=lstStyleLaTeX}}{}
+\lstnewenvironment{shell}{\lstset{style=lstStyleShell}}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 自定义命令
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\RequirePackage{metalogo}%XeLaTeX Logo
+\RequirePackage{xspace}%TeXLive Logo
+\DeclareRobustCommand{\BibTeX}{B\kern-.05em%
+    \hbox{$\m@th$% %% force math size calculations
+          \csname S@\f@size\endcsname
+          \fontsize\sf@size\z@
+          \math@fontsfalse\selectfont
+          I\kern-.025emB}%
+    \kern-.08em%
+    \-\TeX}
+\def\TeXLive{\TeX{} Live\xspace}
+\endinput
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% End of file `docutils.sty'.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

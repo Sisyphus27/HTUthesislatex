@@ -1,0 +1,576 @@
+%%================================================
+%% Filename: chap04.tex
+%% Encoding: UTF-8
+%% Author: Yuan Xiaoshuai - yxshuai@gmail.com
+%% Created: 2012-04-28 00:15
+%% Last modified: 2019-11-06 17:39
+%%================================================
+\chapter{常用排版示例}
+\label{cha:example}
+
+\section{插图示例}
+\label{sec:figure}
+
+\subsection{\LaTeX~中推荐使用的图片格式}
+
+在~\LaTeX~中应用最多的图片格式是~EPS（Encapsulated PostScript）格式，它是一种
+专用的打印机描述语言，常用于印刷或打印输出。EPS~格式图片可通过多种方式生成，
+如果使用命令行界面，则可以用 ImageMagick，其可将其它格式图片转换为~EPS~格式图
+片，同时还可以锐化图片，使图片的局部清晰一些。
+
+ImageMagick 包含多个命令行程序,其中最常用的是 \texttt{convert}。
+\begin{shell}
+convert [可选参数] 原文件名.原扩展名 新文件名.eps
+\end{shell}
+
+除此之外，一些文字处理软件和科学计算软件也支持生成~EPS~格式的文件，可用“另存
+为”功能查看某款软件是否能够将图片以~EPS~格式的形式保存。
+
+\subsection{插入单幅图形}
+
+插图通常需要占据大块空白，所以在文字处理软件中用户经常需要调整插图的位置。
+\LaTeX~有一个 \texttt{figure} 环境可以自动完成这样的任务，这种自动调整位置的环
+境称作浮动环境(float)，之后还会介绍表格浮动环境。
+
+单张图片插入形式如图~\ref{fig:golfer}~所示。
+\begin{figure}[htbp]
+\centering
+\includegraphics[width = 0.3\textwidth]{golfer}
+\caption{打高尔夫球的人}
+\label{fig:golfer}
+\end{figure}
+
+\begin{latex}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.3\textwidth]{golfer}
+\caption{打高尔夫球的人}
+\label{fig:golfer}%应放在\caption{}之后，否则引用时指向的是前一个插图
+\end{figure}
+\end{latex}
+
+上述代码中，\verb|[htbp]| 选项用来指定插图排版的理想位置，这几个字母分别代表
+~here、top、bottom、float page，也就是固定位置、页顶、页尾、单独的浮动页。可
+以使用这几个字母的任意组合，一般不推荐单独使用 \verb|[h]|。如果要强制固定浮动
+图形的位置，还可以用 \textbf{float} 宏包的 \verb|[H]| 选项。
+
+\subsection{插入多幅图形}
+
+\subsubsection*{并排摆放，共享标题}
+
+当我们需要两幅图片并排摆放，并共享标题时，可以在 \texttt{figure} 环境中使用两个
+\begin{latex}
+\includegraphics{}
+\end{latex}
+命令，如图~\ref{fig:fanqingfuming}~所示。
+
+\begin{latex}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.3\textwidth]{qingming}
+\hspace{36pt}
+\includegraphics[width=0.3\textwidth]{fanfu}
+\caption{反清复明}
+\label{fig:fanqingmuming}
+\end{figure}
+\end{latex}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.3\textwidth]{qingming}
+\hspace{36pt}
+\includegraphics[width=0.3\textwidth]{fanfu}
+\caption{反清复明}
+\label{fig:fanqingfuming}
+\end{figure}
+
+\subsubsection*{并排摆放，各有标题}
+
+如果想要两幅并排的图片各有自己的标题，可以在 \texttt{figure} 环境中使用两个
+ \texttt{minipage} 环境，每个环境里插入一个图，如图~\ref{fig:qingming}~和
+~\ref{fig:fanfu}~所示。
+
+\begin{latex}
+\begin{figure}[htbp]
+\centering
+\begin{minipage}[t]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{qingming}
+    \caption{清明}
+    \label{fig:qingming}
+\end{minipage}
+\hspace{36pt}
+\begin{minipage}[t]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fanfu}
+    \caption{反复}
+    \label{fig:fanfu}
+\end{minipage}
+\end{figure}
+\end{latex}
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}[t]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{qingming}
+    \caption{清明}
+    \label{fig:qingming}
+\end{minipage}
+\hspace{36pt}
+\begin{minipage}[t]{0.3\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{fanfu}
+    \caption{反复}
+    \label{fig:fanfu}
+\end{minipage}
+\end{figure}
+
+\subsubsection*{并排摆放，共享标题，各有子标题}
+
+如果想要两幅并排的图片共享一个标题，并各有自己的子标题，可以使用
+\textbf{subcaption} 宏包提供的
+\begin{latex}
+\subcaptionbox{<title>}[<width>]{<insertfigure>}
+\end{latex}
+命令，如图~\ref{fig:subfig_a}~和~\ref{fig:subfig_b}~所示。
+
+\begin{latex}
+\begin{figure}[htbp]
+  \centering
+  \subcaptionbox{清明\label{fig:subfig_a}}[0.3\textwidth]{
+      \includegraphics[width=0.3\textwidth]{qingming}
+  }
+  \hspace{36pt}
+  \subcaptionbox{反复\label{fig:subfig_b}}[0.3\textwidth]{
+      \includegraphics[width=0.3\textwidth]{fanfu}
+  }
+  \caption{反清复明}
+\end{figure}
+\end{latex}
+
+每个子图可以有各自的引用，就象这个样子：\ref{fig:subfig_a}、
+\ref{fig:subfig_b}。
+
+\begin{figure}[htbp]
+\centering
+\subcaptionbox{清明\label{fig:subfig_a}}[0.3\textwidth]{
+    \includegraphics[width=0.3\textwidth]{qingming}
+}
+\hspace{36pt}
+\subcaptionbox{反复\label{fig:subfig_b}}[0.3\textwidth]{
+    \includegraphics[width=0.3\textwidth]{fanfu}
+}
+\caption{反清复明}
+\end{figure}
+
+\section{表格示例}
+\label{sec:table}
+
+模板中关于表格的宏包有四个：\textbf{tabularx}、\textbf{multirow}、
+\textbf{longtable} 和\textbf{booktabs}。长表格还可以用\textbf{supertabular}，
+可以方便地在表格下方加入脚注。
+
+\subsection{普通表格的绘制方法}
+
+\texttt{table} 环境是一个将表格嵌入文本的浮动环境，其标题和交叉引用的用法类似
+于上一节提到的图形浮动环境 \texttt{figure}。该环境提供了最简单的表格功能，常用命令如下
+\begin{latex}
+\hline % 横线
+|      % 竖线
+&      % 分列
+\\     % 换行
+l c r  % 横向居中、居左、居右对齐  
+\end{latex}
+
+科技文献中常使用三线表格，因此需要调用 \textbf{booktabs} 宏包，三条横线就分别
+用
+\begin{latex}
+\toprule
+\midrule
+\bottomrule
+\end{latex}
+等命令表示。其标准格式如表~\ref{table1}~所示。
+
+\begin{table}[htbp]
+\caption{文献类型和标识代码}
+\label{table1}
+\centering
+\begin{tabular}{cccc}
+\toprule
+文献类型 & 标识代码 & 文献类型 & 标识代码\\
+\midrule
+普通图书 & M &  会议录 & C\\
+汇编 & G & 报纸 & N\\
+期刊 & J & 学位论文 & D\\
+报告 & R & 标准 & S\\
+专利 & P & 数据库 & DB\\
+计算机程序 & CP & 电子公告 & EB\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+绘制该表格的代码如下：
+\begin{latex}
+\begin{table}[htbp]
+\caption{表格标题}
+\label{标签名}
+\centering
+\begin{tabular}{cc...c}
+\toprule
+表头第1个格   & 表头第2个格   & ... & 表头第n个格  \\
+\midrule
+表中数据(1,1) & 表中数据(1,2) & ... & 表中数据(1,n)\\
+表中数据(2,1) & 表中数据(2,2) & ... & 表中数据(2,n)\\
+...................................................\\
+表中数据(m,1) & 表中数据(m,2) & ... & 表中数据(m,n)\\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{latex}
+
+\subsection{长表格的绘制方法}
+
+长表格是当表格在当前页排不下而需要转页接排的情况下所采用的一种表格环境。若长
+表格仍按照普通表格的绘制方法来获得，其所使用的 \verb|table| 浮动环境无法实现
+表格的换页接排功能，表格下方过长部分会排在表格第1页的页脚以下。
+
+\begin{longtable}{l@{\hspace{6.5mm}}l@{\hspace{5.5mm}}l}
+\multicolumn{3}{c}{续表~\thetable\hskip1em 中国省级行政单位一览}\\
+\toprule 名称 & 简称 & 省会或首府  \\ \midrule
+\endhead
+\caption{中国省级行政单位一览}
+\label{table2}\\
+\toprule 名称 & 简称 & 省会或首府  \\ \midrule
+\endfirsthead
+\bottomrule
+\multicolumn{3}{r}{续下页}\\
+\endfoot
+\bottomrule
+\endlastfoot
+北京市 & 京 & 北京\\
+天津市 & 津 & 天津\\
+河北省 & 冀 & 石家庄市\\
+山西省 & 晋 & 太原市\\
+内蒙古自治区 & 蒙 & 呼和浩特市\\
+辽宁省 & 辽 & 沈阳市\\
+吉林省 & 吉 & 长春市\\
+黑龙江省 & 黑 & 哈尔滨市\\
+上海市 & 沪/申 & 上海\\
+江苏省 & 苏 & 南京市\\
+浙江省 & 浙 & 杭州市\\
+安徽省 & 皖 & 合肥市\\
+福建省 & 闽 & 福州市\\
+江西省 & 赣 & 南昌市\\
+山东省 & 鲁 & 济南市\\
+河南省 & 豫 & 郑州市\\
+湖北省 & 鄂 & 武汉市\\
+湖南省 & 湘 & 长沙市\\
+广东省 & 粤 & 广州市\\
+广西壮族自治区 & 桂 & 南宁市\\
+海南省 & 琼 & 海口市\\
+重庆市 & 渝 & 重庆\\
+四川省 & 川/蜀 & 成都市\\
+贵州省 & 黔/贵 & 贵阳市\\
+云南省 & 云/滇 & 昆明市\\
+西藏自治区 & 藏 & 拉萨市\\
+陕西省 & 陕/秦 & 西安市\\
+甘肃省 & 甘/陇 & 兰州市\\
+青海省 & 青 & 西宁市\\
+宁夏回族自治区 & 宁 & 银川市\\
+新疆维吾尔自治区 & 新 & 乌鲁木齐市\\
+香港特别行政区 & 港 & 香港\\
+澳门特别行政区 & 澳 & 澳门\\
+台湾省 & 台 & 台北市\\
+北京市 & 京 & 北京\\
+天津市 & 津 & 天津\\
+河北省 & 冀 & 石家庄市\\
+山西省 & 晋 & 太原市\\
+内蒙古自治区 & 蒙 & 呼和浩特市\\
+辽宁省 & 辽 & 沈阳市\\
+吉林省 & 吉 & 长春市\\
+黑龙江省 & 黑 & 哈尔滨市\\
+上海市 & 沪/申 & 上海\\
+江苏省 & 苏 & 南京市\\
+浙江省 & 浙 & 杭州市\\
+安徽省 & 皖 & 合肥市\\
+福建省 & 闽 & 福州市\\
+江西省 & 赣 & 南昌市\\
+山东省 & 鲁 & 济南市\\
+河南省 & 豫 & 郑州市\\
+湖北省 & 鄂 & 武汉市\\
+湖南省 & 湘 & 长沙市\\
+广东省 & 粤 & 广州市\\
+广西壮族自治区 & 桂 & 南宁市\\
+海南省 & 琼 & 海口市\\
+重庆市 & 渝 & 重庆\\
+四川省 & 川/蜀 & 成都市\\
+贵州省 & 黔/贵 & 贵阳市\\
+云南省 & 云/滇 & 昆明市\\
+西藏自治区 & 藏 & 拉萨市\\
+陕西省 & 陕/秦 & 西安市\\
+甘肃省 & 甘/陇 & 兰州市\\
+青海省 & 青 & 西宁市\\
+宁夏回族自治区 & 宁 & 银川市\\
+新疆维吾尔自治区 & 新 & 乌鲁木齐市\\
+香港特别行政区 & 港 & 香港\\
+澳门特别行政区 & 澳 & 澳门\\
+台湾省 & 台 & 台北市\\
+\end{longtable}
+
+表格~\ref{table2}~第~2~页的标题和表头是通过代码自动添加上去的。若表格在页面中
+的竖直位置发生了变化，其在第~2~页及之后各页的标题和表头位置能够始终处于各页的
+最顶部，无需调整。
+
+\subsection{列宽可调表格的绘制方法}
+
+论文中能用到列宽可调表格的情况共有两种，一种是当插入的表格某一单元格内容过长
+以至于一行放不下的情况，另一种是当对公式中首次出现的物理量符号进行注释的情况
+，这两种情况都需要调用 \textbf{tabularx} 宏包。下面将分别对这两种情况下可调表格的绘制
+方法进行阐述。
+
+\subsubsection{表格内某单元格内容过长的情况}
+
+首先给出这种情况下的一个例子如表~\ref{table3}~所示。
+
+\begin{table}[htbp]
+\caption{最小的三个正整数的英文表示法}
+\label{table3}
+\begin{tabularx}{\textwidth}{llX}
+\toprule
+Value & Name & Alternate names, and names for sets of the given size\\
+\midrule
+1 & One & ace, single, singleton, unary, unit, unity\\
+2 & Two & binary, brace, couple, couplet, distich, deuce, double, doubleton, duad, duality, duet, duo, dyad, pair, snake eyes, span, twain, twosome, yoke\\
+3 & Three & deuce-ace, leash, set, tercet, ternary, ternion, terzetto, threesome, tierce, trey, triad, trine, trinity, trio, triplet, troika, hat-trick\\\bottomrule
+\end{tabularx}
+\end{table}
+
+绘制该表格的代码如下：
+
+\begin{latex}
+\begin{table}[htbp]
+\caption{表格标题}
+\label{标签名}
+\begin{tabularx}{\textwidth}{l...X...l}
+\toprule
+表头第1个格   & ... & 表头第X个格   & ... & 表头第n个格  \\
+\midrule
+表中数据(1,1) & ... & 表中数据(1,X) & ... & 表中数据(1,n)\\
+表中数据(2,1) & ... & 表中数据(2,X) & ... & 表中数据(2,n)\\
+.........................................................\\
+表中数据(m,1) & ... & 表中数据(m,X) & ... & 表中数据(m,n)\\
+\bottomrule
+\end{tabularx}
+\end{table}
+\end{latex}
+
+\texttt{tabularx} 环境共有两个必选参数：第1个参数用来确定表格的总宽度，这里取
+为排版表格能达到的最大宽度——正文宽度 \verb|\textwidth|；第2个参数用来确定每列
+格式，其中标为 \verb|X| 的项表示该列的宽度可调，其宽度值由表格总宽度确定。标
+为 \verb|X| 的列一般选为单元格内容过长而无法置于一行的列，这样使得该列内容能
+够根据表格总宽度自动分行。若列格式中存在不止一个 \verb|X| 项，则这些标为
+\verb|X| 的列的列宽相同，因此，一般不将内容较短的列设为 \verb|X| 。标为
+\verb|X| 的列均为左对齐，因此其余列一般选为 \verb|l| （左对齐），这样可使得表格
+美观，但也可以选为 \verb|c| 或 \verb|r|。
+
+\subsubsection{对物理量符号进行注释的情况}
+
+为使得对公式中物理量符号注释的转行与破折号“——”后第一个字对齐，此处最
+好采用表格环境。此表格无任何线条，左对齐，且在破折号处对齐，一共有“式中”二字
+、物理量符号和注释三列，表格的总宽度可选为文本宽度，因此应该采用
+\texttt{tabularx} 环境。由该环境生成的对公式中物理量符号进行注释的公式如式
+(\ref{eq:1})所示。
+
+\begin{equation}
+\label{eq:1}
+\ddot{\symbf{\rho}}-\frac{\mu}{R_t^3}\left(3\symbf{R_t}\frac{\symbf{R_t\rho}}{R_t^2}-\symbf{\rho}\right)=\symbf{a}
+\end{equation}
+\begin{flushleft}
+\renewcommand\arraystretch{1.25}
+\begin{tabularx}{\textwidth}{@{}>{\normalsize\rm}l@{\quad}>{\normalsize\rm}l@{——}>{\normalsize\rm}X@{}}
+式中& $\symbf{\rho}$ &追踪飞行器与目标飞行器之间的相对位置矢量；\\
+&  $\ddot{\symbf{\rho}}$&追踪飞行器与目标飞行器之间的相对加速度；\\
+&  $\symbf{a}$   &推力所产生的加速度；\\
+&  $\symbf{R_t}$ & 目标飞行器在惯性坐标系中的位置矢量；\\
+&  $\omega_{t}$ & 目标飞行器的轨道角速度；\\
+&  $\symbf{g}$ & 重力加速度，$=\frac{\mu}{R_{t}^{3}}\left(
+3\symbf{R_{t}}\frac{\symbf{R_{t}\rho}}{R_{t}^{2}}-\symbf{\rho}\right)=\omega_{t}^{2}\frac{R_{t}}{p}\left(
+3\symbf{R_{t}}\frac{\symbf{R_{t}\rho}}{R_{t}^{2}}-\symbf{\rho}\right)$，这里~$p$~是目标飞行器的轨道半通径。
+\end{tabularx}\vspace{.5ex}%TODO : 注释内容自动转页接排
+\end{flushleft}
+
+其中生成注释部分的代码及其说明如下：
+\begin{latex}
+\begin{tabularx}{\textwidth}{@{}l@{\quad}l@{——}X@{}}
+式中 & symbol-1 & symbol-1的注释内容；\\
+     & symbol-2 & symbol-2的注释内容；\\
+     .............................；\\
+     & symbol-m & symbol-m的注释内容。
+\end{tabularx}
+\end{latex}
+
+\texttt{tabularx} 环境的第1个参数为正文宽度，第2个参数里面各个符号的意义为：
+\begin{itemize}
+\item 第1个@{}表示在“式中”二字左侧不插入任何文本，“式中”二字能够在正文中左对
+齐，若无此项，则“式中”二字左侧会留出一定的空白；
+\item \verb|@{\quad}| 表示在“式中”和物理量符号间插入一个空铅宽度的空白；
+\item \verb|@{——}| 实现插入破折号的功能；
+\item 第2个 \verb|@{}| 表示在注释内容靠近正文右边界的地方能够实现右对齐。
+\end{itemize}
+
+\subsection{小页中的脚注}
+
+关于小页中的脚注，请看下面的例子：
+ 
+\begin{minipage}[t]{\linewidth-\parindent}
+柳宗元，字子厚（773-819），河东（今永济县）人\footnote{山西永济水饺。}，是唐
+代杰出的文学家，哲学家，同时也是一位政治改革家。与韩愈共同倡导唐代古文运动，
+并称韩柳\footnote{唐宋八大家之首二位。}。
+\end{minipage}
+
+\section{数学公式示例}
+\label{sec:equation}
+
+\LaTeX{} 的数学公式有两种形式：行间（inline）模式和独立（display）模式。前者是
+指在正文中插入数学内容；后者独立排列，可以有或者没有编号。行间公式和无编号独立
+公式都有多种输入方法，一般行间公式用 \verb|$|\ldots \verb|$|，无编号独立公式用
+\verb|\[|\ldots \verb|\]|。有编号独立公式则需要用 \texttt{equation} 环境。
+
+注意一下公式显示模式的不同，这个公式为行间模式：
+$\lim_{n \to \infty} \sum_{k=1}^n \frac{1}{k^2} = \frac{\pi^2}{6}$；下面的公式
+是独立模式：
+\[\lim_{n \to \infty} \sum_{k=1}^n \frac{1}{k^2} = \frac{\pi^2}{6}\]
+
+\subsection{多行公式}
+
+\textbf{amsmath} 宏包提供了额外的行间独立（display）公式的结构，主要用于一个
+公式太长一行放不下，或几个公式需要写成一组的情况，该宏包主要提供以下几个环境
+：
+\begin{center}
+\begin{tabular}[c]{cccc}
+equation & align & gather & split \\
+flalign & multline & alignat &  \\
+\end{tabular}
+\end{center}
+
+除了 \texttt{split} 外，其余环境均提供带*的版本，不生成公式编号。
+
+\subsubsection{长公式}
+
+对于多行不需要对齐的长公式，我们可以用 \texttt{multline} 环境。
+\begin{multline}
+\framebox[.65\columnwidth]{A}\\
+\framebox[.5\columnwidth]{B}\\
+\shoveright{\framebox[.5\columnwidth]{C}}\\
+\framebox[.65\columnwidth]{D}
+\end{multline}
+
+其代码如下：
+\begin{latex}
+\begin{multline}
+\framebox[.65\columnwidth]{A}\\
+\framebox[.5\columnwidth]{B}\\
+\shoveright{\framebox[.tt\columnwidth]{C}}\\
+\framebox[.65\columnwidth]{D}
+\end{multline}
+\end{latex}
+
+\texttt{multline} 环境用于单行放不下的长公式，其第一行及最后一行分别居左、居右
+对齐，两端均缩进距离 \verb|\multlinegap|；其它行则默认居中排布，但可以用个命令
+\verb|\shoveleft|、\verb|\shoveright| 分别使居左或居右排布。
+
+需要对齐的长公式可以用 \texttt{split} 环境，它本身不能单独使用，因此也称作次环境
+，必须包含在 \texttt{equation} 或其它数学环境内。\texttt{split} 环境用 \verb|\\| 
+和 \verb|&| 来分行和设置对齐位置。
+\begin{equation}
+\begin{split}
+H_c&=\frac{1}{2n} \sum^n_{l=0}(-1)^{l}(n-{l})^{p-2}
+\sum_{l _1+\dots+ l _p=l}\prod^p_{i=1} \binom{n_i}{l _i}\\
+&\quad\cdot[(n-l)-(n_i-l_i)]^{n_i-l_i}\cdot
+\Bigl[(n-l)^2-\sum^p_{j=1}(n_i-l_i)^2\Bigr].
+\end{split}
+\label{eqn:barwq}
+\end{equation}
+
+\subsubsection{公式组}
+
+不需要对齐的公式组用 \texttt{gather} 环境，该环境中的公式均居中排布，各公式间用
+\verb|\\| 分开；需要对齐的用 \texttt{align}，在该环境中使用 \verb|\text| 命令可
+以生成对单独公式的注释。
+\begin{gather}
+  first equation\\
+  \begin{split}
+    second & equation\\
+           & on twolines
+  \end{split}
+\end{gather}
+
+\begin{align}
+ x & = y_1-y_2+y_3-y_5+y_8-\dots && \text{by \eqref{eqn:barwq}}\\
+   & = y'\circ y^*               && \text{by \eqref{eqn:barwq}}\\
+   & = y(0) y'                   && \text{by Axiom 1.}
+\end{align}
+
+就像单独的行间公式一样，使用 \texttt{gather}、\texttt{align} 和
+\texttt{alignat} 环境生成的公式组中的每个公式也都是占据整个文本的宽度，因此
+这样的公式组两侧不能再添加其它内容，比如大括号等。不过相应地用
+\texttt{gathered}、\texttt{aligned} 和 \texttt{alignedat} 环境则生成仅占据
+实际公式宽度的公式组。
+\begin{equation*}
+\left. \begin{aligned}
+  \symbf{B'}&=-\symbfit{\partial}\times \symbf{E},\\
+  \symbf{E'}&=\symbfit{\partial}\times \symbf{B} - 4\pi j,
+\end{aligned}
+\right\}
+\qquad \text{Maxwell's equations}
+\end{equation*}
+
+有多种条件的公式组用 \texttt{cases} 次环境。
+\[ P_{r-j}=\begin{cases}
+  0& \text{if $r-j$ is odd},\\
+  r!\,(-1)^{(r-j)/2}& \text{if $r-j$ is even}.
+\end{cases} \]
+
+这里仅简单介绍了 \textbf{amsmath} 的功能，更详尽的说明可参见该宏包的文档。
+
+\subsection{定理和证明}
+
+\htuthesis{} 定义了常用的数学环境：
+\begin{center}
+\begin{tabular}{*{7}{l}}\hline
+  theorem & definition & lemma & corollary &\\
+  定理 & 定义 & 引理 & 推论 &\\\hline
+\end{tabular}
+\end{center}
+
+以上环境的定义采用 \textbf{amsthm} 宏包提供的 \verb|\newtheorem| 命令，其语法
+如下：
+
+\begin{latex}
+\newtheorem{环境名}[编号延续]{显示名}[编号层次]
+\end{latex}
+
+下面是应用示例：
+\begin{definition}
+Java是一种跨平台的编程语言。
+\end{definition}
+
+\begin{theorem}
+咖啡因会使人的大脑兴奋。
+\end{theorem}
+
+\begin{lemma}
+茶和咖啡都会使人兴奋。
+\end{lemma}
+
+\begin{corollary}
+晚上喝咖啡会导致失眠。
+\end{corollary}
+
+\texttt{proof} 环境可以用来输入证明，它会在结尾输入一个 QED 符号
+\footnote{拉丁语~quod erat demonstrandum~的缩写。}。
+
+\begin{proof}[命题“物质无限可分”的证明]
+一尺之棰，日取其半，万世不竭。
+\end{proof}

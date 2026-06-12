@@ -1,0 +1,41 @@
+# Reference templates (local only)
+zzuthesis/
+thuthesis/
+
+# Reference theses (not for distribution)
+2107084001-任子辛-政治与公共管理学院.pdf
+户籍制度改革对就业质量的影响及其作用机理研究_张程皓.pdf
+
+# BMAD framework
+_bmad/
+_bmad-output/
+
+# LaTeX generated files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.xdv
+*.synctex.gz
+*.nav
+*.snm
+*.vrb
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Claude Code
+.claude/

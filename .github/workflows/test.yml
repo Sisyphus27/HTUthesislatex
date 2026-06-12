@@ -1,0 +1,56 @@
+name: Test Thesis Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'htuthesis/**'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install TeX Live
+        uses: TeX-Live/setup-texlive-action@v4
+        with:
+          packages: >-
+            scheme-basic bibunits booktabs caption cjk ctex enumitem
+            environ etoolbox filehook fontspec footmisc natbib notoccite
+            pdfpages subcaption threeparttable titlesec trimspaces
+            unicode-math xecjk xits fandol tex-gyre longtable multirow
+            tabularx graphicx hyperref amsmath amsthm tikz geometry
+            calc titletoc docutils
+            latexmk chktex lacheck
+
+      - name: Build thesis
+        working-directory: htuthesis
+        run: make thesis
+
+      - name: Run lint check
+        working-directory: htuthesis
+        run: make lint-check
+
+      - name: Run structure check
+        working-directory: htuthesis
+        run: make structure-check
+
+      - name: Upload PDF
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: thesis-pdf
+          path: htuthesis/main.pdf
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            htuthesis/*.log
+            htuthesis/*.fls
