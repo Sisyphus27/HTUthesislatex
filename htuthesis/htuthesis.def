@@ -104,6 +104,9 @@
 % [基础] 图片标题段前间距（真值来源：zzuthesis 默认值 6bp）
 \def\htu@caption@figure@aboveskip{6bp}
 
+% [基础] 图片标题段后间距（真值来源：zzuthesis 默认值 12bp）
+\def\htu@caption@figure@belowskip{12bp}
+
 % [基础] 子图/子表间距（真值来源：zzuthesis 默认值 6bp）
 \def\htu@caption@sub@skip{6bp}
 

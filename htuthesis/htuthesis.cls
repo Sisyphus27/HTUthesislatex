@@ -299,7 +299,7 @@
   \captionsetup[table]{belowskip={\htu@caption@table@belowskip},aboveskip=\htu@caption@table@aboveskip}
 \fi
 \captionsetup[figure]{%段前空6磅，段后空12磅
-  belowskip={12bp-\intextsep},aboveskip=\htu@caption@figure@aboveskip}
+  belowskip={\htu@caption@figure@belowskip-\intextsep},aboveskip=\htu@caption@figure@aboveskip}
 \captionsetup[sub]{font=htu,skip=\htu@caption@sub@skip}
 \renewcommand{\thesubfigure}{(\alph{subfigure})}%子图形编号：字母
 \renewcommand{\thesubtable}{(\alph{subtable})}%子表格编号：字母

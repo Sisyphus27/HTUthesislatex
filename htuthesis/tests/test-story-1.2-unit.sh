@@ -86,8 +86,8 @@ test_def_load_position() {
   last_require=$(grep -n 'RequirePackage' htuthesis.cls 2>/dev/null | tail -1 | cut -d: -f1)
   [[ -n "$last_require" ]] || return 1
   # input_line must be > last_require (loaded after all packages)
-  [[ "$input_line" -gt "$last_require" ]]
   echo "  (\\input at line $input_line, last RequirePackage at line $last_require)"
+  [[ "$input_line" -gt "$last_require" ]]
 }
 run_test "P0" "ATDD-1.2-03" "def loaded after all RequirePackage calls" test_def_load_position
 
