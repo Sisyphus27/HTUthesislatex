@@ -19,6 +19,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newif\ifhtu@doctor\htu@doctortrue
 \DeclareOption{doctor}{\htu@doctortrue}
+\DeclareOption{bachelor}{\ClassError{htuthesis}{bachelor option removed: this template now only supports doctoral theses}{}}
+\DeclareOption{master}{\ClassError{htuthesis}{master option removed: this template now only supports doctoral theses}{}}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{ctexbook}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 选项处理 (Option processing)
@@ -163,8 +165,7 @@
 \htu@def@fontsize{bahao}{5bp}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 正文字体及行距
-%% 研究生：小四号 (12bp) 字，固定行距 20bp
-%% 本科生：小四号 (12bp) 字，1.25倍行距
+%% 博士：小四号 (12bp) 字，固定行距 20bp
 %% Word 小四号字 1.25 倍行距与固定行距 20bp 较接近
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand\normalsize{%
@@ -175,9 +176,8 @@
   \belowdisplayshortskip=\abovedisplayshortskip}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 页面设置
-%% 研究生：页边距上下3.8cm，左右3.2cm，页眉页脚3.0cm，装订线0cm
-%% 本科生：页边距上2.0cm，下2.2cm，左2.6cm，右2.0cm
-%% TODO: 根据Word设置结果微调，另本科生规范中页边距太小，未采用
+%% 博士：页边距上下3.8cm，左右3.2cm，页眉页脚3.0cm，装订线0cm
+%% TODO: 根据Word设置结果微调
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \geometry{
   a4paper, % 210 * 297mm
@@ -487,7 +487,7 @@
       \vskip \stretch{1}
     \end{center}
   \end{center}} % end of titlepage
-\newcommand{\htu@engcover}{%硕士和博士论文英文封面
+\newcommand{\htu@engcover}{%博士论文英文封面
   \thispagestyle{htu@empty}
   \vspace*{1cm}
   \begin{center}
@@ -578,7 +578,7 @@
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 中英文摘要及关键词
-%% 中文摘要部分的标题为"摘要"(本科为"中文摘要"，黑体三号字)
+%% 中文摘要部分的标题为"摘要"
 %%   关键词之间空两个汉字符宽度，悬挂缩进
 %% 英文摘要部分的标题为 Abstract，用 Arial 体三号字
 %%   关键词之间空四个英文字符宽度，悬挂缩进
