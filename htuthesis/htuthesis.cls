@@ -83,6 +83,7 @@
     plainpages=false,
     hidelinks}
   \urlstyle{same}%相同字体
+\input{htuthesis.def}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 文前，正文，文后格式
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -208,9 +209,9 @@
 %% Word 小四号字 1.25 倍行距与固定行距 20bp 较接近
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand\normalsize{%
-  \@setfontsize\normalsize{12bp}{20bp}%
-  \abovedisplayskip=12bp \@plus 2bp \@minus 2bp
-  \abovedisplayshortskip=12bp \@plus 2bp \@minus 2bp
+  \@setfontsize\normalsize{\htu@body@fontsize}{\htu@body@baselineskip}%
+  \abovedisplayskip=\htu@display@skip \@plus \htu@display@stretch \@minus \htu@display@stretch
+  \abovedisplayshortskip=\htu@display@skip \@plus \htu@display@stretch \@minus \htu@display@stretch
   \belowdisplayskip=\abovedisplayskip
   \belowdisplayshortskip=\abovedisplayshortskip}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -219,19 +220,14 @@
 %% 本科生：页边距上2.0cm，下2.2cm，左2.6cm，右2.0cm
 %% TODO: 根据Word设置结果微调，另本科生规范中页边距太小，未采用
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \ifhtu@bachelor
-  % \geometry{left=2.6cm,right=2.0cm,top=2.0cm,bottom=2.2cm,includeheadfoot}
-% \else
-  % \geometry{left=3.2cm,right=3.2cm,top=3.8cm,bottom=3.8cm,includeheadfoot}
-% \fi
 \geometry{
   a4paper, % 210 * 297mm
   hcentering,
   vcentering,
   ignoreall,
   nomarginpar,
-  left=32mm,
-  top=38mm}
+  left=\htu@leftmargin,
+  top=\htu@topmargin}
 \ctexset{%
   punct=quanjiao,
   space=auto,
@@ -255,7 +251,7 @@
 \def\ps@htu@headings{%%Centred head, centred page number in foot.
   \def\@oddhead{\vbox to\headheight{\vfill%
     \hb@xt@\textwidth{\wuhao\rmfamily\hfill\leftmark\hfill}%
-      \vskip\tw@\p@\hbox{\vrule width\textwidth height.4\p@ depth\z@}}}
+      \vskip\htu@header@rule@gap\hbox{\vrule width\textwidth height\htu@header@rule@thickness depth\z@}}}
   \let\@evenhead=\@oddhead
   \def\@oddfoot{\wuhao\hfil\thepage\ifhtu@bachelor\relax\else\hfil\fi}
   \let\@evenfoot=\@oddfoot}
@@ -269,7 +265,7 @@
 \setlist{leftmargin=*, nosep}
 \setlist[1]{labelindent=\parindent} % Only the level 1
 \let\htu@footnotesize\footnotesize%脚注字体及行距
-\renewcommand\footnotesize{\htu@footnotesize\xiaowu[1.5]}
+\renewcommand\footnotesize{\htu@footnotesize\xiaowu[\htu@footnote@linespread]}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    浮动对象、图片、表格、公式设置
 %% 1. 若插入的图片未指定扩展名，则在指定文件路径搜索pdf，eps，png，jpg，jpeg文件
@@ -277,16 +273,16 @@
 %% 2. 定义tabularx环境中的Z选项，用于居中自动调整，定义命令\Xhline
 %% 3. 公式、图片、表格编号分隔符为句号，即“3.1”的形式
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\setlength{\floatsep}{12bp \@plus4\p@\@minus\p@}%浮动对象和文字间的距离
-\setlength{\intextsep}{12bp \@plus4\p@\@minus\tw@\p@}
-\setlength{\textfloatsep}{12bp \@plus4\p@\@minus2\p@}
+\setlength{\floatsep}{\htu@floatsep \@plus4\p@\@minus\p@}%浮动对象和文字间的距离
+\setlength{\intextsep}{\htu@floatsep \@plus4\p@\@minus\tw@\p@}
+\setlength{\textfloatsep}{\htu@floatsep \@plus4\p@\@minus2\p@}
 \setlength{\@fptop}{0bp \@plus1.0fil}
-\setlength{\@fpsep}{12bp \@plus2.0fil}
+\setlength{\@fpsep}{\htu@floatsep \@plus2.0fil}
 \setlength{\@fpbot}{0bp \@plus1.0fil}
-\renewcommand{\textfraction}{0.15}%页面文本的最小比例(0.2)
-\renewcommand{\topfraction}{0.85}%页顶浮动对象高/页高的最大值(0.7)
-\renewcommand{\bottomfraction}{0.50}%页底浮动对象高/页高的最大值(0.3)
-\renewcommand{\floatpagefraction}{0.80}%浮动页由浮动对象占用的最小比例(0.5)
+\renewcommand{\textfraction}{\htu@textfraction}%页面文本的最小比例(0.2)
+\renewcommand{\topfraction}{\htu@topfraction}%页顶浮动对象高/页高的最大值(0.7)
+\renewcommand{\bottomfraction}{\htu@bottomfraction}%页底浮动对象高/页高的最大值(0.3)
+\renewcommand{\floatpagefraction}{\htu@floatpagefraction}%浮动页由浮动对象占用的最小比例(0.5)
 \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}%搜索指定扩展名
 \DeclareCaptionLabelSeparator{htu}{\hspace{\ccwd}}%图表序与图表名之间空一个汉字
 \DeclareCaptionFont{htu}{\ifhtu@bachelor\xiaosi[1.25]\kaishu%
@@ -298,13 +294,13 @@
   tableposition  = top,
 }
 \ifhtu@bachelor%段前空6磅，段后空12磅
-  \captionsetup[table]{belowskip={12bp-\intextsep},aboveskip=6bp}
+  \captionsetup[table]{belowskip={12bp-\intextsep},aboveskip=\htu@caption@table@aboveskip}
 \else%段前空6磅，段后空6磅
-  \captionsetup[table]{belowskip={6bp},aboveskip=6bp}
+  \captionsetup[table]{belowskip={\htu@caption@table@belowskip},aboveskip=\htu@caption@table@aboveskip}
 \fi
 \captionsetup[figure]{%段前空6磅，段后空12磅
-  belowskip={12bp-\intextsep},aboveskip=6bp}
-\captionsetup[sub]{font=htu,skip=6bp}
+  belowskip={12bp-\intextsep},aboveskip=\htu@caption@figure@aboveskip}
+\captionsetup[sub]{font=htu,skip=\htu@caption@sub@skip}
 \renewcommand{\thesubfigure}{(\alph{subfigure})}%子图形编号：字母
 \renewcommand{\thesubtable}{(\alph{subtable})}%子表格编号：字母
 \let\old@tabular\@tabular
@@ -353,10 +349,10 @@
   chapter={%一级标题：黑体16磅，段前24磅，段后18磅
     afterindent=true,
     pagestyle={htu@headings},
-    beforeskip={\ifhtu@bachelor 15bp\else 9bp\fi},
+    beforeskip={\ifhtu@bachelor 15bp\else \htu@chapter@beforeskip\fi},
     aftername=\hskip\ccwd,
-    afterskip={\ifhtu@bachelor 20bp\else 24bp\fi},
-    format={\sffamily\sanhao[1]},
+    afterskip={\ifhtu@bachelor 20bp\else \htu@chapter@afterskip\fi},
+    format={\sffamily\sanhao[\htu@chapter@linespread]},
     name=\relax,
     nameformat=\relax,
     titleformat=\relax,
@@ -365,27 +361,27 @@
   },
   section={%二级标题：黑体14磅，段前24磅，段后6磅
     afterindent=true,
-    beforeskip={\ifhtu@bachelor 25bp\else 24bp\fi\@plus .5ex \@minus .2ex},
-    afterskip={\ifhtu@bachelor 12bp\else 6bp\fi \@plus .2ex},
-    format={\sffamily\ifhtu@bachelor\sihao[1.286]\else\sihao[1.429]\fi},
+    beforeskip={\ifhtu@bachelor 25bp\else \htu@section@beforeskip\fi\@plus .5ex \@minus .2ex},
+    afterskip={\ifhtu@bachelor 12bp\else \htu@section@afterskip\fi \@plus .2ex},
+    format={\sffamily\ifhtu@bachelor\sihao[1.286]\else\sihao[\htu@section@linespread]\fi},
   },
   subsection={%三级标题：段前12磅，段后6磅
     afterindent=true,
     indent={\ifhtu@bachelor\parindent%本科缩进两字符
             \else 0pt\fi},%硕博
-    beforeskip={12bp \@plus .5ex \@minus .2ex},
-    afterskip={6bp \@plus .2ex},
+    beforeskip={\htu@subsection@beforeskip \@plus .5ex \@minus .2ex},
+    afterskip={\htu@subsection@afterskip \@plus .2ex},
     format={\sffamily\ifhtu@bachelor\xiaosi[1.25]%本科
-            \else\banxiaosi[1.538]\fi},%硕博黑体13磅
+            \else\banxiaosi[\htu@subsection@linespread]\fi},%硕博黑体13磅
   },
   subsubsection={%四级标题：段前12磅，段后6磅
     afterindent=true,
     indent={\ifhtu@bachelor\parindent%本科缩进两字符
             \else 0pt\fi},%硕博
-    beforeskip={12bp \@plus .5ex \@minus .2ex},
-    afterskip={6bp \@plus .2ex},
+    beforeskip={\htu@subsubsection@beforeskip \@plus .5ex \@minus .2ex},
+    afterskip={\htu@subsubsection@afterskip \@plus .2ex},
     format={\ifhtu@bachelor\xiaosi[1.25]%本科
-            \else\sffamily\xiaosi[1.667]\fi},%硕博
+            \else\sffamily\xiaosi[\htu@subsubsection@linespread]\fi},%硕博
   },
   paragraph/afterindent=true,
   subparagraph/afterindent=true}
@@ -429,8 +425,8 @@
 %%           左缩进4字符，两端对齐，页码右对齐
 %% 图和附表清单：宋体10.5磅，行距16磅
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\setcounter{secnumdepth}{3}%章节编号深度：4
-\setcounter{tocdepth}{2}%目录深度：2
+\setcounter{secnumdepth}{\htu@secnumdepth}%章节编号深度：4
+\setcounter{tocdepth}{\htu@tocdepth}%目录深度：2
 \renewcommand\tableofcontents{%
   \htu@chapter*[]{\contentsname}
   \@starttoc{toc}\normalsize}
@@ -743,11 +739,11 @@
   \pagestyle{htu@headings}
   \pagenumbering{Roman}
   \htu@cabstract
-  \vskip12bp
+  \vskip\htu@abstract@keywordskip
   \htu@put@keywords{\textbf\htu@ckeywords@title}{\htu@ckeywords}
   \htu@chapter*[]{\eabstractname} % no tocline
   \htu@eabstract
-  \vskip12bp
+  \vskip\htu@abstract@keywordskip
   \htu@put@keywords{%
     \textbf{\ifhtu@bachelor Keywords:\else Key Words:\fi\enskip}}{\htu@ekeywords}%
 }
