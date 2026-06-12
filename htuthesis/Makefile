@@ -1,4 +1,4 @@
-# Makefile for ZzuThesis
+# Makefile for HtuThesis
 
 LATEXMKOPTS = -xelatex -file-line-error -halt-on-error -interaction=nonstopmode
 THESISMAIN = main

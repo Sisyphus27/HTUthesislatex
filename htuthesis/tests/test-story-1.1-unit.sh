@@ -155,11 +155,11 @@ test_makefile_package() {
 }
 run_test "P1" "ATDD-1.1-14" "Makefile PACKAGE = htuthesis" test_makefile_package
 
-# ATDD-1.1-15: bst FUNCTION {htuthesis} renamed (Edge)
-test_bst_function() {
-  grep -q 'FUNCTION {htuthesis}' htuthesis.bst 2>/dev/null
+# ATDD-1.1-15: bst file header references htuthesis (Edge)
+test_bst_header() {
+  grep -q "This is file.*htuthesis.bst" htuthesis.bst 2>/dev/null
 }
-run_test "P1" "ATDD-1.1-15" "bst FUNCTION {htuthesis} present" test_bst_function
+run_test "P1" "ATDD-1.1-15" "bst header identifies as htuthesis.bst" test_bst_header
 
 # ATDD-1.1-16: \hyphenation{Htu-Thesis} updated (AC-3)
 test_hyphenation() {

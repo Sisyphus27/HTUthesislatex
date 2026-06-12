@@ -1,12 +1,12 @@
 %%
-%% This is file `zzubib.bst',
+%% This is file `htuthesis.bst',
 %% generated with the docstrip utility.
 %%
-%% BibTeX standard bibliography style `zzubib.bst' derived from
+%% BibTeX standard bibliography style `htuthesis.bst' derived from
 %%
 %% gbt7714-unsrt.bst
-%% 
-%% This file is part of `zzuthesis' package.
+%%
+%% This file is part of `htuthesis' package.
 %% -------------------------------------------------------------------
 %% GB/T 7714-2015 BibTeX Style
 %% https://github.com/CTeX-org/gbt7714-bibtex-style

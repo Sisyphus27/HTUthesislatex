@@ -1,5 +1,5 @@
 %%================================================
-%% Filename: zzuthesis.cls
+%% Filename: htuthesis.cls
 %% Encoding: UTF-8
 %% Author: Yuan Xiaoshuai - yxshuai@gmail.com
 %% Created: 2012-01-08 13:11
@@ -13,7 +13,7 @@
 [2026/06/12 1.0.0 HTU Doctoral Thesis Template]
 \hyphenation{Htu-Thesis}
 \def\htuthesis{HtuThesis}
-\def\version{5.0.1}
+\def\version{1.0.0}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 声明选项(Declaration options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -288,12 +288,12 @@
 \renewcommand{\bottomfraction}{0.50}%页底浮动对象高/页高的最大值(0.3)
 \renewcommand{\floatpagefraction}{0.80}%浮动页由浮动对象占用的最小比例(0.5)
 \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}%搜索指定扩展名
-\DeclareCaptionLabelSeparator{zzu}{\hspace{\ccwd}}%图表序与图表名之间空一个汉字
-\DeclareCaptionFont{zzu}{\ifhtu@bachelor\xiaosi[1.25]\kaishu%
+\DeclareCaptionLabelSeparator{htu}{\hspace{\ccwd}}%图表序与图表名之间空一个汉字
+\DeclareCaptionFont{htu}{\ifhtu@bachelor\xiaosi[1.25]\kaishu%
                          \else\wuhao[1.5]\fi}
 \captionsetup{
-  font           = zzu,
-  labelsep       = zzu,
+  font           = htu,
+  labelsep       = htu,
   figureposition = bottom,
   tableposition  = top,
 }
@@ -304,7 +304,7 @@
 \fi
 \captionsetup[figure]{%段前空6磅，段后空12磅
   belowskip={12bp-\intextsep},aboveskip=6bp}
-\captionsetup[sub]{font=zzu,skip=6bp}
+\captionsetup[sub]{font=htu,skip=6bp}
 \renewcommand{\thesubfigure}{(\alph{subfigure})}%子图形编号：字母
 \renewcommand{\thesubtable}{(\alph{subtable})}%子表格编号：字母
 \let\old@tabular\@tabular
@@ -407,7 +407,7 @@
   \def\@tmpb{#3}
   \ifx\@tmpa\@empty
     \addtocounter{htu@bookmark}\@ne
-    \pdfbookmark[0]{#2}{zzuchapter.\thehtu@bookmark}
+    \pdfbookmark[0]{#2}{htuchapter.\thehtu@bookmark}
   \else
     \addcontentsline{toc}{chapter}{#1}
   \fi
@@ -718,7 +718,7 @@
 \newcommand{\htu@@eabstract}[1]{\long\gdef\htu@eabstract{#1}}
 \newenvironment{eabstract}{\Collect@Body\htu@@eabstract}{}
 \def\htu@parse@keywords#1{
-  \define@key{zzu}{#1}{\csname #1\endcsname{##1}}
+  \define@key{htu}{#1}{\csname #1\endcsname{##1}}
   \expandafter\gdef\csname htu@#1\endcsname{}
   \expandafter\gdef\csname #1\endcsname##1{
     \@for\reserved@a:=##1\do{
@@ -849,5 +849,5 @@
 \AtEndOfClass{\sloppy}
 \endinput
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% End of file `zzuthesis.cls'.
+%% End of file `htuthesis.cls'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
