@@ -50,6 +50,27 @@
   nabla      = upright,
   partial    = upright,
 }
+% Font availability check — fail early with clear error
+\IfFontExistsTF{SimSun}{}{%
+  \PackageError{htuthesis}{Font 'SimSun' not found. Please install 'SimSun' (Chinese: 宋体).\\
+   Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
+  }{Verify your TeX Live installation and system fonts.}}
+\IfFontExistsTF{SimHei}{}{%
+  \PackageError{htuthesis}{Font 'SimHei' not found. Please install 'SimHei' (Chinese: 黑体).\\
+   Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
+  }{Verify your TeX Live installation and system fonts.}}
+\IfFontExistsTF{KaiTi}{}{%
+  \PackageError{htuthesis}{Font 'KaiTi' not found. Please install 'KaiTi' (Chinese: 楷体).\\
+   Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
+  }{Verify your TeX Live installation and system fonts.}}
+\IfFontExistsTF{FangSong}{}{%
+  \PackageError{htuthesis}{Font 'FangSong' not found. Please install 'FangSong' (Chinese: 仿宋).\\
+   Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
+  }{Verify your TeX Live installation and system fonts.}}
+\IfFontExistsTF{Times New Roman}{}{%
+  \PackageError{htuthesis}{Font 'Times New Roman' not found. Please install 'Times New Roman'.\\
+   Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
+  }{Verify your TeX Live installation and system fonts.}}
 \RequirePackage{geometry}%页边距设置
 \RequirePackage{tabularx}%表格宽度控制
 \RequirePackage{multirow}%跨行表格
@@ -105,7 +126,7 @@
 \newcommand\htu@theorem@name{定理}
 \newcommand\htu@lemma@name{引理}
 \newcommand\htu@corollary@name{推论}
-\def\htu@schoolname{郑州大学}
+% \htu@schoolname is defined in htuthesis.def (user zone)
 \def\htu@title@sep{：}
   \def\htu@schoolcode@title{学校代码}
   \def\htu@id@title{学号或申请号}
@@ -438,7 +459,7 @@
   \begin{center}
     \noindent\begin{minipage}{.49\textwidth}
       \begin{flushleft}
-        \includegraphics[width=3.35cm]{zzulogo}
+        \includegraphics[width=3.35cm]{htu-logo}
       \end{flushleft}
     \end{minipage}
     \hfill
@@ -458,7 +479,7 @@
     \end{minipage}
     \vskip \stretch{1}
     \begin{center}
-      {\includegraphics{zzu}}
+      {\includegraphics{htu-text-logo}}
       \par\vskip.6cm
       {\ziju{0.5}\xiaochu\sffamily\htu@subtitle}
       \vskip \stretch{1}
@@ -495,7 +516,7 @@
       \renewcommand{\baselinestretch}{1.5}
         \begin{center}
           \sanhao A dissertation submitted to\\
-          {\bfseries Zhengzhou University}\\
+          {\bfseries Henan Normal University}\\
           for the degree of Doctor\\
         \end{center}}
     \vskip \stretch{1}
@@ -527,12 +548,12 @@
 明的法律责任由本人承担。}
 \newcommand{\htu@declaredate}{日\hspace{\ccwd} 期：\hspace{4\ccwd} 年\hspace{2\ccwd} 月\hspace{2\ccwd} 日}
 \newcommand{\htu@authorization}{\hspace{2\ccwd}
-本人在导师指导下完成的论文及相关的职务作品，知识产权归属郑州大学。根据郑州大学
+本人在导师指导下完成的论文及相关的职务作品，知识产权归属河南师范大学。根据河南师范大学
 有关保留、使用学位论文的规定，同意学校保留或向国家有关部门或机构送交论文的复印
-件和电子版，允许论文被查阅和借阅；本人授权郑州大学可以将本学位论文的全部或部分
+件和电子版，允许论文被查阅和借阅；本人授权河南师范大学可以将本学位论文的全部或部分
 编入有关数据库进行检索，可以采用影印、缩印或其他复制手段保存论文和汇编本学位论
 文。本人离校后发表、使用学位论文或与该学位论文直接相关的学术论文或成果时，第一
-署名单位仍然为郑州大学。保密论文在解密后应遵守此规定。}
+署名单位仍然为河南师范大学。保密论文在解密后应遵守此规定。}
 \newcommand{\htu@authdate}{日\hspace{\ccwd} 期：\hspace{4\ccwd} 年\hspace{2\ccwd} 月\hspace{2\ccwd} 日}
 \newcommand{\htu@authorization@mk}{%原创性声明及授权声明
   \thispagestyle{htu@empty}
