@@ -126,7 +126,9 @@
 \newcommand\htu@theorem@name{定理}
 \newcommand\htu@lemma@name{引理}
 \newcommand\htu@corollary@name{推论}
-% \htu@schoolname is defined in htuthesis.def (user zone)
+\providecommand\htu@schoolname{}
+\providecommand\htu@schoolname@en{}
+% \htu@schoolname and \htu@schoolname@en are defined in htuthesis.def (user zone)
 \def\htu@title@sep{：}
   \def\htu@schoolcode@title{学校代码}
   \def\htu@id@title{学号或申请号}
@@ -516,7 +518,7 @@
       \renewcommand{\baselinestretch}{1.5}
         \begin{center}
           \sanhao A dissertation submitted to\\
-          {\bfseries Henan Normal University}\\
+          {\bfseries \htu@schoolname@en}\\
           for the degree of Doctor\\
         \end{center}}
     \vskip \stretch{1}
@@ -548,12 +550,12 @@
 明的法律责任由本人承担。}
 \newcommand{\htu@declaredate}{日\hspace{\ccwd} 期：\hspace{4\ccwd} 年\hspace{2\ccwd} 月\hspace{2\ccwd} 日}
 \newcommand{\htu@authorization}{\hspace{2\ccwd}
-本人在导师指导下完成的论文及相关的职务作品，知识产权归属河南师范大学。根据河南师范大学
+本人在导师指导下完成的论文及相关的职务作品，知识产权归属\htu@schoolname。根据\htu@schoolname
 有关保留、使用学位论文的规定，同意学校保留或向国家有关部门或机构送交论文的复印
-件和电子版，允许论文被查阅和借阅；本人授权河南师范大学可以将本学位论文的全部或部分
+件和电子版，允许论文被查阅和借阅；本人授权\htu@schoolname 可以将本学位论文的全部或部分
 编入有关数据库进行检索，可以采用影印、缩印或其他复制手段保存论文和汇编本学位论
 文。本人离校后发表、使用学位论文或与该学位论文直接相关的学术论文或成果时，第一
-署名单位仍然为河南师范大学。保密论文在解密后应遵守此规定。}
+署名单位仍然为\htu@schoolname。保密论文在解密后应遵守此规定。}
 \newcommand{\htu@authdate}{日\hspace{\ccwd} 期：\hspace{4\ccwd} 年\hspace{2\ccwd} 月\hspace{2\ccwd} 日}
 \newcommand{\htu@authorization@mk}{%原创性声明及授权声明
   \thispagestyle{htu@empty}
