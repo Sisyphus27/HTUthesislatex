@@ -236,14 +236,20 @@ echo ""
 # ==========================================
 echo "=== P2: Secondary Tests ==="
 
-# ATDD-2.3-19: page-number footer still centered \fancyfoot[C]{\wuhao\thepage} (NOT moved outer-side — Story 2.4 scope)
-test_footer_centered_unchanged() {
+# ATDD-2.3-19: page-number footer retains \wuhao\thepage font (Story 2.4 moved position [C]->[LE,RO];
+#              this guard now verifies the FONT survives the position change, not the centered position).
+# REPURPOSED by Story 2.4 (cross-story conflict, Epic 1 retro pattern): the original assertion pinned
+# the footer as centered \fancyfoot[C]{\wuhao\thepage} until Story 2.4 moved it outer-side. The
+# position is now verified by test-story-2.4-unit.sh (ATDD-2.4-01/02/03) + the rendered-PDF behavior
+# test ATDD-2.4-20. What 2.3 still legitimately owns: the footer page-number font is \wuhao\thepage
+# regardless of position — this stays green across the 2.3->2.4 transition.
+test_footer_font_retained() {
   [[ -f "htuthesis.cls" ]] || return 1
-  # The headings style footer must still be centered (outer-side numbering is Story 2.4)
+  # Matches both the pre-2.4 \fancyfoot[C]{...} and the 2.4 \fancyfoot[LE,RO]{...} forms.
   sed -n '/fancypagestyle{htu@headings}/,/^}/p' htuthesis.cls 2>/dev/null \
-    | grep -q '\\fancyfoot\[C\]{\\wuhao\\thepage}'
+    | grep -q '\\fancyfoot\[.*\]{\\wuhao\\thepage}'
 }
-run_test "P2" "ATDD-2.3-19" "footer still centered (outer-side numbering is Story 2.4 scope)" test_footer_centered_unchanged
+run_test "P2" "ATDD-2.3-19" "footer page-number retains \\wuhao\\thepage font (repurposed: position moved by Story 2.4)" test_footer_font_retained
 
 # ATDD-2.3-20: no main.tex content changes (scope boundary)
 test_main_tex_unchanged() {

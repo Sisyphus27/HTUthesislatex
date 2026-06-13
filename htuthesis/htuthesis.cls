@@ -267,7 +267,8 @@
   \fancyhf{}%
   \renewcommand{\headrulewidth}{0pt}%
   \renewcommand{\footrulewidth}{0pt}%
-  \fancyfoot[C]{\wuhao\thepage}%
+  % HTU 定制（spec §2.4）：页码置于页脚外侧——偶数页左下、奇数页右下
+  \fancyfoot[LE,RO]{\wuhao\thepage}%
 }
 %% [ThuThesis 移植] 开始 headings 页面样式 + chaptermark
 %% 参考源：ThuThesis v7.7.1 thuthesis.dtx 行 3274-3336
@@ -287,7 +288,8 @@
     %% \fancyhead），等效 htu@plain，一处覆盖所有前置章节页（摘要/目录/插图清单/表格清单/符号表）。
     \renewcommand{\headrulewidth}{0pt}%
   \fi
-  \fancyfoot[C]{\wuhao\thepage}%
+  %% HTU 定制（spec §2.4）：页码置于页脚外侧——偶数页左下、奇数页右下
+  \fancyfoot[LE,RO]{\wuhao\thepage}%
   \let\@mkboth\markboth
   \def\chaptermark##1{%
     \markboth{%
