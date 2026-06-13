@@ -164,15 +164,16 @@ test_body_baselineskip_18bp_def() {
 }
 run_test "P0" "ATDD-2.4-10" "body baselineskip = 18bp in .def (repointed by Story 2.5; §2.7/2.9 1.5x, R-3)" test_body_baselineskip_18bp_def
 
-# ATDD-2.4-11: no numbering separator changes in .def (still period) (Story 2.6 scope, R-12)
+# ATDD-2.4-11: counter separator externalized as hyphen (REPOINTED by Story 2.6; was "still period, Story 2.6 scope", R-12)
 test_separator_unchanged() {
   [[ -f "htuthesis.def" ]] || return 1
   local count
   count=$(grep -c 'htu@.*separator.*-' htuthesis.def 2>/dev/null || true)
   count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  [[ "$count" -eq 0 ]]
+  # Story 2.6 added \htu@counter@separator{-} → expect >= 1 (was 0 pre-Story-2.6).
+  [[ "$count" -ge 1 ]]
 }
-run_test "P0" "ATDD-2.4-11" "no numbering separator changes (still period, Story 2.6 scope, R-12)" test_separator_unchanged
+run_test "P0" "ATDD-2.4-11" "counter separator externalized \\htu@counter@separator{-} (repointed by Story 2.6, R-12)" test_separator_unchanged
 
 # ATDD-2.4-12: total \fancyfoot count == 2 (only htu@plain + htu@headings have footers; htu@empty stays clean)
 test_fancyfoot_count_two() {

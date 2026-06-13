@@ -227,18 +227,18 @@ run_test "P0" "ATDD-2.2-20" "body baselineskip = 18bp in .def (repointed by Stor
 # }
 # run_test "P0" "ATDD-2.2-21" "header content unchanged: still centered \\leftmark all pages (Story 2.3 scope)" test_header_content_unchanged
 
-# ATDD-2.2-22: no numbering separator changes — still period in .def (Story 2.6 scope, R-12)
+# ATDD-2.2-22: counter separator externalized as hyphen (REPOINTED by Story 2.6; was "still period, Story 2.6 scope")
 test_separator_unchanged() {
   [[ -f "htuthesis.def" ]] || return 1
-  # The counter separator should still be period (.) not hyphen (-)
-  # Check that .def still has the original separator (Story 2.6 changes this)
-  # Since Story 2.1 didn't change separators, we just verify no hyphen separator appeared
+  # Story 2.6 externalized the counter separator as \htu@counter@separator{-} in .def (HTU §2.11/2.12/2.13 + 硬约束).
+  # The regex now matches that macro (htu@counter@separator{-}). Pre-Story-2.6 this asserted 0 (no separator yet);
+  # post-Story-2.6 it asserts >= 1 (the hyphen separator macro exists).
   local count
   count=$(grep -c 'htu@.*separator.*-' htuthesis.def 2>/dev/null || true)
   count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  [[ "$count" -eq 0 ]]
+  [[ "$count" -ge 1 ]]
 }
-run_test "P0" "ATDD-2.2-22" "no numbering separator changes (still period, Story 2.6 scope)" test_separator_unchanged
+run_test "P0" "ATDD-2.2-22" "counter separator externalized \\htu@counter@separator{-} (repointed by Story 2.6, R-12)" test_separator_unchanged
 
 echo ""
 

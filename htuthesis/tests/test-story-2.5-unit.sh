@@ -165,15 +165,16 @@ test_def_geometry_unchanged() {
 }
 run_test "P0" "ATDD-2.5-09" "no geometry changes in .def (R-1 regression guard)" test_def_geometry_unchanged
 
-# ATDD-2.5-10: no numbering separator changes (still period; Story 2.6 scope, R-12)
+# ATDD-2.5-10: counter separator externalized as hyphen (REPOINTED by Story 2.6; was "still period, Story 2.6 scope", R-12)
 test_separator_unchanged() {
   [[ -f "htuthesis.def" ]] || return 1
   local count
   count=$(grep -c 'htu@.*separator.*-' htuthesis.def 2>/dev/null || true)
   count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  [[ "$count" -eq 0 ]]
+  # Story 2.6 added \htu@counter@separator{-} → expect >= 1 (was 0 pre-Story-2.6).
+  [[ "$count" -ge 1 ]]
 }
-run_test "P0" "ATDD-2.5-10" "no separator changes (still period, Story 2.6 scope, R-12)" test_separator_unchanged
+run_test "P0" "ATDD-2.5-10" "counter separator externalized \\htu@counter@separator{-} (repointed by Story 2.6, R-12)" test_separator_unchanged
 
 # ATDD-2.5-11: header config unchanged — \fancyhead[CE]/[CO] present (Story 2.3 guard)
 test_header_config_unchanged() {

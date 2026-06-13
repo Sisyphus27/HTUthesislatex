@@ -168,7 +168,7 @@
 \def\htu@ckeywords@separator{；}
 \def\htu@ekeywords@separator{; }
 \newcommand{\htu@ckeywords@title}{关键词：}
-\newcommand{\htu@ekeywords@title}{Key words:\enskip}
+\newcommand{\htu@ekeywords@title}{KEY WORDS:\enskip}
 \newcommand{\htu@denotation@name}{主要符号对照表}
 \newcommand{\htu@ackname}{致\hspace{\ccwd} 谢}
   \newcommand{\htu@resume@title}{个人简历、在学期间发表的学术论文与研究成果}
@@ -358,8 +358,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 数学相关
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\renewcommand\theequation{%公式编号分隔符
-  \ifnum \c@chapter>\z@ \thechapter.\fi\@arabic\c@equation}
+\renewcommand\theequation{%公式编号分隔符（HTU §2.13 短横线）
+  \ifnum \c@chapter>\z@ \thechapter\htu@counter@separator\fi\@arabic\c@equation}
+\renewcommand\thefigure{%插图编号分隔符（HTU §2.11 短横线）
+  \ifnum \c@chapter>\z@ \thechapter\htu@counter@separator\fi\@arabic\c@figure}
+\renewcommand\thetable{%表格编号分隔符（HTU §2.12 短横线）
+  \ifnum \c@chapter>\z@ \thechapter\htu@counter@separator\fi\@arabic\c@table}
 \allowdisplaybreaks[4]%允许公式断行分页
 \def\htu@theorem@separator{：}%
 \newtheoremstyle{theorem}%定理类型
@@ -709,7 +713,7 @@
   \htu@eabstract
   \vskip\htu@abstract@keywordskip
   \htu@put@keywords{%
-    \textbf{Key Words:\enskip}}{\htu@ekeywords}%
+    \textbf\htu@ekeywords@title}{\htu@ekeywords}%
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 主要符号对照表
@@ -779,9 +783,9 @@
 \let\htu@appendix\appendix
 \renewenvironment{appendix}{%
   \htu@appendix
-  \gdef\@chapapp{\appendixname~\thechapter}
-  \renewcommand\theequation{%
-    \ifnum \c@chapter>\z@ \thechapter\fi\@arabic\c@equation}
+  \gdef\@chapapp{\appendixname~\thechapter}%
+  % 附录编号沿用全局定义：\appendix 令 \thechapter 为字母（A、B…），
+  % 故 \thefigure/\thetable/\theequation 自动呈 A-1 形式（HTU §2.11/§2.12/§2.13）。
   }{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 个人简历、在学期间发表的学术论文及研究成果
