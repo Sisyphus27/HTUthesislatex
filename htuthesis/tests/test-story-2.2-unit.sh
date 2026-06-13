@@ -211,12 +211,12 @@ test_def_geometry_unchanged() {
 }
 run_test "P0" "ATDD-2.2-19" "no geometry parameter changes in .def (same as Story 2.1)" test_def_geometry_unchanged
 
-# ATDD-2.2-20: baselineskip still 20bp in .def (Story 2.5 scope, R-3)
-test_baselineskip_unchanged() {
+# ATDD-2.2-20: body baselineskip = 18bp (REPOINTED by Story 2.5: was a 20bp scope guard for 2.2, now 18bp per §2.7/§2.9 1.5x)
+test_body_baselineskip_18bp_def() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@body@baselineskip{20bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@body@baselineskip{18bp}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.2-20" "baselineskip still 20bp in .def (Story 2.5 scope, R-3)" test_baselineskip_unchanged
+run_test "P0" "ATDD-2.2-20" "body baselineskip = 18bp in .def (repointed by Story 2.5; §2.7/§2.9 1.5x, R-3)" test_body_baselineskip_18bp_def
 
 # ATDD-2.2-21: SUPERSEDED by Story 2.3 — 2.3 intentionally differentiates odd/even headers
 # (replaces centered \leftmark with \fancyhead[CE]{\htu@ctitle} + \fancyhead[CO]{\rightmark}).

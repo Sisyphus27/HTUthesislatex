@@ -176,12 +176,12 @@ test_def_geometry_unchanged() {
 }
 run_test "P0" "ATDD-2.3-13" "no geometry parameter changes in .def (R-1 regression guard)" test_def_geometry_unchanged
 
-# ATDD-2.3-14: baselineskip still 20bp in .def (Story 2.5 scope, R-3)
-test_baselineskip_unchanged() {
+# ATDD-2.3-14: body baselineskip = 18bp in .def (REPOINTED by Story 2.5: was a 20bp scope-guard for 2.3, now 18bp per §2.7/2.9 1.5x line spacing)
+test_body_baselineskip_18bp_def() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@body@baselineskip{20bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@body@baselineskip{18bp}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.3-14" "baselineskip still 20bp in .def (Story 2.5 scope, R-3)" test_baselineskip_unchanged
+run_test "P0" "ATDD-2.3-14" "body baselineskip = 18bp in .def (repointed by Story 2.5; §2.7/2.9 1.5x)" test_body_baselineskip_18bp_def
 
 # ATDD-2.3-15: no numbering separator changes (still period) (Story 2.6 scope, R-12)
 test_separator_unchanged() {

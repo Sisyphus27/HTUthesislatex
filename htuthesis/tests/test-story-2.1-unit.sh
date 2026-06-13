@@ -223,12 +223,12 @@ test_old_leftmargin_gone() {
 }
 run_test "P1" "ATDD-2.1-16" ".def old \\htu@leftmargin{32mm} removed" test_old_leftmargin_gone
 
-# ATDD-2.1-29: baselineskip unchanged — still 20bp (scope boundary, Story 2.5)
-test_baselineskip_unchanged() {
+# ATDD-2.1-29: body baselineskip = 18bp (REPOINTED by Story 2.5: was a 20bp scope-boundary guard, now 18bp per §2.7/§2.9 1.5x)
+test_body_baselineskip_18bp_def() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@body@baselineskip{20bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@body@baselineskip{18bp}' htuthesis.def 2>/dev/null
 }
-run_test "P1" "ATDD-2.1-29" ".def baselineskip still 20bp (Story 2.5 scope)" test_baselineskip_unchanged
+run_test "P1" "ATDD-2.1-29" "body baselineskip = 18bp in .def (repointed by Story 2.5; §2.7/§2.9 1.5x)" test_body_baselineskip_18bp_def
 
 echo ""
 

@@ -206,8 +206,8 @@ echo ""
 # ==========================================
 echo "=== P2: Supplementary ==="
 
-# ATDD-2.3-28: self-check baselineskip still 20bp (regression guard for Story 2.5, R-3)
-test_baselineskip_regression() {
+# ATDD-2.3-28: self-check baselineskip ≈ 18bp (REPOINTED by Story 2.5: was ~20pt guard, now ~18pt per §2.7/2.9 1.5x line spacing)
+test_baselineskip_18bp_regression() {
   if [[ ! -f "main.log" ]]; then
     return 1
   fi
@@ -217,10 +217,10 @@ test_baselineskip_regression() {
     echo "  (baselineskip not found)"
     return 1
   fi
-  echo "  (baselineskip: ${bs}pt, expect ~20 [18bp target is Story 2.5])"
-  echo "$bs" | awk '{if ($1 >= 19 && $1 <= 21) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~18.07 [18bp, repointed by Story 2.5; NOT 21.6 = R-3 trap])"
+  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
 }
-run_test "P2" "ATDD-2.3-28" "baselineskip still ~20pt (Story 2.5 scope, R-3 regression)" test_baselineskip_regression
+run_test "P2" "ATDD-2.3-28" "baselineskip ≈ 18bp (repointed by Story 2.5; §2.7/2.9 1.5x, R-3)" test_baselineskip_18bp_regression
 
 echo ""
 

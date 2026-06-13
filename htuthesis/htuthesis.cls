@@ -77,6 +77,10 @@
   \PackageError{htuthesis}{Font 'Times New Roman' not found. Please install 'Times New Roman'.\\
    Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
   }{Verify your TeX Live installation and system fonts.}}
+% 宋体加粗族（HTU §2.10 四级标题用）：SimSun 无原生粗体，启用 AutoFakeBold 算法加粗。
+% 用法：\htu@songtibold\bfseries —— \htu@songtibold 切换到带 AutoFakeBold 的 SimSun 族，
+% \bfseries 触发算法加粗（字体名仍为 SimSun，区别于 ctex 默认把 CJK 粗体映射到 SimHei）。
+\newCJKfontfamily\htu@songtibold{SimSun}[AutoFakeBold=2.5]
 \RequirePackage{geometry}%页边距设置
 \RequirePackage{fancyhdr}%页眉页脚管理
 \RequirePackage{tabularx}%表格宽度控制
@@ -108,7 +112,7 @@
   \pagestyle{htu@plain}}
 \renewcommand\mainmatter{%
   \cleardoublepage
-  \ctexset{chapter/format+=\raggedright}
+  \ctexset{chapter/format+=\centering}
   \@mainmattertrue
   \pagenumbering{arabic}%
   \pagestyle{htu@headings}}
@@ -384,7 +388,7 @@
 %% 章节标题
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \ctexset{%
-  chapter={%一级标题：黑体16磅，段前24磅，段后18磅
+  chapter={%一级标题：黑体三号(16bp)，居中，段前段后2行(36bp)（HTU §2.10）
     afterindent=true,
     pagestyle={htu@headings},
     beforeskip=\htu@chapter@beforeskip,
@@ -397,25 +401,25 @@
     lofskip=0pt,
     lotskip=0pt,
   },
-  section={%二级标题：黑体14磅，段前24磅，段后6磅
+  section={%二级标题：黑体小三号(15bp)，居中，段前段后0.5行(9bp)（HTU §2.10）
     afterindent=true,
     beforeskip={\htu@section@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@section@afterskip \@plus .2ex},
-    format={\sffamily\sihao[\htu@section@linespread]},
+    format={\sffamily\xiaosan[\htu@section@linespread]\centering},
   },
-  subsection={%三级标题：段前12磅，段后6磅
+  subsection={%三级标题：黑体四号(14bp)，居左空两格，段前段后0.5行(9bp)（HTU §2.10）
     afterindent=true,
-    indent=0pt,
+    indent=2\ccwd,
     beforeskip={\htu@subsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsection@afterskip \@plus .2ex},
-    format={\sffamily\banxiaosi[\htu@subsection@linespread]},
+    format={\sffamily\sihao[\htu@subsection@linespread]},
   },
-  subsubsection={%四级标题：段前12磅，段后6磅
+  subsubsection={%四级标题：宋体小四号(12bp)加粗，居左空两格，段前段后0.5行(9bp)（HTU §2.10；段前段后为推断值）
     afterindent=true,
-    indent=0pt,
+    indent=2\ccwd,
     beforeskip={\htu@subsubsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsubsection@afterskip \@plus .2ex},
-    format={\sffamily\xiaosi[\htu@subsubsection@linespread]},
+    format={\htu@songtibold\bfseries\xiaosi[\htu@subsubsection@linespread]},
   },
   paragraph/afterindent=true,
   subparagraph/afterindent=true}
