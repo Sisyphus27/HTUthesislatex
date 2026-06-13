@@ -199,17 +199,29 @@
   \belowdisplayshortskip=\abovedisplayshortskip}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 页面设置
-%% 博士：页边距上下3.8cm，左右3.2cm，页眉页脚3.0cm，装订线0cm
-%% TODO: 根据Word设置结果微调
+%% 博士：上3cm、下2.5cm、左2.5cm、右2.5cm、页眉2.2cm、页脚1.75cm
+%% 真值来源：HTU 格式要求 §2.3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \geometry{
-  a4paper, % 210 * 297mm
-  hcentering,
-  vcentering,
-  ignoreall,
+  a4paper,
+  includeheadfoot,
   nomarginpar,
+  top=\htu@topmargin,
+  bottom=\htu@bottommargin,
   left=\htu@leftmargin,
-  top=\htu@topmargin}
+  right=\htu@rightmargin,
+  headheight=\htu@headerheight,
+  footskip=\htu@footskip}
+%% --- Dimension output for geometry verification (Story 2.1 AC-4) ---
+%% Outputs physical dimensions from paper edge for ATDD verification.
+%% textheight here = total content area (body + headheight + headsep + footskip).
+\typeout{htu@geometry@textheight=\the\dimexpr\textheight+\headheight+\headsep+\footskip\relax}
+\typeout{htu@geometry@textwidth=\the\textwidth}
+\typeout{htu@geometry@topmargin=\the\dimexpr\topmargin+1in\relax}
+\typeout{htu@geometry@oddsidemargin=\the\dimexpr\oddsidemargin+1in\relax}
+\typeout{htu@geometry@headheight=\the\headheight}
+\typeout{htu@geometry@footskip=\the\footskip}
+%% --- End dimension output ---
 \ctexset{%
   punct=quanjiao,
   space=auto,
