@@ -103,6 +103,44 @@ test_warning_count() {
 }
 run_test "P0" "ATDD-2.3-23" "warning count <= 3 (AC-9, NFR ≤3 new vs baseline)" test_warning_count
 
+# ATDD-2.3-29: BEHAVIOR — front-matter pages have NO header rule (AC-5, TC-E2-13)
+# This is the behavior test that the source-grep ATDD-2.3-07/09 could not be: it compiles and
+# inspects the rendered PDF (via PyMuPDF) for horizontal rules in the header region (y<110pt).
+# Catches the ctex \thispagestyle{htu@headings} injection leak that defeated \pagestyle{htu@plain}.
+test_frontmatter_no_header_behavior() {
+  if [[ ! -f "main.pdf" ]]; then return 1; fi
+  python -c "
+import fitz, sys, re
+doc = fitz.open('main.pdf')
+def fnum(i):
+    b = [x for x in doc[i].get_text('blocks') if x[4].strip()]
+    if not b: return ''
+    t = max(b, key=lambda x: x[3])[4].strip().split()
+    return t[0] if t else ''
+def has_rule(i):
+    for d in doc[i].get_drawings():
+        for it in d['items']:
+            if it[0] == 'l':
+                a, b = it[1], it[2]
+                if abs(a.y - b.y) < 1 and a.y < 110: return True
+            elif it[0] == 're':
+                r = it[1]
+                if r.height < 2 and r.y0 < 110: return True
+    return False
+roman_re = re.compile(r'^[IVXLC]+\$')
+fb = next((i for i in range(doc.page_count) if fnum(i).isdigit()), None)
+if fb is None:
+    print('  (no Arabic-footer body page found)'); sys.exit(1)
+# Front-matter RUNNING pages = Roman-numeral footer (abstract/TOC/LOF/LOT/denotation).
+# Cover/declaration pages use htu@empty (no footer) — their drawings are page content, not headers, so excluded.
+leaks = [i + 1 for i in range(fb) if roman_re.match(fnum(i)) and has_rule(i)]
+body_has = any(has_rule(i) for i in range(fb, min(fb + 5, doc.page_count)))
+print(f'  first-body={fb + 1}, front-matter(Roman)-rule-leaks={leaks}, body-has-rule={body_has}')
+sys.exit(0 if (not leaks and body_has) else 1)
+"
+}
+run_test "P0" "ATDD-2.3-29" "BEHAVIOR: front-matter pages render NO header rule (AC-5, TC-E2-13)" test_frontmatter_no_header_behavior
+
 echo ""
 
 # ==========================================

@@ -274,12 +274,19 @@
 %% 许可证：LPPL（与 ThuThesis 一致）
 \fancypagestyle{htu@headings}{%
   \fancyhf{}%
-  %% HTU 定制（spec §2.5）：偶数页页眉=论文题目，奇数页页眉=一级标题，均居中五号宋体
-  \fancyhead[CE]{\wuhao\rmfamily\htu@ctitle}%
-  \fancyhead[CO]{\wuhao\rmfamily\rightmark}%
-  \renewcommand{\headrulewidth}{\htu@header@rule@thickness}%
-  %% HTU 定制：恢复页眉线与文字间距（重连 .def 中 \htu@header@rule@gap；2.2 迁移至 fancyhdr 后此间距一度丢失）
-  \renewcommand{\headruleskip}{\htu@header@rule@gap}%
+  \if@mainmatter
+    %% HTU 定制（spec §2.5）：正文奇偶页居中页眉——偶数页=论文题目，奇数页=一级标题，五号宋体
+    \fancyhead[CE]{\wuhao\rmfamily\htu@ctitle}%
+    \fancyhead[CO]{\wuhao\rmfamily\rightmark}%
+    \renewcommand{\headrulewidth}{\htu@header@rule@thickness}%
+    %% HTU 定制：恢复页眉线与文字间距（重连 .def 中 \htu@header@rule@gap；2.2 迁移至 fancyhdr 后此间距一度丢失）
+    \renewcommand{\headruleskip}{\htu@header@rule@gap}%
+  \else
+    %% HTU 定制（spec §2.5「从主体部分开始」）：前置部分无页眉。ctex 在每个章节首页注入
+    %% \thispagestyle{htu@headings}，故在此按 \if@mainmatter 自废页眉（headrulewidth=0、不设
+    %% \fancyhead），等效 htu@plain，一处覆盖所有前置章节页（摘要/目录/插图清单/表格清单/符号表）。
+    \renewcommand{\headrulewidth}{0pt}%
+  \fi
   \fancyfoot[C]{\wuhao\thepage}%
   \let\@mkboth\markboth
   \def\chaptermark##1{%
