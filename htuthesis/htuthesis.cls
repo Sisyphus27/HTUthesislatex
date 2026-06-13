@@ -18,9 +18,11 @@
 %% 声明选项(Declaration options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newif\ifhtu@doctor\htu@doctortrue
+\newif\ifhtu@openright\htu@openrightfalse
 \DeclareOption{doctor}{\htu@doctortrue}
 \DeclareOption{bachelor}{\ClassError{htuthesis}{bachelor option removed: this template now only supports doctoral theses}{}}
 \DeclareOption{master}{\ClassError{htuthesis}{master option removed: this template now only supports doctoral theses}{}}
+\DeclareOption{openright}{\htu@openrighttrue}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{ctexbook}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 选项处理 (Option processing)
@@ -29,7 +31,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 装载类与宏包 (Loading classes & packages)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\LoadClass[zihao=-4,a4paper,UTF8,scheme=plain]{ctexbook}
+\ifhtu@openright
+  \LoadClass[zihao=-4,a4paper,twoside,openright,UTF8,scheme=plain]{ctexbook}
+\else
+  \LoadClass[zihao=-4,a4paper,twoside,openany,UTF8,scheme=plain]{ctexbook}
+\fi
 \RequirePackage{ifxetex}
 \ifxetex\else
   \ClassError{htuthesis}{You should use XeLaTeX}{}
@@ -72,6 +78,7 @@
    Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
   }{Verify your TeX Live installation and system fonts.}}
 \RequirePackage{geometry}%页边距设置
+\RequirePackage{fancyhdr}%页眉页脚管理
 \RequirePackage{tabularx}%表格宽度控制
 \RequirePackage{multirow}%跨行表格
 \RequirePackage{longtable}%长表格，可替换supertabular
@@ -230,30 +237,54 @@
   punct=quanjiao,
   space=auto,
   autoindent=true}
-\let\htu@cleardoublepage\cleardoublepage
-\newcommand{\htu@clearemptydoublepage}{%开始奇数新页面
-  \clearpage{\pagestyle{empty}\htu@cleardoublepage}}
-\let\cleardoublepage\htu@clearemptydoublepage
+%% [ThuThesis 移植] 开始 cleardoublepage 处理
+%% 参考源：ThuThesis v7.7.1 thuthesis.dtx 行 3214-3229
+%% 许可证：LPPL（与 ThuThesis 一致）
+\def\cleardoublepage{%
+  \clearpage
+  \if@twoside
+    \ifodd\c@page
+    \else
+      \thispagestyle{empty}%
+      \hbox{}%
+      \newpage
+    \fi
+  \fi
+}
+%% [ThuThesis 移植] 结束 cleardoublepage 处理
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 页眉页脚
 %% 页眉：居中显示章节名称；宋体10.5磅居中，Abstract用Roman字体
 %% 页脚：居中显示页码；宋体10.5磅居中
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\def\ps@htu@empty{%%No head or foot line.
-  \let\@oddhead\@empty\let\@evenhead\@empty%
-  \let\@oddfoot\@empty\let\@evenfoot\@empty}
-\def\ps@htu@plain{%%No head, centred or right page number in foot.
-  \let\@oddhead\@empty\let\@evenhead\@empty%
-  \def\@oddfoot{\hfil\wuhao\thepage\hfil}%
-  \let\@evenfoot=\@oddfoot}
-\def\ps@htu@headings{%%Centred head, centred page number in foot.
-  \def\@oddhead{\vbox to\headheight{\vfill%
-    \hb@xt@\textwidth{\wuhao\rmfamily\hfill\leftmark\hfill}%
-      \vskip\htu@header@rule@gap\hbox{\vrule width\textwidth height\htu@header@rule@thickness depth\z@}}}
-  \let\@evenhead=\@oddhead
-  \def\@oddfoot{\wuhao\hfil\thepage\hfil}
-  \let\@evenfoot=\@oddfoot}
-\renewcommand{\chaptermark}[1]{\@mkboth{\thechapter\  ~~#1}{}}
+\fancypagestyle{htu@empty}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+\fancypagestyle{htu@plain}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+  \fancyfoot[C]{\wuhao\thepage}%
+}
+%% [ThuThesis 移植] 开始 headings 页面样式 + chaptermark
+%% 参考源：ThuThesis v7.7.1 thuthesis.dtx 行 3274-3336
+%% 许可证：LPPL（与 ThuThesis 一致）
+\fancypagestyle{htu@headings}{%
+  \fancyhf{}%
+  \fancyhead[C]{\wuhao\rmfamily\leftmark}%
+  \renewcommand{\headrulewidth}{\htu@header@rule@thickness}%
+  \fancyfoot[C]{\wuhao\thepage}%
+  \let\@mkboth\markboth
+  \def\chaptermark##1{%
+    \markboth{%
+      \CTEXifname{\CTEXthechapter\quad}{}##1%
+    }{}%
+  }%
+  \let\sectionmark\@gobble
+}
+%% [ThuThesis 移植] 结束 headings 页面样式 + chaptermark
 \newcommand*{\htu@textcircled}[1]{\lower.7ex\hbox{\tikz\draw (0pt, 0pt)%
     circle (.5em) node {\makebox[1em][c]{\small #1}};}}
 \robustify{\htu@textcircled}
@@ -738,6 +769,26 @@
 \newenvironment{resume}[1][\htu@resume@title]{%
   \htu@chapter*{#1}\wuhao[1.524]}{}
 \newcommand{\resumeitem}[1]{\vspace{2em}{\sihao\sffamily{#1}}\vspace{.5em}\par}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Self-Check Infrastructure (Story 2.2)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcounter{htu@totalpages}
+\AddToHook{shipout/after}{\stepcounter{htu@totalpages}}
+\newcommand{\htucheck}{%
+  \typeout{=== HTU Layout Self-Check ===}%
+  \typeout{textheight = \the\textheight}%
+  \typeout{textwidth = \the\textwidth}%
+  \typeout{baselineskip = \the\baselineskip}%
+  \typeout{headheight = \the\headheight}%
+  \typeout{evensidemargin = \the\evensidemargin}%
+  \typeout{oddsidemargin = \the\oddsidemargin}%
+  \typeout{total pages = \the\numexpr\c@htu@totalpages+1\relax}%
+  \typeout{page counter = \the\c@page}%
+  \typeout{=== End Self-Check ===}%
+}
+\AtEndDocument{%
+  \htucheck
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 延迟的代码 (Delaying code)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
