@@ -40,13 +40,14 @@
 % [基础] 右边距（真值来源：HTU 格式要求 §2.3 页面设置 → 右边距）
 \def\htu@rightmargin{25mm}
 
-% [基础] 页眉框高度（推导值：五号字 ≈ 3.7mm + 间距 0.7mm + 线 0.14mm ≈ 5mm）
-\def\htu@headerheight{5mm}
+% [基础] 页眉框高度（真值来源：参考论文实测横线在 27.5mm → top22mm + headheight ≈ 5.5mm；
+%   fancyhdr 要求 headheight ≥ 五号字 + headruleskip(2pt) + 横线 ≈ 15.70pt = 5.53mm，取 5.6mm 留余量）
+\def\htu@headerheight{5.6mm}
 
 % [基础] 页眉与正文间距 headsep
-% （推导值：上边距 3cm - 页眉位置 2.2cm - headheight 5mm = 3mm）
+% （推导值：上边距 3cm - 页眉位置 2.2cm - headheight 5.6mm = 2.4mm；参考论文实测横线→正文 ≈ 2.5mm）
 % 约束：top + headheight + headsep = 30mm（正文起始位置 = HTU 上边距）
-\def\htu@headsep{3mm}
+\def\htu@headsep{2.4mm}
 
 % [基础] 页脚高度 / footskip（推导值：下边距 2.5cm - 页脚位置 1.75cm = 7.5mm）
 % 约束：footskip + bottom = 25mm（正文结束位置 = HTU 下边距）

@@ -105,12 +105,13 @@
   \ctexset{chapter/format+=\centering}
   \@mainmatterfalse
   \pagenumbering{Roman}
-  \pagestyle{htu@headings}}
+  \pagestyle{htu@plain}}
 \renewcommand\mainmatter{%
   \cleardoublepage
   \ctexset{chapter/format+=\raggedright}
   \@mainmattertrue
-  \pagenumbering{arabic}}
+  \pagenumbering{arabic}%
+  \pagestyle{htu@headings}}
 \renewcommand\backmatter{%
   \cleardoublepage
   \ctexset{chapter/format+=\centering}
@@ -273,14 +274,20 @@
 %% 许可证：LPPL（与 ThuThesis 一致）
 \fancypagestyle{htu@headings}{%
   \fancyhf{}%
-  \fancyhead[C]{\wuhao\rmfamily\leftmark}%
+  %% HTU 定制（spec §2.5）：偶数页页眉=论文题目，奇数页页眉=一级标题，均居中五号宋体
+  \fancyhead[CE]{\wuhao\rmfamily\htu@ctitle}%
+  \fancyhead[CO]{\wuhao\rmfamily\rightmark}%
   \renewcommand{\headrulewidth}{\htu@header@rule@thickness}%
+  %% HTU 定制：恢复页眉线与文字间距（重连 .def 中 \htu@header@rule@gap；2.2 迁移至 fancyhdr 后此间距一度丢失）
+  \renewcommand{\headruleskip}{\htu@header@rule@gap}%
   \fancyfoot[C]{\wuhao\thepage}%
   \let\@mkboth\markboth
   \def\chaptermark##1{%
     \markboth{%
       \CTEXifname{\CTEXthechapter\quad}{}##1%
-    }{}%
+    }{%
+      \CTEXifname{\CTEXthechapter\quad}{}##1%
+    }%
   }%
   \let\sectionmark\@gobble
 }
@@ -680,7 +687,7 @@
 \newcommand{\htu@makeabstract}{%
   \cleardoublepage
   \htu@chapter*[]{\cabstractname} % no tocline
-  \pagestyle{htu@headings}
+  \pagestyle{htu@plain}
   \pagenumbering{Roman}
   \htu@cabstract
   \vskip\htu@abstract@keywordskip

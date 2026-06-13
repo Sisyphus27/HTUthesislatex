@@ -218,14 +218,14 @@ test_baselineskip_unchanged() {
 }
 run_test "P0" "ATDD-2.2-20" "baselineskip still 20bp in .def (Story 2.5 scope, R-3)" test_baselineskip_unchanged
 
-# ATDD-2.2-21: no header content changes — still centered \leftmark on all pages (Story 2.3 scope, R-7)
-test_header_content_unchanged() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  # htu@headings should use \leftmark centered (not \rightmark, not differential)
-  # Check that \fancyhead[C] uses \leftmark (not \leftmark on even and \rightmark on odd)
-  grep -q '\\fancyhead\[C\].*\\leftmark' htuthesis.cls 2>/dev/null
-}
-run_test "P0" "ATDD-2.2-21" "header content unchanged: still centered \\leftmark all pages (Story 2.3 scope)" test_header_content_unchanged
+# ATDD-2.2-21: SUPERSEDED by Story 2.3 — 2.3 intentionally differentiates odd/even headers
+# (replaces centered \leftmark with \fancyhead[CE]{\htu@ctitle} + \fancyhead[CO]{\rightmark}).
+# This 2.2 scope-guard is retired; the new behavior is verified by ATDD-2.3-01..04,11 in test-story-2.3-unit.sh.
+# test_header_content_unchanged() {
+#   [[ -f "htuthesis.cls" ]] || return 1
+#   grep -q '\\fancyhead\[C\].*\\leftmark' htuthesis.cls 2>/dev/null
+# }
+# run_test "P0" "ATDD-2.2-21" "header content unchanged: still centered \\leftmark all pages (Story 2.3 scope)" test_header_content_unchanged
 
 # ATDD-2.2-22: no numbering separator changes — still period in .def (Story 2.6 scope, R-12)
 test_separator_unchanged() {
@@ -255,16 +255,16 @@ test_ctex_chaptermark() {
 }
 run_test "P1" "ATDD-2.2-23" "htu@headings uses \\CTEXifname and \\CTEXthechapter (AC-2, R-10)" test_ctex_chaptermark
 
-# ATDD-2.2-24: htu@headings uses \leftmark centered, not differential (scope boundary, R-7)
-test_no_odd_even_differentiation() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  # Should NOT have \fancyhead[CE] or \fancyhead[CO] (that's Story 2.3)
-  local count
-  count=$(grep -c '\\fancyhead\[C[EO]\]' htuthesis.cls 2>/dev/null || true)
-  count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  [[ "$count" -eq 0 ]]
-}
-run_test "P1" "ATDD-2.2-24" "no odd/even header differentiation yet (Story 2.3 scope, R-7)" test_no_odd_even_differentiation
+# ATDD-2.2-24: SUPERSEDED by Story 2.3 — 2.3 intentionally adds \fancyhead[CE]/[CO] differentiation.
+# This 2.2 scope-guard (assert zero CE/CO) is retired; the new behavior is verified by ATDD-2.3-01,02 in test-story-2.3-unit.sh.
+# test_no_odd_even_differentiation() {
+#   [[ -f "htuthesis.cls" ]] || return 1
+#   local count
+#   count=$(grep -c '\\fancyhead\[C[EO]\]' htuthesis.cls 2>/dev/null || true)
+#   count=$(echo "$count" | tr -d '[:space:]' | head -1)
+#   [[ "$count" -eq 0 ]]
+# }
+# run_test "P1" "ATDD-2.2-24" "no odd/even header differentiation yet (Story 2.3 scope, R-7)" test_no_odd_even_differentiation
 
 # ATDD-2.2-29: \htucheck manual command available (AC-5)
 test_htucheck_command() {

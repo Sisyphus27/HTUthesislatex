@@ -90,12 +90,14 @@ test_def_rightmargin() {
 }
 run_test "P0" "ATDD-2.1-04" ".def has \\htu@rightmargin{25mm}" test_def_rightmargin
 
-# ATDD-2.1-05: .def has \htu@headerheight{5mm} with backslash (AC-2)
+# ATDD-2.1-05: .def has \htu@headerheight{5.6mm} (recalibrated in Story 2.3: clears the
+#   fancyhdr headheight warning introduced by reconnecting \headruleskip, and aligns the
+#   header-rule position with the reference thesis measured 27.5mm; approved change)
 test_def_headerheight() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@headerheight{5mm}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@headerheight{5.6mm}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.1-05" ".def has \\htu@headerheight{5mm}" test_def_headerheight
+run_test "P0" "ATDD-2.1-05" ".def has \\htu@headerheight{5.6mm} (Story 2.3 recalibration)" test_def_headerheight
 
 # ATDD-2.1-06: .def has \htu@footskip{7.5mm} with backslash (AC-2)
 test_def_footskip() {
@@ -257,26 +259,25 @@ test_cls_comment_updated() {
 }
 run_test "P2" "ATDD-2.1-19" "cls comment block references HTU spec" test_cls_comment_updated
 
-# ATDD-2.1-30: No twoside mode added yet (scope boundary — Story 2.2)
-test_no_twoside() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  # \LoadClass line should NOT have twoside yet
-  grep '\\LoadClass' htuthesis.cls 2>/dev/null | grep -q 'twoside' && return 1
-  return 0
-}
-run_test "P2" "ATDD-2.1-30" "cls has no twoside yet (Story 2.2 scope)" test_no_twoside
+# ATDD-2.1-30: SUPERSEDED by Story 2.2 — 2.2 intentionally added twoside to LoadClass.
+# This 2.1 scope-guard ("no twoside yet") is obsolete; twoside presence is verified by ATDD-2.2-01.
+# test_no_twoside() {
+#   [[ -f "htuthesis.cls" ]] || return 1
+#   grep '\\LoadClass' htuthesis.cls 2>/dev/null | grep -q 'twoside' && return 1
+#   return 0
+# }
+# run_test "P2" "ATDD-2.1-30" "cls has no twoside yet (Story 2.2 scope)" test_no_twoside
 
-# ATDD-2.1-31: No header/footer style changes (scope boundary — Stories 2.3/2.4)
-test_no_pagestyle_changes() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  # ps@htu@headings and ps@htu@plain should be unchanged from Epic 1
-  # Just verify they still exist (not deleted)
-  local count
-  count=$(grep -c 'ps@htu@' htuthesis.cls 2>/dev/null || true)
-  count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  [[ "$count" -ge 3 ]]
-}
-run_test "P2" "ATDD-2.1-31" "cls page styles unchanged (Stories 2.3/2.4 scope)" test_no_pagestyle_changes
+# ATDD-2.1-31: SUPERSEDED by Story 2.2/2.3 — 2.2 replaced \ps@htu@ with \fancypagestyle{htu@},
+# and 2.3 customized the header/footer styles. This 2.1 scope-guard is obsolete.
+# test_no_pagestyle_changes() {
+#   [[ -f "htuthesis.cls" ]] || return 1
+#   local count
+#   count=$(grep -c 'ps@htu@' htuthesis.cls 2>/dev/null || true)
+#   count=$(echo "$count" | tr -d '[:space:]' | head -1)
+#   [[ "$count" -ge 3 ]]
+# }
+# run_test "P2" "ATDD-2.1-31" "cls page styles unchanged (Stories 2.3/2.4 scope)" test_no_pagestyle_changes
 
 echo ""
 
