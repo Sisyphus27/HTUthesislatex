@@ -212,8 +212,8 @@ echo ""
 echo "=== P2: Supplementary Behavior ==="
 
 # ATDD-2.4-25: BEHAVIOR — cover/title pages have NO page-number text (AC-5, TC-E2-17)
-# All pages BEFORE the first numbered page (cover/扉页/声明/blank) must have no footer number.
-# GREEN pre-impl (cover already htu@empty) — regression guard that the move did not leak numbers onto covers.
+# AND the first numbering-start page (front-matter Roman start) is a right/recto page (AC-7, §2.4).
+# GREEN pre-impl (cover already htu@empty + cover consumes an even page count so abstract lands recto).
 test_cover_no_number_behavior() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "
@@ -234,14 +234,17 @@ if not nums:
     print('  no numbered pages found'); sys.exit(1)
 first = nums[0]
 leaks = [i + 1 for i in range(first) if footer_num(i) is not None]
-print(f'  first-numbered page={first + 1}, pages-before={first}, cover/blank-number-leaks={leaks}')
-sys.exit(0 if not leaks else 1)
+# §2.4: numbering-start page #1 (front-matter Roman start) MUST be a right (recto = odd physical) page.
+recto = (first + 1) % 2 == 1
+print(f'  first-numbered page={first + 1}, recto={recto}, pages-before={first}, cover/blank-number-leaks={leaks}')
+sys.exit(0 if (not leaks and recto) else 1)
 "
 }
-run_test "P2" "ATDD-2.4-25" "BEHAVIOR: cover/title pages have NO page number (AC-5, TC-E2-17)" test_cover_no_number_behavior
+run_test "P2" "ATDD-2.4-25" "BEHAVIOR: cover pages have NO page number + front-matter start is recto (AC-5/7, TC-E2-17, §2.4)" test_cover_no_number_behavior
 
 # ATDD-2.4-26: BEHAVIOR — first Arabic (main-body) page numbered "1" (AC-6, TC-E2-18)
-# GREEN pre-impl (mainmatter already resets to 1) — regression guard for the Arabic reset.
+# AND that page is a right/recto page (AC-7, §2.4 numbering-start page #2).
+# GREEN pre-impl (mainmatter resets to 1 + \cleardoublepage forces recto).
 test_first_arabic_page_one() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "
@@ -262,11 +265,13 @@ arabic_pages = [(i, footer_num(i)) for i in range(doc.page_count)
 if not arabic_pages:
     print('  no Arabic-numbered page found'); sys.exit(1)
 first_idx, first_num = arabic_pages[0]
-print(f'  first Arabic page={first_idx + 1}, displayed number={first_num}')
-sys.exit(0 if first_num == '1' else 1)
+# §2.4: numbering-start page #2 (main-body Arabic start) MUST be a right (recto = odd physical) page.
+recto = (first_idx + 1) % 2 == 1
+print(f'  first Arabic page={first_idx + 1}, displayed number={first_num}, recto={recto}')
+sys.exit(0 if (first_num == '1' and recto) else 1)
 "
 }
-run_test "P2" "ATDD-2.4-26" "BEHAVIOR: first Arabic (main-body) page numbered \"1\" (AC-6, TC-E2-18)" test_first_arabic_page_one
+run_test "P2" "ATDD-2.4-26" "BEHAVIOR: first Arabic page numbered \"1\" + main-body start is recto (AC-6/7, TC-E2-18, §2.4)" test_first_arabic_page_one
 
 echo ""
 
