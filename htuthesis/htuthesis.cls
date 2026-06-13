@@ -199,7 +199,11 @@
   \belowdisplayshortskip=\abovedisplayshortskip}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 页面设置
-%% 博士：上3cm、下2.5cm、左2.5cm、右2.5cm、页眉2.2cm、页脚1.75cm
+%% 博士（includeheadfoot 模式）：
+%%   页眉距顶 2.2cm、页脚距底 1.75cm
+%%   正文起始距顶 3cm（= top 2.2cm + headheight 5mm + headsep 3mm）
+%%   正文结束距底 2.5cm（= footskip 7.5mm + bottom 1.75cm）
+%%   左右各 2.5cm、装订线 0cm
 %% 真值来源：HTU 格式要求 §2.3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \geometry{
@@ -211,11 +215,11 @@
   left=\htu@leftmargin,
   right=\htu@rightmargin,
   headheight=\htu@headerheight,
+  headsep=\htu@headsep,
   footskip=\htu@footskip}
 %% --- Dimension output for geometry verification (Story 2.1 AC-4) ---
-%% Outputs physical dimensions from paper edge for ATDD verification.
-%% textheight here = total content area (body + headheight + headsep + footskip).
-\typeout{htu@geometry@textheight=\the\dimexpr\textheight+\headheight+\headsep+\footskip\relax}
+%% Outputs physical dimensions for ATDD verification.
+\typeout{htu@geometry@textheight=\the\textheight}
 \typeout{htu@geometry@textwidth=\the\textwidth}
 \typeout{htu@geometry@topmargin=\the\dimexpr\topmargin+1in\relax}
 \typeout{htu@geometry@oddsidemargin=\the\dimexpr\oddsidemargin+1in\relax}

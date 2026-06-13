@@ -24,11 +24,15 @@
 
 % --- 页面布局 ---
 
-% [基础] 上边距（真值来源：HTU 格式要求 §2.3 页面设置 → 上边距）
-\def\htu@topmargin{30mm}
+% [基础] 顶部边距 / includeheadfoot 下的 top 参数
+% （真值来源：HTU 格式要求 §2.3 页眉 → 页眉距纸顶位置 = 2.2cm）
+% 在 includeheadfoot 模式下，top = 页眉顶部距纸顶距离
+\def\htu@topmargin{22mm}
 
-% [基础] 下边距（真值来源：HTU 格式要求 §2.3 页面设置 → 下边距）
-\def\htu@bottommargin{25mm}
+% [基础] 底部边距 / includeheadfoot 下的 bottom 参数
+% （真值来源：HTU 格式要求 §2.3 页脚 → 页脚距纸底位置 = 1.75cm）
+% 在 includeheadfoot 模式下，bottom = 页脚基线距纸底距离
+\def\htu@bottommargin{17.5mm}
 
 % [基础] 左边距（真值来源：HTU 格式要求 §2.3 页面设置 → 左边距）
 \def\htu@leftmargin{25mm}
@@ -36,11 +40,17 @@
 % [基础] 右边距（真值来源：HTU 格式要求 §2.3 页面设置 → 右边距）
 \def\htu@rightmargin{25mm}
 
-% [基础] 页眉高度（真值来源：HTU 格式要求 §2.3 页眉）
-\def\htu@headerheight{22mm}
+% [基础] 页眉框高度（推导值：五号字 ≈ 3.7mm + 间距 0.7mm + 线 0.14mm ≈ 5mm）
+\def\htu@headerheight{5mm}
 
-% [基础] 页脚高度 / footskip（真值来源：HTU 格式要求 §2.3 页脚）
-\def\htu@footskip{17.5mm}
+% [基础] 页眉与正文间距 headsep
+% （推导值：上边距 3cm - 页眉位置 2.2cm - headheight 5mm = 3mm）
+% 约束：top + headheight + headsep = 30mm（正文起始位置 = HTU 上边距）
+\def\htu@headsep{3mm}
+
+% [基础] 页脚高度 / footskip（推导值：下边距 2.5cm - 页脚位置 1.75cm = 7.5mm）
+% 约束：footskip + bottom = 25mm（正文结束位置 = HTU 下边距）
+\def\htu@footskip{7.5mm}
 
 % --- 正文字号与行距 ---
 
