@@ -81,6 +81,24 @@
 % 用法：\htu@songtibold\bfseries —— \htu@songtibold 切换到带 AutoFakeBold 的 SimSun 族，
 % \bfseries 触发算法加粗（字体名仍为 SimSun，区别于 ctex 默认把 CJK 粗体映射到 SimHei）。
 \newCJKfontfamily\htu@songtibold{SimSun}[AutoFakeBold=2.5]
+% [基础] 拉丁主字体 = Times New Roman（真值来源：HTU 格式要求 §2.7/§2.8/§2.9 + architecture.md:83 硬约束）。
+%   cls 上方 \IfFontExistsTF{Times New Roman} 已保证 TNR 存在（缺失则 \PackageError 终止），
+%   此处再次门控为防御性双保险（AC-1, NFR-2）。
+%   修复 deferred-work §2.5 review 的 Latin-Modern 缺口：全模板此前无 \setmainfont，Latin 文本
+%   缺省渲染为 Latin Modern（如 L4 标题 Latin 数字为 LMRoman12-Bold）。本行将其切换为 TNR。
+%   影响：所有 \rmfamily Latin 文本（英文封面/英文摘要正文/Latin 数字/交叉引用标记）。
+%   不影响：CJK 字体（ctex 独立管理）、数学字体（unicode-math 用 Latin Modern Math，独立于 \setmainfont）。
+%   实测确认（AC-5 三源之一）：参考论文 2107084001-任子辛 page 1-14 Latin 主字体 = TimesNewRomanPSMT。
+\IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{}
+% [基础] CJK 无衬线（\sffamily）= SimHei（真值来源：HTU 格式要求 §2.10 标题黑体 + 参考论文 PDF 实测）。
+%   ctex scheme=plain 在本系统自动检测 \sffamily CJK 为 Microsoft YaHei（ATDD-3.9-18 实测确认），
+%   与参考论文标题字体 SimHei（参考 PDF p15/p22「第一节/第二节」15.0pt 实测）及 spec §2.10 黑体不一致。
+%   显式 \setCJKsansfont{SimHei} 强制传统黑体字面，与参考论文 + spec 对齐（AC-4 决策：SimHei）。
+%   影响所有 \sffamily CJK 文本：章/节/小节标题（cls \ctexset chapter/section/subsection）、
+%   定理头、原创性声明标题等。
+%   不影响：\htu@songtibold（上方 \newCJKfontfamily，L4 加粗宋体，独立显式族）、
+%   CJK 主字体（SimSun 经 ctex 默认，\setCJKsansfont 只改 sans 族）。
+\setCJKsansfont{SimHei}
 \RequirePackage{geometry}%页边距设置
 \RequirePackage{fancyhdr}%页眉页脚管理
 \RequirePackage{tabularx}%表格宽度控制
