@@ -168,6 +168,9 @@
 \def\htu@ckeywords@separator{；}
 \def\htu@ekeywords@separator{; }
 \newcommand{\htu@ckeywords@title}{关键词：}
+% [基础] 英文关键词标签：冒号为半角 ":"（U+003A)。真值源 = 参考论文 PDF
+%   (2107084001-任子辛-政治与公共管理学院.pdf) page 9 "KEY WORDS:Digitalization..."；
+%   按真值源层次（参考论文 > spec §2.8 全角"："），半角胜出（PRD decision-log D-14）。
 \newcommand{\htu@ekeywords@title}{KEY WORDS:\enskip}
 \newcommand{\htu@denotation@name}{主要符号对照表}
 \newcommand{\htu@ackname}{致\hspace{\ccwd} 谢}

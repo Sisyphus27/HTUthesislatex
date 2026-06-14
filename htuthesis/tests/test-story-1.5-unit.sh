@@ -136,16 +136,20 @@ run_test "P1" "ATDD-1.5-03" "normalsize uses @setfontsize with .def params (AC-1
 echo ""
 echo "=== P1: Mechanism 2 — clearemptydoublepage ==="
 
-# ATDD-1.5-05: clearemptydoublepage implementation intact (AC-2)
-test_clearemptydoublepage_impl() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  local count
-  count=$(grep -c 'htu@clearemptydoublepage' htuthesis.cls 2>/dev/null || true)
-  count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  echo "  (Found $count htu@clearemptydoublepage references)"
-  [[ "$count" -ge 2 ]]
-}
-run_test "P1" "ATDD-1.5-05" "clearemptydoublepage implementation intact in cls (AC-2)" test_clearemptydoublepage_impl
+# ATDD-1.5-05: SUPERSEDED by Story 2.2 — 2.2 移植 CTEXcleardoublepage（\def\cleardoublepage +
+# \thispagestyle{empty}），移除了 \htu@clearemptydoublepage。
+# 本测试意图（"空白页清空机制完整"，AC-2）现由 ATDD-2.2-12 正面覆盖。
+# 本测试的断言（htu@clearemptydoublepage >= 2）与 ATDD-2.2-08（= 0）直接冲突，故退役。
+# 冲突解决依据：Epic 2 回顾 Decision 2（保留最新 story 现实 + 可追溯性）。2026-06-14。
+# test_clearemptydoublepage_impl() {
+#   [[ -f "htuthesis.cls" ]] || return 1
+#   local count
+#   count=$(grep -c 'htu@clearemptydoublepage' htuthesis.cls 2>/dev/null || true)
+#   count=$(echo "$count" | tr -d '[:space:]' | head -1)
+#   echo "  (Found $count htu@clearemptydoublepage references)"
+#   [[ "$count" -ge 2 ]]
+# }
+# run_test "P1" "ATDD-1.5-05" "clearemptydoublepage implementation intact in cls (AC-2)" test_clearemptydoublepage_impl
 
 # ATDD-1.5-06: frontmatter/mainmatter/backmatter call cleardoublepage (AC-2)
 test_matter_cleardoublepage() {

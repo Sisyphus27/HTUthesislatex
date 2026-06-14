@@ -112,13 +112,17 @@ test_class_error() {
 }
 run_test "P0" "ATDD-1.1-07" "ClassError{htuthesis} in cls" test_class_error
 
-# ATDD-1.1-08: Page styles renamed (AC-4)
-test_page_styles() {
-  local count
-  count=$(grep -c 'ps@htu@' htuthesis.cls 2>/dev/null || echo "0")
-  [[ "$count" -ge 3 ]]
-}
-run_test "P0" "ATDD-1.1-08" "ps@htu@ styles (>= 3) in cls" test_page_styles
+# ATDD-1.1-08: SUPERSEDED by Story 2.2 — 2.2 用 \fancypagestyle{htu@...} 取代了 \ps@htu@。
+# 本测试意图（"页面样式已重命名为 htu@"，AC-4）现由 ATDD-2.2-07 正面覆盖
+# （断言 3 个 \fancypagestyle{htu@empty/plain/headings} 存在）。
+# 本测试的断言（ps@htu@ >= 3）与 ATDD-2.2-06（\def\ps@htu@ = 0）直接冲突，故退役。
+# 冲突解决依据：Epic 2 回顾 Decision 2（保留最新 story 现实 + 可追溯性）。2026-06-14。
+# test_page_styles() {
+#   local count
+#   count=$(grep -c 'ps@htu@' htuthesis.cls 2>/dev/null || echo "0")
+#   [[ "$count" -ge 3 ]]
+# }
+# run_test "P0" "ATDD-1.1-08" "ps@htu@ styles (>= 3) in cls" test_page_styles
 
 # ATDD-1.1-09: main.tex uses \documentclass[doctor]{htuthesis} (AC-5)
 test_main_documentclass() {
