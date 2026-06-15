@@ -179,8 +179,6 @@
   \def\htu@subject@title{学科、专业}
   \def\htu@researchdirection@title{研究方向}
   \def\htu@degreecategory@title{申请学位类别}
-  \def\htu@major@title{专业名称}% 保留（inert；学科、专业 字段值 = \csubject+\cmajor 合并）
-\def\htu@cdate@title{完成时间}% 保留（inert；日期已移至字段下方居中，见 \htu@first@titlepage）
 \let\CJK@todaysave=\today
 \def\CJK@todaysmall@short{\the\year 年 \the\month 月}
 \def\CJK@todaysmall{\CJK@todaysmall@short \the\day 日}
@@ -553,14 +551,17 @@
 \htu@def@term{emajor}
 \htu@def@term{edepartment}
 \htu@def@term{edate}
+\htu@def@term{edegree}
   \cdate{\CJK@todaysmall@short}%
 \edate{\ifcase \month \or January\or February\or March\or April\or May%
        \or June\or July \or August\or September\or October\or November
        \or December\fi\unskip,\ \ \the\year}
+% [基础] 英文学位类别默认值（真值来源：.doc「博士学位论文扉页」"Doctor of Philosophy in Science/Engineering Science"）。
+%   学生按学科门类在 data/cover.tex 用 \edegree{} 覆盖（法学→Doctor of Law 等，见
+%   「硕士学位论文扉页及学位类别术语英文标准翻译.doc」，博士将 Master 替换为 Doctor）。
+\edegree{Doctor of Philosophy in Science/Engineering Science}
 \newcommand\htu@underline[2][6em]{%
   \hskip\p@\underline{\hb@xt@ #1{\hss#2\hss}}\hskip3\p@}
-\newlength{\htu@title@width}
-\def\htu@put@title#1{\makebox{\hb@xt@\htu@title@width{#1}}}
 \newcommand{\htu@first@titlepage}{%论文中文封面（博士学位论文封面）
   \thispagestyle{htu@empty}%
   % [基础] 封面布局：TikZ remember-picture overlay 绝对定位（mm 坐标，原点=current page 节点）。
@@ -625,36 +626,115 @@
   \end{tikzpicture}%
   \null% 确保仅含 overlay 的 titlepage 页正常 shipout（overlay 零尺寸，\null 提供可输出内容）
 } % end of titlepage
-\newcommand{\htu@engcover}{%博士论文英文封面
-  \thispagestyle{htu@empty}
-  \vspace*{1cm}
-  \begin{center}
-    \parbox[t][5.8cm][t]{\paperwidth-7.2cm}{
-      \renewcommand{\baselinestretch}{1.5}
-        \begin{center}
-          \sanhao A dissertation submitted to\\
-          {\bfseries \htu@schoolname@en}\\
-          for the degree of Doctor\\
-        \end{center}}
-    \vskip \stretch{1}
-    \parbox[t][5.2cm][t]{\paperwidth-7.2cm}{
-      \renewcommand{\baselinestretch}{1.5}
-      \begin{center}
-        \sanhao\bfseries\htu@etitle
-      \end{center}}
-    \vskip \stretch{2}
-    \parbox[t][3.6cm][b]{\paperwidth-7.2cm}{
-      \renewcommand{\baselinestretch}{1.5}
-      \begin{center}
-        \sanhao
-        By\quad{}\htu@eauthor\par
-        Supervisor :\quad\htu@esupervisor\par
-        \htu@emajor\par
-        \htu@edepartment\par
-        \htu@edate
-      \end{center}}
-  \vfill
-  \end{center}}
+\newcommand{\htu@engcover}{%博士论文英文扉页（FR-13）
+  \thispagestyle{htu@empty}%
+  % [基础] 英文扉页布局：TikZ remember-picture overlay 绝对定位（mm，原点=current page 节点）。
+  %   真值来源（三源三角，CLAUDE.md Decision 4）：
+  %     1) 参考论文 2107084001-任子辛-政治与公共管理学院.pdf page 3（已完成 HTU 博士英文扉页，视觉真值）
+  %     2) .doc 空白模板「博士学位论文扉页」（官方下载，权威空白形式）
+  %     3) 本 [基础] 注释（实现层映射）
+  %   全页 Times New Roman（Story 3.9 \setmainfont{TNR} → \rmfamily Latin = TNR），居中。
+  %   结构（参考 page 3 + .doc 扉页）：
+  %     标题(TNR 18pt regular) → 学位陈述 5 行（A Dissertation Submitted to the Graduate School of
+  %     Henan Normal University in Partial Fulfillment of the Requirements for the Degree of [degree]，
+  %     TNR 15pt）→ By [author] / Supervisor: Prof. [supervisor] / [date]（TNR 15pt）。
+  %   AC-4：不渲染 \htu@emajor/\htu@edepartment（参考论文 page 3 + .doc 扉页均无此两行）。
+  %   R-6（score 6）：消除英文封面 \parbox 的硬编码纸张宽度（Story 2.1 deferred 债）→ 纸张绝对定位。
+  \begin{tikzpicture}[remember picture, overlay]
+    % --- 论文题目（TNR 18pt regular，居中，y≈36mm；长标题自然换行）---
+    \node[anchor=north, inner sep=0pt, text width=160mm, align=center]
+      at ($(current page.north) + (0mm, -36mm)$)
+      {\rmfamily\fontsize{18bp}{22bp}\selectfont\htu@etitle};
+    % --- 学位陈述（TNR 15pt，居中，5 行；y=98/109/120/131/142mm 对齐参考 page 3）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -98mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont A Dissertation Submitted to};
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -109mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont the Graduate School of Henan Normal University};
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -120mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont in Partial Fulfillment of the Requirements};
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -131mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont for the Degree of};
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -142mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont\htu@edegree};
+    % --- 作者块（TNR 15pt，居中，4 行；y=190/201/212/223mm；作者名斜体匹配参考 page 3）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -190mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont By};
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -201mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont\itshape\htu@eauthor};
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -212mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont Supervisor: Prof.~\htu@esupervisor};
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -223mm)$)
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont\htu@edate};
+  \end{tikzpicture}%
+  \null% 确保 overlay-only 页正常 shipout
+}
+\newcommand{\htu@abstractcover}{%博士学位论文摘要封面（FR-12，HTU 独有）
+  \thispagestyle{htu@empty}%
+  % [基础] 摘要封面布局：TikZ remember-picture overlay 绝对定位（mm）。
+  %   真值来源（三源三角，CLAUDE.md Decision 4；DECIDED 2026-06-15 采用 .doc 元数据封面结构）：
+  %     1) .doc 空白模板「博士学位论文摘要封面」（官方下载，权威空白形式 — 本页基准）
+  %     2) 参考论文 page 1（创新点页 = 独立提交物，非本模板范围 — Decision 4 透明偏离）
+  %     3) 本 [基础] 注释（实现层映射）
+  %   结构（.doc 摘要封面）：单位代码/学号/分类号(仿宋12pt) + 河南师范大学(宋体26pt 文本，非图像)
+  %   + 博士学位论文摘要(宋体26pt) + 论文题目：题目(黑体18pt) + 五字段(黑体15pt) + 年月(黑体15pt)。
+  \begin{tikzpicture}[remember picture, overlay]
+    % --- 元数据（左上 x≈23mm，仿宋小四≈12pt；ASCII 走 \htu@fangsong@latin 匹配 .doc）---
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (23.3mm, -22.8mm)$)
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode@title\hspace{1em}%
+       \htu@underline[25mm]{\htu@schoolcode}};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (23.3mm, -31.9mm)$)
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@id@title\hspace{1em}%
+       \htu@underline[25mm]{\htu@id}};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (23.3mm, -40.8mm)$)
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel@title\hspace{1em}%
+       \htu@underline[25mm]{\htu@secretlevel}};
+    % --- 河南师范大学（宋体26pt，居中，y≈66mm；.doc 为文本，非书法体图像）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -66mm)$)
+      {\fontsize{26bp}{31bp}\selectfont 河南师范大学};
+    % --- 博士学位论文摘要（宋体26pt，居中，y≈76mm）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -76mm)$)
+      {\fontsize{26bp}{31bp}\selectfont 博士学位论文摘要};
+    % --- 论文题目：题目（黑体小二18pt，居中，y≈129mm；label：value）---
+    \node[anchor=north, inner sep=0pt, text width=160mm, align=center]
+      at ($(current page.north) + (0mm, -129mm)$)
+      {\sffamily\xiaoer 论文题目\htu@title@sep\htu@ctitle};
+    % --- 五字段（黑体小三15pt，左 x=60mm，label：value；y 对齐 .doc 摘要封面）---
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -189mm)$)
+      {\sffamily\xiaosan\htu@subject@title\htu@title@sep\htu@csubject\htu@cmajor};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -197mm)$)
+      {\sffamily\xiaosan\htu@researchdirection@title\htu@title@sep\htu@researchdirection};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -205mm)$)
+      {\sffamily\xiaosan\htu@degreecategory@title\htu@title@sep\htu@degreecategory};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -213mm)$)
+      {\sffamily\xiaosan\htu@author@title\htu@title@sep\htu@cauthor};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -221mm)$)
+      {\sffamily\xiaosan\htu@supervisor@title\htu@title@sep\htu@csupervisor};
+    % --- 年月（黑体小三15pt，居中，y≈245mm；阿拉伯数字+年/月）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -245mm)$)
+      {\sffamily\htu@heiti@latin\xiaosan\htu@cdate};
+  \end{tikzpicture}%
+  \null% 确保 overlay-only 页正常 shipout
+}
 \newcommand{\htu@declarename}{学位论文原创性声明}
 \newcommand{\htu@authtitle}{学位论文使用授权声明}
 \newcommand{\htu@authorsig}{学位论文作者：}
@@ -708,7 +788,9 @@
     \cleardoublepage
     \htu@engcover
     \cleardoublepage
-    \htu@authorization@mk
+    \htu@abstractcover
+    % TODO Story 3.3: 在后置部分（附录之后）渲染原创性声明 + 授权声明页（FR-14；当前声明宏已定义但未调用）。
+    %   2026-06-15 决策（Zy）：从前置 \makecover 移除（FR-14 要求声明在后置），3.3 在后置恢复。
   \end{titlepage}
   \normalsize
   \htu@makeabstract
