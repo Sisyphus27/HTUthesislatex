@@ -207,25 +207,26 @@ echo ""
 # ==========================================
 echo "=== P2: declaration position (AC-10, Task-0.3 dependent) ==="
 
-# ATDD-3.2-11: \htu@authorization@mk removed from \makecover front matter (AC-10, FR-14)
+# ATDD-3.2-11: \htu@authorization@mk NOT called within \makecover front matter (AC-10, FR-14)
 # Truth source: FR-14 — declaration is "positioned in the ending section (after appendices)" → NOT front matter.
-#   Recommended default (Task-0.3 consult Zy): remove \htu@authorization@mk from \makecover now (3.3 re-adds in back matter).
-# Detection (robust, no block extraction): count BARE CALLS of \htu@authorization@mk = total mentions minus
-#   the \newcommand definition. Pre-impl: total=2 (def cls:675 + call cls:711), defs=1 → calls=1 → RED.
-#   Post-impl (default): total=1 (def only), defs=1 → calls=0 → GREEN.
-#   If Zy chooses to KEEP it in \makecover (Task-0.3 option b), this stays RED → repoint (Decision 2).
+# REPPOINTED 2026-06-15 (Story 3.3, Decision 2): the original assertion (global bare-call count = 0) is obsoleted —
+#   Story 3.3 re-added the declaration in BACK MATTER via \makedeclaration → \htu@authorization@mk, so the macro
+#   is now legitimately called (bare-calls=1), but NOT inside \makecover. The INTENT (declaration not in front
+#   matter) remains valid and is satisfied by 3.3. New detection: extract the \makecover block (from its
+#   \newcommand def to the first column-0 '}') and assert it does NOT call authorization@mk. The col-0 close is
+#   stable for \makecover (verified). If someone re-adds authorization@mk to \makecover, this FAILs (intent held).
 test_authorization_out_of_makecover() {
   [[ -f "htuthesis.cls" ]] || return 1
-  local total defs calls
-  total=$(grep -c 'htu@authorization@mk' htuthesis.cls 2>/dev/null || true)
-  defs=$(grep -c 'newcommand{\\htu@authorization@mk}' htuthesis.cls 2>/dev/null || true)
-  total=$(echo "$total" | tr -d '[:space:]' | head -1)
-  defs=$(echo "$defs" | tr -d '[:space:]' | head -1)
-  calls=$((total - defs))
-  echo "  (authorization@mk total=$total defs=$defs bare-calls=$calls; expect 0 calls post-impl [removed from \\makecover])"
-  [[ "$calls" -eq 0 ]]
+  local body
+  body=$(awk '/newcommand\{\\makecover\}/{f=1} f{print} f&&/^}/{exit}' htuthesis.cls)
+  if echo "$body" | grep -q 'htu@authorization@mk'; then
+    echo "  (authorization@mk found INSIDE \\makecover block — declaration wrongly in front matter)"
+    return 1
+  fi
+  echo "  (authorization@mk NOT in \\makecover block — declaration correctly in back matter via \\makedeclaration)"
+  return 0
 }
-run_test "P2" "ATDD-3.2-11" "\\htu@authorization@mk removed from \\makecover (AC-10/FR-14; RED pre-impl — Task-0.3 dependent, repoint if Zy keeps it)" test_authorization_out_of_makecover
+run_test "P2" "ATDD-3.2-11" "\\htu@authorization@mk NOT called within \\makecover (AC-10/FR-14; REPPOINTED 3.3/Decision 2 — back-matter call legit)" test_authorization_out_of_makecover
 
 echo ""
 
@@ -242,7 +243,7 @@ if [[ "$SKIP" == "1" ]]; then
   echo "   Run with --run flag or ATDD_SKIP=0 to activate"
   echo "   RED (fail pre-impl): 3.2-01 (abstractcover macro), 3.2-02 (makecover order),"
   echo "      3.2-03 (degree statement), 3.2-04 (no paperwidth-7.2cm parbox), 3.2-05 (edegree macro),"
-  echo "      3.2-06 (old 'degree of Doctor' removed), 3.2-11 (authorization out of makecover)."
+  echo "      3.2-06 (old 'degree of Doctor' removed). (3.2-11 REPPOINTED by 3.3/Decision 2 — makecover-block-scoped guard.)"
   echo "   GREEN guards: 3.2-07 (latin switches), 3.2-08 (first@titlepage intact), 3.2-09 (no setstretch),"
   echo "      3.2-10 (setmainfont TNR)."
   echo ""

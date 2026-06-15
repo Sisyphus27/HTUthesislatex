@@ -735,42 +735,32 @@
   \end{tikzpicture}%
   \null% 确保 overlay-only 页正常 shipout
 }
-\newcommand{\htu@declarename}{学位论文原创性声明}
-\newcommand{\htu@authtitle}{学位论文使用授权声明}
-\newcommand{\htu@authorsig}{学位论文作者：}
-\newcommand{\htu@declaretext}{\hspace{2\ccwd}
-本人郑重声明：所呈交的学位论文，是本人在导师的指导下，独立进行研究所取得的成果
-。除文中已经注明引用的内容外，本论文不包含任何其他个人或集体已经发表或撰写过的
-科研成果。对本文的研究做出重要贡献的个人和集体，均已在文中以明确方式标明。本声
-明的法律责任由本人承担。}
-\newcommand{\htu@declaredate}{日\hspace{\ccwd} 期：\hspace{4\ccwd} 年\hspace{2\ccwd} 月\hspace{2\ccwd} 日}
-\newcommand{\htu@authorization}{\hspace{2\ccwd}
-本人在导师指导下完成的论文及相关的职务作品，知识产权归属\htu@schoolname。根据\htu@schoolname
-有关保留、使用学位论文的规定，同意学校保留或向国家有关部门或机构送交论文的复印
-件和电子版，允许论文被查阅和借阅；本人授权\htu@schoolname 可以将本学位论文的全部或部分
-编入有关数据库进行检索，可以采用影印、缩印或其他复制手段保存论文和汇编本学位论
-文。本人离校后发表、使用学位论文或与该学位论文直接相关的学术论文或成果时，第一
-署名单位仍然为\htu@schoolname。保密论文在解密后应遵守此规定。}
-\newcommand{\htu@authdate}{日\hspace{\ccwd} 期：\hspace{4\ccwd} 年\hspace{2\ccwd} 月\hspace{2\ccwd} 日}
-\newcommand{\htu@authorization@mk}{%原创性声明及授权声明
-  \thispagestyle{htu@empty}
-  \vspace*{\stretch{1}}
-  \begin{center}
-    \sffamily\sanhao \htu@declarename
-  \end{center}
-  \vskip 20pt
-  \xiaosi[2]\htu@declaretext
-  \vskip 20pt
-  \htu@authorsig\hfill\htu@declaredate\hspace*{2\ccwd}
-  \vspace*{\stretch{2}}
-  \begin{center}
-    \sffamily\sanhao \htu@authtitle
-  \end{center}
-  \vskip 20pt
-  \xiaosi[2]\htu@authorization
-  \vskip 20pt
-  \htu@authorsig\hfill\htu@authdate\hspace*{2\ccwd}
-  \vspace*{\stretch{2}}}
+% [基础] 声明文本真值源 = 学校统一规定的样式《独创性声明和关于论文使用授权的说明》(.doc)，
+%   spec §1.5.3（研究生本人和导师手写签名）。参考论文 PDF 不含声明页（三源空缺，Decision 4），
+%   故 .doc 为唯一 verbatim 文本源。正文用字面“河南师范大学”（法律文本安全，不用 \htu@schoolname 宏）。
+%   Story 3.3 (2026-06-15)：替换旧模板文本为 HTU .doc verbatim；标题/签名/日期标签同步对齐。
+\newcommand{\htu@declarename}{独创性声明}
+\newcommand{\htu@authtitle}{关于论文使用授权的说明}
+\newcommand{\htu@declaretocname}{独创性声明和关于论文使用授权的说明}
+\newcommand{\htu@authorsigtitle}{作者签名：}
+\newcommand{\htu@supervisorsigtitle}{导师签名：}
+\newcommand{\htu@datesigtitle}{日期：}
+\newcommand{\htu@declaretext}{\hspace{2\ccwd}本人郑重声明：所呈交的学位论文是我个人在导师指导下进行的研究工作及取得的研究成果。尽我所知，除了文中特别加以标注和致谢的地方外，论文中不包含其他人已经发表或撰写的研究成果，也不包含为获得河南师范大学或其他教育机构的学位或证书所使用过的材料。与我一同工作的同志对本研究所做的任何贡献均已在论文中作了明确的说明并表示了谢意。}
+\newcommand{\htu@authorization}{\hspace{2\ccwd}本人完全了解河南师范大学有关保留、使用学位论文的规定，即：有权保留并向国家有关部门或机构送交论文的复印件和磁盘，允许论文被查阅和借阅。本人授权河南师范大学可以将学位论文的全部或部分内容编入有关数据库进行检索，可以采用影印、缩印或扫描等复制手段保存、汇编学位论文。（保密的学位论文在解密后适用本授权书）}
+\newcommand{\htu@authorization@mk}{%独创性声明 + 授权说明（HTU 后置页；spec §1.1 结尾部分末项；FR-14）
+  % 复用 Epic 2 \htu@chapter* 机制：独立页 + 三号黑体居中标题 + 目录条目（组合名）+ 页眉 + 阿拉伯页码（spec §2.4/§1.1.4）。
+  \htu@chapter*[\htu@declaretocname]{\htu@declarename}[\htu@declarename]
+  \xiaosi[1.6]\htu@declaretext
+  \vskip 16pt
+  \htu@authorsigtitle\,\underline{\hspace{3cm}}\hfill\htu@datesigtitle\,\underline{\hspace{2cm}}\par
+  \vskip 22pt
+  \begin{center}\sffamily\sanhao \htu@authtitle\end{center}
+  \vskip 10pt
+  \xiaosi[1.6]\htu@authorization
+  \vskip 16pt
+  \htu@authorsigtitle\,\underline{\hspace{2.5cm}}\hfill\htu@supervisorsigtitle\,\underline{\hspace{2.5cm}}\hfill\htu@datesigtitle\,\underline{\hspace{2cm}}\par
+  \normalsize% 恢复正文字号/行距（R-3：声明页为 \AtEndDocument 前最后内容，避免 \xiaosi[1.6] 行距泄漏到自检的 baselineskip 读数）
+}
 \def\htu@setup@pdfinfo{%pdf文档信息
   \hypersetup{%
     pdftitle={\htu@ctitle},
@@ -789,13 +779,15 @@
     \htu@engcover
     \cleardoublepage
     \htu@abstractcover
-    % TODO Story 3.3: 在后置部分（附录之后）渲染原创性声明 + 授权声明页（FR-14；当前声明宏已定义但未调用）。
-    %   2026-06-15 决策（Zy）：从前置 \makecover 移除（FR-14 要求声明在后置），3.3 在后置恢复。
+    % 声明页在后置部分渲染（main.tex \makedeclaration，spec §1.1 结尾部分末项；FR-14），
+    %   不在前置 \makecover（Story 3.2 移除；Story 3.3 在后置恢复）。
   \end{titlepage}
   \normalsize
   \htu@makeabstract
   \let\@tabular\htu@tabular
 }
+\newcommand{\makedeclaration}{%原创性声明 + 授权说明（结尾部分末项，spec §1.1；FR-14 后置）
+  \htu@authorization@mk}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 中英文摘要及关键词
 %% 中文摘要部分的标题为"摘要"
