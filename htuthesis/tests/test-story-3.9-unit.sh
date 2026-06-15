@@ -86,13 +86,16 @@ run_test "P0" "ATDD-3.9-01" "\setmainfont{Times New Roman} present in cls (AC-1,
 # ATDD-3.9-02: \setmainfont gated by \IfFontExistsTF{Times New Roman} (AC-1, TC-E3-01, NFR-2)
 # Story Task 1.1 wraps \setmainfont in \IfFontExistsTF{Times New Roman}{...}{}.
 # cls:76 ALREADY has one \IfFontExistsTF{Times New Roman} (the existence check, Story 1.4).
-# The new gate wrapper adds a SECOND occurrence → count goes 1 (pre-impl) → 2 (post-impl).
+# The new gate wrapper adds a SECOND CODE occurrence → count goes 1 (pre-impl) → 2 (post-impl).
+# NOTE: count CODE lines only (grep -v comment) — a [基础] comment at cls:85 also literally mentions
+# \IfFontExistsTF{Times New Roman}, which would inflate the count and let the test false-pass if the
+# real gate wrapper were ever removed (code-review Finding 1, verified via sed '92d').
 test_setmainfont_gated() {
   [[ -f "htuthesis.cls" ]] || return 1
   local n
-  n=$(grep -c 'IfFontExistsTF{Times New Roman}' htuthesis.cls 2>/dev/null || true)
+  n=$(grep -v '^[[:space:]]*%' htuthesis.cls | grep -c 'IfFontExistsTF{Times New Roman}' 2>/dev/null || true)
   n=$(echo "$n" | tr -d '[:space:]' | head -1)
-  echo "  (IfFontExistsTF{Times New Roman} matches: $n; expect >=2 post-impl [cls:76 check + gate wrapper], 1 pre-impl)"
+  echo "  (IfFontExistsTF{Times New Roman} CODE matches: $n [comments excluded]; expect >=2 post-impl [cls:76 check + gate wrapper], 1 pre-impl)"
   [[ "$n" -ge 2 ]]
 }
 run_test "P0" "ATDD-3.9-02" "\setmainfont gated by \IfFontExistsTF{Times New Roman} (AC-1, TC-E3-01, NFR-2)" test_setmainfont_gated
