@@ -100,6 +100,13 @@
 %   不影响：\htu@songtibold（上方 \newCJKfontfamily，L4 加粗宋体，独立显式族）、
 %   CJK 主字体（SimSun 经 ctex 默认，\setCJKsansfont 只改 sans 族）。
 \setCJKsansfont{SimHei}
+% [基础] 封面专用 Latin 字体开关（Story 3.1）——Word 把 ASCII 打包进中文字体 run（参考论文 PDF page 2
+%   实测：元数据 10476/D669.3 = FangSong，日期 2025 = SimHei）。xelatex 默认 \fangsong/\sffamily 只切
+%   CJK，Latin 数字回落到 \rmfamily(TNR) 或 Latin Modern Sans。下列 \newfontfamily 让封面元数据/日期的
+%   ASCII 也走对应中文字体，精确匹配参考论文渲染（三源之一 = 参考 PDF page 2 span 级字体）。
+%   仅封面 \htu@first@titlepage 使用，不影响正文（正文 Latin 仍走 \rmfamily=TNR）。
+\newfontfamily\htu@fangsong@latin{FangSong}
+\newfontfamily\htu@heiti@latin{SimHei}
 \RequirePackage{geometry}%页边距设置
 \RequirePackage{fancyhdr}%页眉页脚管理
 \RequirePackage{tabularx}%表格宽度控制
@@ -569,17 +576,18 @@
   %     消除 includeheadfoot 后 textwidth 146→160mm 变化对封面的耦合（Story 2.1 deferred 债）。
   \begin{tikzpicture}[remember picture, overlay]
     % --- 元数据（左上 x≈23mm，仿宋小四≈12pt）：单位代码 / 学号 / 分类号 ---
+    %   \htu@fangsong@latin：ASCII 数字/字母也走 FangSong（匹配参考论文 page 2 span 级字体）
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -22.8mm)$)
-      {\fangsong\xiaosi\htu@schoolcode@title\hspace{1em}%
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode@title\hspace{1em}%
        \htu@underline[25mm]{\htu@schoolcode}};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -31.9mm)$)
-      {\fangsong\xiaosi\htu@id@title\hspace{1em}%
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@id@title\hspace{1em}%
        \htu@underline[25mm]{\htu@id}};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -40.8mm)$)
-      {\fangsong\xiaosi\htu@secretlevel@title\hspace{1em}%
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel@title\hspace{1em}%
        \htu@underline[25mm]{\htu@secretlevel}};
     % --- 校名（书法体图像，居中，91mm×27.3mm；y=58.5mm 顶部）---
     \node[anchor=north, inner sep=0pt]
@@ -610,9 +618,10 @@
       at ($(current page.north west) + (60.3mm, -224.4mm)$)
       {\sffamily\xiaosan\htu@supervisor@title\htu@title@sep\htu@csupervisor};
     % --- 完成日期（黑体小三15pt，居中，y=247.7mm；阿拉伯数字+年/月）---
+    %   \htu@heiti@latin：ASCII 数字也走 SimHei（匹配参考论文 page 2 日期全 SimHei run）
     \node[anchor=north, inner sep=0pt]
       at ($(current page.north) + (0mm, -247.7mm)$)
-      {\sffamily\xiaosan\htu@cdate};
+      {\sffamily\htu@heiti@latin\xiaosan\htu@cdate};
   \end{tikzpicture}%
   \null% 确保仅含 overlay 的 titlepage 页正常 shipout（overlay 零尺寸，\null 提供可输出内容）
 } % end of titlepage

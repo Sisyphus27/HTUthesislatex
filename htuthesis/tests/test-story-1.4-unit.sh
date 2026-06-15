@@ -151,9 +151,12 @@ echo "=== P2: Logo References & Parameters ==="
 test_htu_logo_refs() {
   [[ -f "htuthesis.cls" ]] || return 1
   local text_logo_ref
-  text_logo_ref=$(grep -c 'htu-text-logo' htuthesis.cls 2>/dev/null || true)
+  # grep CODE lines only (exclude comments) — mirrors the ATDD-3.9-02 fix (commit 004e20e): prevents
+  # a future [基础] comment mentioning "htu-text-logo" from inflating the count and false-passing if the
+  # real \includegraphics were ever removed.
+  text_logo_ref=$(grep -v '^[[:space:]]*%' htuthesis.cls | grep -c 'htu-text-logo' 2>/dev/null || true)
   text_logo_ref=$(echo "$text_logo_ref" | tr -d '[:space:]' | head -1)
-  echo "  (htu-text-logo refs: $text_logo_ref; htu-logo corner refs intentionally 0 per Story 3.1 AC-2)"
+  echo "  (htu-text-logo CODE refs: $text_logo_ref; htu-logo corner refs intentionally 0 per Story 3.1 AC-2)"
   [[ "$text_logo_ref" -ge 1 ]]
 }
 run_test "P2" "ATDD-1.4-12" "cls references htu-text-logo (AC-3; REPOINTED Story 3.1 — corner htu-logo removed per reference)" test_htu_logo_refs
