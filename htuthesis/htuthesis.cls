@@ -670,7 +670,7 @@
       {\rmfamily\fontsize{15bp}{18bp}\selectfont\itshape\htu@eauthor};
     \node[anchor=north, inner sep=0pt]
       at ($(current page.north) + (0mm, -212mm)$)
-      {\rmfamily\fontsize{15bp}{18bp}\selectfont Supervisor: Prof.~\htu@esupervisor};
+      {\rmfamily\fontsize{15bp}{18bp}\selectfont Supervisor: \htu@esupervisor};
     \node[anchor=north, inner sep=0pt]
       at ($(current page.north) + (0mm, -223mm)$)
       {\rmfamily\fontsize{15bp}{18bp}\selectfont\htu@edate};
