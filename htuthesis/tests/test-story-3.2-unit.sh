@@ -212,21 +212,28 @@ echo "=== P2: declaration position (AC-10, Task-0.3 dependent) ==="
 # REPPOINTED 2026-06-15 (Story 3.3, Decision 2): the original assertion (global bare-call count = 0) is obsoleted —
 #   Story 3.3 re-added the declaration in BACK MATTER via \makedeclaration → \htu@authorization@mk, so the macro
 #   is now legitimately called (bare-calls=1), but NOT inside \makecover. The INTENT (declaration not in front
-#   matter) remains valid and is satisfied by 3.3. New detection: extract the \makecover block (from its
-#   \newcommand def to the first column-0 '}') and assert it does NOT call authorization@mk. The col-0 close is
-#   stable for \makecover (verified). If someone re-adds authorization@mk to \makecover, this FAILs (intent held).
+#   matter) remains valid and is satisfied by 3.3. Detection: extract the \makecover block and assert it does NOT
+#   call authorization@mk.
+# FIXED 2026-06-15 (code-review CRITICAL): the first repoint used `awk '/newcommand\{\\makecover\}/...'` but gawk
+#   warns "\m is not a known regexp operator" and drops the backslash → the regex never matched → body empty →
+#   the guard passed VACUOUSLY (could not detect a regression). Now uses `grep -nF` (fixed-string, no regex) to
+#   find the \makecover def line, then awk from that line to the next col-0 '}' (makecover's close is at col-0;
+#   verified). Empirically verified: catches an injected \htu@authorization@mk inside \makecover.
 test_authorization_out_of_makecover() {
   [[ -f "htuthesis.cls" ]] || return 1
-  local body
-  body=$(awk '/newcommand\{\\makecover\}/{f=1} f{print} f&&/^}/{exit}' htuthesis.cls)
-  if echo "$body" | grep -q 'htu@authorization@mk'; then
-    echo "  (authorization@mk found INSIDE \\makecover block — declaration wrongly in front matter)"
+  local start body end
+  start=$(grep -nF 'newcommand{\makecover}' htuthesis.cls | head -1 | cut -d: -f1)
+  [[ -n "$start" ]] || { echo "  (\\makecover def not found)"; return 1; }
+  body=$(awk -v s="$start" 'NR>=s{print} NR>=s && /^}/{exit}' htuthesis.cls)
+  end=$((start + $(printf '%s\n' "$body" | wc -l) - 1))
+  if printf '%s\n' "$body" | grep -q 'htu@authorization@mk'; then
+    echo "  (authorization@mk found INSIDE \\makecover block (cls lines $start-$end) — declaration wrongly in front matter)"
     return 1
   fi
-  echo "  (authorization@mk NOT in \\makecover block — declaration correctly in back matter via \\makedeclaration)"
+  echo "  (authorization@mk NOT in \\makecover block (cls lines $start-$end) — declaration correctly in back matter via \\makedeclaration)"
   return 0
 }
-run_test "P2" "ATDD-3.2-11" "\\htu@authorization@mk NOT called within \\makecover (AC-10/FR-14; REPPOINTED 3.3/Decision 2 — back-matter call legit)" test_authorization_out_of_makecover
+run_test "P2" "ATDD-3.2-11" "\\htu@authorization@mk NOT called within \\makecover (AC-10/FR-14; REPPOINTED 3.3/Decision 2 — back-matter call legit; awk-regex fixed code-review)" test_authorization_out_of_makecover
 
 echo ""
 
