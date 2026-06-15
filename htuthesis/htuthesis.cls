@@ -44,6 +44,7 @@
 \RequirePackage{environ}
 \RequirePackage{xparse}
 \RequirePackage{tikz}
+\usetikzlibrary{calc}% Story 3.1 封面绝对定位（$(current page) + (offset)$ 坐标计算）
 \RequirePackage{etoolbox}
 \RequirePackage{calc}%算术运算
 \RequirePackage[shortlabels]{enumitem}
@@ -160,15 +161,19 @@
 \providecommand\htu@schoolname@en{}
 % \htu@schoolname and \htu@schoolname@en are defined in htuthesis.def (user zone)
 \def\htu@title@sep{：}
-  \def\htu@schoolcode@title{学校代码}
-  \def\htu@id@title{学号或申请号}
-  \def\htu@secretlevel@title{密级}
+  % [基础] 封面元数据标签（真值来源：参考论文 PDF page 2 + .doc 空白模板「博士学位论文封面（电子版用）」）
+  \def\htu@schoolcode@title{单位代码}
+  \def\htu@id@title{学号}
+  \def\htu@secretlevel@title{分类号}
   \def\htu@subtitle{博士学位论文}
-  \def\htu@author@title{作者姓名}
-  \def\htu@supervisor@title{导师姓名}
-  \def\htu@subject@title{学科门类}
-  \def\htu@major@title{专业名称}
-\def\htu@cdate@title{完成时间}
+  % [基础] 封面五字段标签（真值来源：参考论文 PDF page 2 + .doc 空白模板；学科、专业 为合并字段）
+  \def\htu@author@title{申请人}
+  \def\htu@supervisor@title{指导教师}
+  \def\htu@subject@title{学科、专业}
+  \def\htu@researchdirection@title{研究方向}
+  \def\htu@degreecategory@title{申请学位类别}
+  \def\htu@major@title{专业名称}% 保留（inert；学科、专业 字段值 = \csubject+\cmajor 合并）
+\def\htu@cdate@title{完成时间}% 保留（inert；日期已移至字段下方居中，见 \htu@first@titlepage）
 \let\CJK@todaysave=\today
 \def\CJK@todaysmall@short{\the\year 年 \the\month 月}
 \def\CJK@todaysmall{\CJK@todaysmall@short \the\day 日}
@@ -302,7 +307,7 @@
   \fancyhf{}%
   \if@mainmatter
     %% HTU 定制（spec §2.5）：正文奇偶页居中页眉——偶数页=论文题目，奇数页=一级标题，五号宋体
-    \fancyhead[CE]{\wuhao\rmfamily\htu@ctitle}%
+    \fancyhead[CE]{\wuhao\rmfamily\protect\htu@ctitle}%
     \fancyhead[CO]{\wuhao\rmfamily\rightmark}%
     \renewcommand{\headrulewidth}{\htu@header@rule@thickness}%
     %% HTU 定制：恢复页眉线与文字间距（重连 .def 中 \htu@header@rule@gap；2.2 迁移至 fancyhdr 后此间距一度丢失）
@@ -531,9 +536,10 @@
 \htu@def@term{csupervisor}
 \htu@def@term{csubject}
 \htu@def@term{cmajor}
+\htu@def@term{researchdirection}
+\htu@def@term{degreecategory}
 \htu@def@term{cdepartment}
 \htu@def@term{cdate}
-\htu@def@term{submitdate}
 \htu@def@term{etitle}
 \htu@def@term{eauthor}
 \htu@def@term{esupervisor}
@@ -548,60 +554,68 @@
   \hskip\p@\underline{\hb@xt@ #1{\hss#2\hss}}\hskip3\p@}
 \newlength{\htu@title@width}
 \def\htu@put@title#1{\makebox{\hb@xt@\htu@title@width{#1}}}
-\newcommand{\htu@first@titlepage}{%论文中文封面
-  \thispagestyle{htu@empty}
-  \begin{center}
-    \noindent\begin{minipage}{.49\textwidth}
-      \begin{flushleft}
-        \includegraphics[width=3.35cm]{htu-logo}
-      \end{flushleft}
-    \end{minipage}
-    \hfill
-    \noindent\begin{minipage}{.49\textwidth}
-      \begin{flushright}
-        \kaishu\sihao
-      \setlength{\htu@title@width}{6em}
-      \begin{tabular}{p{\htu@title@width}@{~}l}
-        \htu@put@title{\htu@schoolcode@title} &
-          \htu@underline[9em]{\htu@schoolcode}\\[1ex]
-        \htu@put@title{\htu@id@title} &
-          \htu@underline[9em]{\htu@id}\\[1ex]
-        \htu@put@title{\htu@secretlevel@title} &
-          \htu@underline[9em]{\htu@secretlevel}\\
-        \end{tabular}
-      \end{flushright}
-    \end{minipage}
-    \vskip \stretch{1}
-    \begin{center}
-      {\includegraphics{htu-text-logo}}
-      \par\vskip.6cm
-      {\ziju{0.5}\xiaochu\sffamily\htu@subtitle}
-      \vskip \stretch{1}
-      \kaishu\erhao[1.5] \htu@ctitle
-      \vskip \stretch{1}
-      \setlength{\htu@title@width}{4\ccwd}
-      \kaishu\sanhao[1.25]
-      \def\tabcolsep{\p@}%\tabcolsep：tabular环境中两列标准间隔的一半
-      \def\arraystretch{1.5}%\arraystretch表格行距的缩放比例因子（缺省为1）
-      \begin{tabular}{p{\htu@title@width}l@{}l}
-        \htu@put@title{\htu@author@title} &  \htu@title@sep &
-          \htu@underline[150pt]{\htu@cauthor}
-      \\
-        \htu@put@title{\htu@supervisor@title} &  \htu@title@sep &
-          \htu@underline[150pt]{\htu@csupervisor\hspace{\ccwd}\htu@protitle}
-      \\
-        \htu@put@title{\htu@subject@title} &  \htu@title@sep &
-          \htu@underline[150pt]{\htu@csubject}
-      \\
-        \htu@put@title{\htu@major@title} &  \htu@title@sep &
-          \htu@underline[150pt]{\htu@cmajor}
-      \\
-        \htu@put@title{\htu@cdate@title} &  \htu@title@sep &
-          \htu@underline[150pt]{\htu@cdate}
-      \end{tabular}\\
-      \vskip \stretch{1}
-    \end{center}
-  \end{center}} % end of titlepage
+\newcommand{\htu@first@titlepage}{%论文中文封面（博士学位论文封面）
+  \thispagestyle{htu@empty}%
+  % [基础] 封面布局：TikZ remember-picture overlay 绝对定位（mm 坐标，原点=current page 节点）。
+  %   真值来源（三源三角，CLAUDE.md Decision 4）：
+  %     1) 参考论文 2107084001-任子辛-政治与公共管理学院.pdf page 2（已完成 HTU 博士封面，视觉真值）
+  %     2) .doc 空白模板「博士学位论文封面（电子版用）」（官方下载，权威空白形式）
+  %     3) 本 [基础] 注释（实现层映射）
+  %   字体（双源一致）：元数据=仿宋12pt；校名=书法体图像91mm×27.3mm；「博士学位论文」=宋体45pt；
+  %                    论文题目=黑体小二(18pt)；五字段=黑体小三(15pt)；日期=黑体小三(15pt)。
+  %   日期格式=阿拉伯数字+年/月（.doc 空白模板 + 参考论文双源确认；spec §1.1.1「二〇二四年五月」为理想化文本，
+  %     按 Word 模板 > spec 的真值源层次，阿拉伯胜出——Decision 4 透明偏离）。
+  %   R-9（score 6）：9 个元素绝对定位，±3mm 容差；R-6（score 6）：绝对定位相对纸张（非 \textwidth），
+  %     消除 includeheadfoot 后 textwidth 146→160mm 变化对封面的耦合（Story 2.1 deferred 债）。
+  \begin{tikzpicture}[remember picture, overlay]
+    % --- 元数据（左上 x≈23mm，仿宋小四≈12pt）：单位代码 / 学号 / 分类号 ---
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (23.3mm, -22.8mm)$)
+      {\fangsong\xiaosi\htu@schoolcode@title\hspace{1em}%
+       \htu@underline[25mm]{\htu@schoolcode}};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (23.3mm, -31.9mm)$)
+      {\fangsong\xiaosi\htu@id@title\hspace{1em}%
+       \htu@underline[25mm]{\htu@id}};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (23.3mm, -40.8mm)$)
+      {\fangsong\xiaosi\htu@secretlevel@title\hspace{1em}%
+       \htu@underline[25mm]{\htu@secretlevel}};
+    % --- 校名（书法体图像，居中，91mm×27.3mm；y=58.5mm 顶部）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -58.5mm)$)
+      {\includegraphics[width=91mm]{htu-text-logo}};
+    % --- 「博士学位论文」标签（宋体45pt，居中，y=89.1mm）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -89.1mm)$)
+      {\fontsize{45bp}{54bp}\selectfont\htu@subtitle};
+    % --- 论文题目（黑体小二18pt，居中，y=133.4mm）---
+    \node[anchor=north, inner sep=0pt, text width=160mm, align=center]
+      at ($(current page.north) + (0mm, -133.4mm)$)
+      {\sffamily\xiaoer[1.5]\htu@ctitle};
+    % --- 五字段（黑体小三15pt，左 x=60mm，label：value 格式）---
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -191.9mm)$)
+      {\sffamily\xiaosan\htu@subject@title\htu@title@sep\htu@csubject\htu@cmajor};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -200.1mm)$)
+      {\sffamily\xiaosan\htu@researchdirection@title\htu@title@sep\htu@researchdirection};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -208.2mm)$)
+      {\sffamily\xiaosan\htu@degreecategory@title\htu@title@sep\htu@degreecategory};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -216.3mm)$)
+      {\sffamily\xiaosan\htu@author@title\htu@title@sep\htu@cauthor};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (60.3mm, -224.4mm)$)
+      {\sffamily\xiaosan\htu@supervisor@title\htu@title@sep\htu@csupervisor};
+    % --- 完成日期（黑体小三15pt，居中，y=247.7mm；阿拉伯数字+年/月）---
+    \node[anchor=north, inner sep=0pt]
+      at ($(current page.north) + (0mm, -247.7mm)$)
+      {\sffamily\xiaosan\htu@cdate};
+  \end{tikzpicture}%
+  \null% 确保仅含 overlay 的 titlepage 页正常 shipout（overlay 零尺寸，\null 提供可输出内容）
+} % end of titlepage
 \newcommand{\htu@engcover}{%博士论文英文封面
   \thispagestyle{htu@empty}
   \vspace*{1cm}

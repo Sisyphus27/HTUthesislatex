@@ -140,18 +140,23 @@ echo ""
 # ==========================================
 echo "=== P2: Logo References & Parameters ==="
 
-# ATDD-1.4-12: cls references htu-logo and htu-text-logo (AC-3)
+# ATDD-1.4-12: cls references htu-text-logo (AC-3) — REPOINTED 2026-06-15 (Story 3.1, Decision 2)
+# SUPERSEDED traceability: Story 1.4 originally asserted BOTH htu-logo (corner) AND htu-text-logo (centered)
+# are referenced. Story 3.1 AC-2 (doctoral cover rewrite, reference PDF page 2 + .doc blank form) intentionally
+# REMOVED the corner htu-logo — the HTU reference cover has NO corner logo, only the centered calligraphic
+# name (htu-text-logo). The htu-logo FILE still exists in figures/ (not deleted; may be used elsewhere),
+# it is just no longer rendered on the doctoral cover. This assertion is repointed to guard the cover's
+# ACTUAL logo (htu-text-logo) per Story 3.1's reference-anchored reality. Cross-story override per Epic 2
+# retro Decision 2 (same pattern as Story 3.9 classify_font / retired ATDD-1.1-08, 1.5-05).
 test_htu_logo_refs() {
   [[ -f "htuthesis.cls" ]] || return 1
-  local logo_ref text_logo_ref
-  logo_ref=$(grep -c 'htu-logo' htuthesis.cls 2>/dev/null || true)
+  local text_logo_ref
   text_logo_ref=$(grep -c 'htu-text-logo' htuthesis.cls 2>/dev/null || true)
-  logo_ref=$(echo "$logo_ref" | tr -d '[:space:]' | head -1)
   text_logo_ref=$(echo "$text_logo_ref" | tr -d '[:space:]' | head -1)
-  echo "  (htu-logo refs: $logo_ref, htu-text-logo refs: $text_logo_ref)"
-  [[ "$logo_ref" -ge 1 ]] && [[ "$text_logo_ref" -ge 1 ]]
+  echo "  (htu-text-logo refs: $text_logo_ref; htu-logo corner refs intentionally 0 per Story 3.1 AC-2)"
+  [[ "$text_logo_ref" -ge 1 ]]
 }
-run_test "P2" "ATDD-1.4-12" "cls references htu-logo and htu-text-logo (AC-3)" test_htu_logo_refs
+run_test "P2" "ATDD-1.4-12" "cls references htu-text-logo (AC-3; REPOINTED Story 3.1 — corner htu-logo removed per reference)" test_htu_logo_refs
 
 # ATDD-1.4-13: .def has identity parameters in user zone (AC-1)
 test_def_identity_params() {
