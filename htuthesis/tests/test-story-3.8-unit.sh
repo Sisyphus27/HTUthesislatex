@@ -28,7 +28,7 @@
 #       fitz proves the RENDERING (Story 2.5/2.6/3.1-3.7 lesson). Tests are READ-ONLY — MUST NOT modify the SUT
 #       (Epic 1/2 retro).
 #
-# ⚠️ RED driver: ATDD-3.8-05 — the footnote per-page reset. Current cls has NO `\@addtoreset{foot}{page}` and NO
+# ⚠️ RED driver: ATDD-3.8-05 — the footnote per-page reset. Current cls has NO `\@addtoreset{footnote}{page}` and NO
 #    `footmisc` → ctexbook default = per-CHAPTER reset (book class \@addtoreset{footnote}{chapter}). Spec §1.2.4
 #    line 109 "每页重新编号" + reference PDF (p15=[3],p18=[1],p19=[2],p20=[1] → per-PAGE) require per-page. This
 #    test FAILS pre-impl (no per-page wiring) and PASSES post-impl (the AC-5 fix wires it). The behavior proof is I08.
@@ -151,10 +151,10 @@ run_test "P1" "ATDD-3.8-04" "\\htu@resume@title = 攻读学位 (AC-3 Option A1 r
 
 # ATDD-3.8-05: footnote PER-PAGE RESET wiring — *** THE RED DRIVER *** (AC-5, R-16, TC-E3-41)
 # Truth source: spec §1.2.4 line 109 "每页重新编号" + reference PDF (p15=[3],p18=[1],p19=[2],p20=[1] → per-PAGE reset).
-#   Current cls has NEITHER `\@addtoreset{foot}{page}` NOR `footmisc[perpage]` → ctexbook/book default = per-CHAPTER
+#   Current cls has NEITHER `\@addtoreset{footnote}{page}` NOR `footmisc[perpage]` → ctexbook/book default = per-CHAPTER
 #   reset (book class \@addtoreset{footnote}{chapter}); main.pdf confirms orphan [2] markers on p19/p47 (a page showing
 #   footnote "2" without "1" = per-chapter, impossible under per-page). This test FAILS pre-impl (no per-page wiring)
-#   and PASSES post-impl (AC-5 wires \@addtoreset{foot}{page} Option A OR footmisc Option B). The behavior proof is I08.
+#   and PASSES post-impl (AC-5 wires \@addtoreset{footnote}{page} Option A OR footmisc Option B). The behavior proof is I08.
 test_footnote_perpage_wiring() {
   [[ -f "htuthesis.cls" ]] || return 1
   # Option A: \@addtoreset{footnote}{page} (package-free). LaTeX footnote counter = footnote (\c@footnote).
@@ -164,7 +164,7 @@ test_footnote_perpage_wiring() {
   echo "  (NO per-page footnote reset wiring — ctexbook default per-CHAPTER; spec §1.2.4 requires per-PAGE; RED pre-impl)"
   return 1
 }
-run_test "P1" "ATDD-3.8-05" "footnote per-page reset wiring (\\@addtoreset{foot}{page} OR footmisc) (AC-5, R-16, TC-E3-41; *** RED DRIVER ***)" test_footnote_perpage_wiring
+run_test "P1" "ATDD-3.8-05" "footnote per-page reset wiring (\\@addtoreset{footnote}{page} OR footmisc) (AC-5, R-16, TC-E3-41; *** RED DRIVER ***)" test_footnote_perpage_wiring
 
 # ATDD-3.8-06: \renewcommand\footnotesize{...\xiaowu...} — footnote body = 小五号 (9pt) (AC-5 size wiring, TC-E3-40)
 # Truth source: spec §1.2.4 line 197 "脚注用小五号宋体字". The footnote body size must be \xiaowu (9pt). GREEN pre/post
@@ -258,7 +258,7 @@ if [[ "$SKIP" == "1" ]]; then
   echo "TDD RED PHASE: All tests are SKIPPED"
   echo "   Run with --run flag or ATDD_SKIP=0 to activate"
   echo "   RED driver: ATDD-3.8-05 — footnote per-page reset wiring (R-16). Current cls has NO"
-  echo "      \@addtoreset{foot}{page} / footmisc → ctexbook default per-CHAPTER; spec §1.2.4 line 109 + reference"
+  echo "      \@addtoreset{footnote}{page} / footmisc → ctexbook default per-CHAPTER; spec §1.2.4 line 109 + reference"
   echo "      PDF require per-PAGE. FAILS pre-impl; PASSES post-impl (the AC-5 fix)."
   echo "   GREEN guards (lock-in):"
   echo "      3.8-01 (\\htu@chapter*{\\htu@ackname} title), 3.8-02 (\\htu@ackname 致 谢),"

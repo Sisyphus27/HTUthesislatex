@@ -211,7 +211,7 @@
   % [基础] 发表论文目录标题文本（真值来源：spec §2.17「攻读学位期间发表的学术论文目录」用三号黑体字居中）。
   %   原上游模板的合并式「个人简历、在学期间发表的学术论文与研究成果」偏离 spec §2.17；参考 PDF 对此标题静默
   %   （无 致谢/攻读 锚点）→ 按 CLAUDE.md Decision 4，spec 文本主导（用户决策 2026-06-16，Story 3.8 AC-3 Option A1）。
-  \newcommand{\htu@resume@title}{攻读学位期间发表的学术论文目录}
+\newcommand{\htu@resume@title}{攻读学位期间发表的学术论文目录}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  字号设置
 %%  模板使用thuthesis论文模板的字号定义
@@ -360,6 +360,12 @@
 %   偏离 spec；此处 \@addtoreset{footnote}{page} 令 footnote 计数器每页归零（Story 3.8 AC-5 / R-16，用户决策 Option A
 %   无包方案 2026-06-16）。仅重置 footnote，不影响 page 计数器（页码连续性不受影响，AC-6）。
 %   注：LaTeX 脚注计数器名 = footnote（\c@footnote），非 foot（create-story 误记，编译期实证纠正）。
+%   机制局限性（code review 2026-06-16 透明记录，用户决策保留 Option A 无包方案）：(1) \@addtoreset 为叠加式——
+%   不取消 book 类默认的 per-chapter reset，两者并行；本模板章节起始页另起（\cleardoublepage），故按章/按页重置
+%   在章节首页同时触发，行为正确。(2) TeX 异步 shipout：page 计数器在 shipout 时步进，页边脚注理论上有编号偏移
+%   风险；HTU 论文脚注稀疏（1-7/页，参考 PDF 实测），该边缘情形不触发。(3) per-page 使 \thefootnote 非唯一，
+%   hyperref 脚注反链可能跳错页（本模板脚注反链非关键功能）。若未来需 bulletproof（密脚注/页边/反链），
+%   改用 \usepackage[perpage]{footmisc}（Option B，需验证 \xiaowu override 存活）。
 \@addtoreset{footnote}{page}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    浮动对象、图片、表格、公式设置

@@ -375,7 +375,7 @@ echo "=== P1: Arabic page numbering continues (AC-6; GREEN — regression watch 
 
 # ATDD-3.8-I09: BEHAVIOR — ack/papers footer = Arabic outer (AC-6)
 # GREEN guard + AC-5 REGRESSION WATCH. Ack + papers are in \backmatter → Arabic continues (no reset). The \@addtoreset
-#   {foot}{page} (AC-5) resets `foot` only, NOT `page` — verify the page-number footer is unaffected. main.pdf: ack
+#   {footnote}{page} (AC-5) resets `footnote` only, NOT `page` — verify the page-number footer is unaffected. main.pdf: ack
 #   p47 footer Arabic, papers p49 Arabic. Reference back-matter footers Arabic.
 test_backmatter_footer_arabic() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
@@ -505,7 +505,7 @@ if [[ "$SKIP" == "1" ]]; then
   echo "   RED driver: ATDD-3.8-I08 — footnote per-page reset (R-16, TC-E3-41). Current = per-CHAPTER (ctexbook/book"
   echo "      default); main.pdf p19=[2], p47=[2] show orphan markers without 1. Spec §1.2.4 line 109 + reference PDF"
   echo "      (p15-34 restart each page) require per-PAGE. FAILS pre-impl; PASSES post-impl (AC-5 fix)."
-  echo "      (Unit ATDD-3.8-05 is the wiring-level RED driver — \@addtoreset{foot}{page} / footmisc.)"
+  echo "      (Unit ATDD-3.8-05 is the wiring-level RED driver — \@addtoreset{footnote}{page} / footmisc.)"
   echo "   GREEN guards (lock-in): I01-I03 (compile — R-12), I04 (致谢 title SimHei 三号 centered),"
   echo "      I07 (footnote SimSun 9pt), I09 (back-matter Arabic footer — AC-5 regression watch),"
   echo "      I10 (textheight), I11 (baselineskip 18bp), I12 (pages), I13 (no headheight)."
