@@ -274,7 +274,7 @@ for i in refs_pages():
         for ln in b.get('lines', []):
             for sp in ln.get('spans', []):
                 t = sp['text'].strip()
-                if t and ('SimSun' in sp['font'] or 'Song' in sp['font']) and 9.8 <= sp['size'] <= 11.2 and len(t) >= 2:
+                if t and ('SimSun' in sp['font'] or 'Song' in sp['font']) and 9.8 <= sp['size'] <= 11.2 and len(t) >= 2 and sp['bbox'][1] < H - 70:
                     cjk_x0.append(sp['bbox'][0])
 body_margin = min(cjk_x0) if cjk_x0 else None
 # SimSun ~10.5 body span count
@@ -391,7 +391,7 @@ echo ""
 # ==========================================
 # P2 Tests — AC-2 hanging-indent STYLE DIAGNOSTIC (decision-pending) + regression + diagnostic
 # ==========================================
-echo "=== P2: AC-2 hanging-indent STYLE DIAGNOSTIC (decision-pending) + self-check regression + layout diagnostic ==="
+echo "=== P2: AC-2 hanging REVERSED ~2\\ccwd (Option B resolved) + self-check regression + layout diagnostic ==="
 
 # ATDD-3.7-I11: BEHAVIOR — AC-2 hanging-indent = REVERSED ~2\ccwd (AC-2 Option B, TC-E3-34) — PROMOTED from diagnostic
 # AC-2 DECISION RESOLVED 2026-06-16: Zy chose Option B (reference PDF p227 REVERSED style per Decision 4). PROMOTED
@@ -412,7 +412,7 @@ for i in refs_pages():
         for ln in b.get('lines', []):
             for sp in ln.get('spans', []):
                 t = sp['text'].strip()
-                if t and ('SimSun' in sp['font'] or 'Song' in sp['font']) and 9.8 <= sp['size'] <= 11.2 and len(t) >= 2:
+                if t and ('SimSun' in sp['font'] or 'Song' in sp['font']) and 9.8 <= sp['size'] <= 11.2 and len(t) >= 2 and sp['bbox'][1] < H - 70:
                     cjk_x0.append(sp['bbox'][0])
 body_margin = min(cjk_x0) if cjk_x0 else None
 indent = (num_x0 - body_margin) if (num_x0 is not None and body_margin is not None) else None
@@ -516,11 +516,11 @@ if [[ "$SKIP" == "1" ]]; then
   echo "      I07 (refs footer Arabic outer), I08 (refs title new-page), I09 (appendix env source-level),"
   echo "      I10 (appendix counter A-1 source-level), I12 (textheight), I13 (baselineskip 18bp), I14 (pages),"
   echo "      I15 (no headheight)."
-  echo "   DIAGNOSTIC: I11 (AC-2 hanging-indent style — decision-pending: standard vs reversed),"
-  echo "      I16 (references layout for reference-overlay)."
+  echo "   DIAGNOSTIC: I16 (references layout for reference-overlay)."
   echo ""
-  echo "   NOTE: AC-2 hanging-indent STYLE = DECISION-PENDING (reference p227 REVERSED vs current STANDARD vs"
-  echo "         spec §2.14 序号左顶格); story Task 1.1 surfaces to Zy. AC-4/AC-6 appendix rendered verification"
+  echo "   NOTE: AC-2 hanging-indent RESOLVED 2026-06-16 to Option B (reference p227 REVERSED per Decision 4,"
+  echo "         Zy-approved; spec §2.14 序号左顶格 = transparent deviation). I11 asserts REVERSED ~2\\ccwd (15-28pt)."
+  echo "         AC-4/AC-6 appendix rendered verification DEFERRED to Epic 4.1 (appendix doesn't render;"
   echo "         DEFERRED to Epic 4.1 (appendix doesn't render; data/app0{1,2,3}.tex have no floats). I09/I10 are"
   echo "         source-level guards + a 'rendered deferred to 4.1' note. architecture.md:41 = MEDIUM; references"
   echo "         LOW (gbt7714 :687). Tests are read-only (no SUT mutation)."
