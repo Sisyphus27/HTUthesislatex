@@ -370,7 +370,7 @@
 \renewcommand{\bottomfraction}{\htu@bottomfraction}%页底浮动对象高/页高的最大值(0.3)
 \renewcommand{\floatpagefraction}{\htu@floatpagefraction}%浮动页由浮动对象占用的最小比例(0.5)
 \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}%搜索指定扩展名
-\DeclareCaptionLabelSeparator{htu}{\hspace{\ccwd}}%图表序与图表名之间空一个汉字
+\DeclareCaptionLabelSeparator{htu}{：}%图表序与图表名之间用全角冒号「：」分隔（U+FF1A）。真值源三方：参考论文 PDF pp.58/95/138/140/207 实测为「：」冒号（视觉真值，优先）；spec §2.11/§2.12 言"编号和图题间空半格"（文字真值）。按 CLAUDE.md Decision 4「spec 文字与参考 PDF 在视觉细节冲突时，参考 PDF 优先」→ 取冒号；此为偏离 spec 文字的透明偏离，业经 Zy 批准 2026-06-16（故事 3.6 AC-3 Option A）。
 \DeclareCaptionFont{htu}{\wuhao[1.5]}
 \captionsetup{
   font           = htu,

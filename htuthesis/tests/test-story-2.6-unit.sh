@@ -201,12 +201,18 @@ test_subcounters_unchanged() {
 }
 run_test "P1" "ATDD-2.6-12" "subfigure/subtable remain (\\alph) — inherit hyphen (AC-6)" test_subcounters_unchanged
 
-# ATDD-2.6-13: caption label-separator \DeclareCaptionLabelSeparator{htu} unchanged (scope boundary — FR-18, Epic 3)
+# ATDD-2.6-13: caption label-separator \DeclareCaptionLabelSeparator{htu} declared (scope boundary — FR-18)
+# REPOINTED 2026-06-16 per Decision 2 (cross-story override): 2.6-13 originally pinned the literal value
+#   {\\hspace{\\ccwd}} (inherited from zzuthesis) as a "2.6 doesn't touch the separator" scope guard. Story 3.6
+#   AC-3 (Zy-approved Option A) legitimately CHANGED the separator value to {：} (fullwidth colon, reference PDF
+#   per Decision 4). 2.6's scope was the counter NUMBER format (\\thefigure etc.), NOT the caption separator value.
+#   This test is repointed value-agnostic — it asserts the separator macro is still DECLARED (2.6 didn't remove
+#   captioning); the VALUE is now owned + asserted by Story 3.6 (3.6-07 source guard + 3.6-I12 behavior proof).
 test_caption_labelsep_unchanged() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -q '\\DeclareCaptionLabelSeparator{htu}{\\hspace{\\ccwd}}' htuthesis.cls 2>/dev/null
+  grep -q '\\DeclareCaptionLabelSeparator{htu}' htuthesis.cls 2>/dev/null
 }
-run_test "P1" "ATDD-2.6-13" "caption label-separator unchanged \\DeclareCaptionLabelSeparator{htu} (scope, FR-18)" test_caption_labelsep_unchanged
+run_test "P1" "ATDD-2.6-13" "caption label-separator \\DeclareCaptionLabelSeparator{htu} declared (scope, FR-18; REPOINTED value-agnostic — 3.6 owns the value)" test_caption_labelsep_unchanged
 
 echo ""
 
