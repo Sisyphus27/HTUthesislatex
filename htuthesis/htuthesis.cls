@@ -837,14 +837,16 @@
   \htu@put@keywords{\sffamily\htu@ckeywords@title}{\htu@ckeywords}
   % 英文标题：覆盖章节 \sffamily 格式（Latin→LMSans 缺口）使标题渲染为 TNR 加粗三号居中（Story 3.4 AC-4，
   %   闭合 Story 3.9 ATDD-3.9-16 的 1 个 LMSans span）。三号行距/居中由 chapter 格式提供。
-  \htu@chapter*[]{\rmfamily\bfseries\eabstractname} % no tocline
+  %   \texorpdfstring：文本态用 \rmfamily\bfseries（渲染 TNR Bold），PDF 书签/页眉标记态用空（洁净 ABSTRACT，
+  %   避免 hyperref "Token not allowed in a PDF string"；Story 3.4 code-review patch）。
+  \htu@chapter*[]{\texorpdfstring{\rmfamily\bfseries}{}\eabstractname} % no tocline
   % 英文摘要正文 + 关键词 scope：五号 TNR + 独立行距 ≈23.4bp（参考论文 page 6 Word "2倍行距"=2×自然行高，
   %   非 2×字号 21bp；Story 3.4 R-14/AC-5，透明偏离 architecture.md:151 的 21bp 假设，用户决策 2026-06-16）。
   %   显式 baselineskip + 锁 baselinestretch=1 防 ctex 1.2× 系数（R-3 陷阱）；不用拉伸类行距命令（architecture.md:84）。
   \begingroup
     \rmfamily
+    \renewcommand{\baselinestretch}{1}% 先锁系数=1，再设字号（避免首个 \selectfont 以环境 \baselinestretch 瞬态算错；Story 3.4 code-review patch）
     \fontsize{10.5bp}{23.4bp}\selectfont
-    \renewcommand{\baselinestretch}{1}\selectfont
     \htu@eabstract
     \vskip\htu@abstract@keywordskip
     % 英文关键词标签非加粗（用户决策），分隔符为半角逗号（\htu@ekeywords@separator）。
