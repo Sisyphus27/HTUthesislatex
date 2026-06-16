@@ -149,7 +149,7 @@ test_theequation_separator() {
   [[ -f "htuthesis.cls" ]] || return 1
   local joined
   joined=$(tr '\n' ' ' < htuthesis.cls)
-  echo "$joined" | grep -qE 'renewcommand.theequation.{0,140}htu@counter@separator'
+  grep -qE 'renewcommand.theequation.{0,140}htu@counter@separator' <<<"$joined"
 }
 run_test "P1" "ATDD-3.6-06" "\\theequation uses \\htu@counter@separator hyphen (AC-5; 2.6 wiring intact; GREEN)" test_theequation_separator
 
@@ -218,8 +218,8 @@ test_thefigure_thetable_separator() {
   [[ -f "htuthesis.cls" ]] || return 1
   local joined
   joined=$(tr '\n' ' ' < htuthesis.cls)
-  echo "$joined" | grep -qE 'renewcommand.thefigure.{0,140}htu@counter@separator' && \
-  echo "$joined" | grep -qE 'renewcommand.thetable.{0,140}htu@counter@separator'
+  grep -qE 'renewcommand.thefigure.{0,140}htu@counter@separator' <<<"$joined" && \
+  grep -qE 'renewcommand.thetable.{0,140}htu@counter@separator' <<<"$joined"
 }
 run_test "P2" "ATDD-3.6-12" "scope guard: \\thefigure/\\thetable hyphen separator intact (2.6; 3.6 does not touch; GREEN)" test_thefigure_thetable_separator
 

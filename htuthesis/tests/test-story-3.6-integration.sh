@@ -93,24 +93,28 @@ import fitz, sys, re
 doc = fitz.open("main.pdf")
 W = doc[0].rect.width; mid = W / 2.0
 cjk_re = re.compile(r"[一-鿿]")
-num_re = re.compile(r"^\d+-\d+$")
+num_re = re.compile(r"^\d+-\d+")  # PREFIX match (no $) — tolerates a trailing fullwidth colon if fitz merges "：" into the number span ("4-1："); PATCHED 2026-06-16 (code review)
 eq_re = re.compile(r"^\(\d+-\d+\)$")
 sub_re = re.compile(r"^\([a-z]\)$")
 def median(xs):
     if not xs: return None
     ys = sorted(xs); n = len(ys); return ys[n // 2]
-def dot_pages():
-    # pages containing a dot-leader run (≥10 dots) = LOF/LOT list pages — exclude from caption search.
+def list_pages():
+    # LOF (插图清单) / LOT (表格清单) list pages — their "图 N-N" / "表 N-N" entries are NOT body captions.
+    # Identified by the list TITLE (not dot-leaders): body p37/39 ALSO carry verbatim dot-runs from chap04
+    # latex-listings, and LOF/LOT leader lines do not reliably end in "\d+" — so a dot-based skip both missed
+    # LOF/LOT (false captions) and excluded body pages (hid table captions 4-2/4-3). The titles appear ONLY on
+    # the list pages, so a title-based skip is precise. PATCHED 2026-06-16 (code review).
     s = set()
     for i in range(doc.page_count):
         for b in doc[i].get_text("dict").get("blocks", []):
             if b.get("type", 0) != 0: continue
             for ln in b.get("lines", []):
-                for sp in ln.get("spans", []):
-                    if re.search(r"\.{10,}", sp["text"]):
-                        s.add(i); break
+                txt = "".join(sp["text"] for sp in ln.get("spans", []))
+                if "插图清单" in txt or "表格清单" in txt:
+                    s.add(i); break
     return s
-_SKIP = dot_pages()
+_SKIP = list_pages()
 def captions(kind=None):
     out = []
     for i in range(doc.page_count):
