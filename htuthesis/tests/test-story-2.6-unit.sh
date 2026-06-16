@@ -171,12 +171,16 @@ test_ekw_title_uppercase() {
 run_test "P1" "ATDD-2.6-09" "\\htu@ekeywords@title = KEY WORDS (uppercase) (AC-8, TC-E2-30, §2.8)" test_ekw_title_uppercase
 
 # ATDD-2.6-10: cls renders English keywords via the macro (not hardcoded "Key Words") (AC-8, DRY)
-# RED pre-impl: cls:712 is \textbf{Key Words:\enskip} (hardcoded, ignores the macro at cls:171).
+# RED pre-impl (Story 2.6): cls:712 was \textbf{Key Words:\enskip} (hardcoded, ignored the macro at cls:171).
+# REPOINTED 2026-06-16 (Story 3.4, Decision 2): the original grep pinned the \textbf wrapper, which 3.4 removed
+#   (KEY WORDS label → non-bold, user decision 2026-06-16). Intent = render uses the \htu@ekeywords@title MACRO.
+#   3.4 render = \htu@put@keywords{\htu@ekeywords@title}{\htu@ekeywords}. Grep code-only (exclude % comments)
+#   for the macro in a \htu@put@keywords first-arg; bold-agnostic. A hardcoded label (no macro) → FAILs.
 test_ekw_uses_macro() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -q '\\textbf\\htu@ekeywords@title' htuthesis.cls 2>/dev/null
+  grep -v '^[[:space:]]*%' htuthesis.cls | grep -qE 'put@keywords\{[^}]{0,20}ekeywords@title'
 }
-run_test "P1" "ATDD-2.6-10" "English keyword render uses \\htu@ekeywords@title macro (AC-8, DRY)" test_ekw_uses_macro
+run_test "P1" "ATDD-2.6-10" "English keyword render uses \\htu@ekeywords@title macro (AC-8, DRY; repointed 2026-06-16 Story 3.4 — \\textbf dropped, Decision 2)" test_ekw_uses_macro
 
 # --- AC-7: Chinese keyword label unchanged (verify only) ---
 

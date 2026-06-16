@@ -192,14 +192,20 @@
     \or\def\CJK@today{\CJK@todaybig}
   \fi}
 \newcommand{\cabstractname}{摘\hspace{\ccwd} 要}
-\newcommand{\eabstractname}{Abstract}
+% [基础] 英文摘要标题 = ABSTRACT（大写）。三号 TNR 加粗居中——字体在 \htu@makeabstract 的标题调用中
+%   覆盖章节 \sffamily 格式（避免 Latin 渲染为 LMSans；Story 3.4 AC-4，闭合 Story 3.9 遗留缺口）。
+%   真值源：HTU 格式要求 §2.8 + 参考论文 PDF page 6（TimesNewRomanPS-BoldMT 15.9pt）。
+\newcommand{\eabstractname}{ABSTRACT}
 \def\htu@ckeywords@separator{；}
-\def\htu@ekeywords@separator{; }
+% [基础] 英文关键词分隔符 = 半角逗号 + 空格。真值源：HTU 格式要求 §2.8 "半角逗号" + 参考论文 PDF page 9
+%   "governance, Responsive politics"。\htu@parse@keywords 按逗号切分 \ekeywords 参数后用此分隔符重组输出。
+\def\htu@ekeywords@separator{, }
 \newcommand{\htu@ckeywords@title}{关键词：}
-% [基础] 英文关键词标签：冒号为半角 ":"（U+003A)。真值源 = 参考论文 PDF
-%   (2107084001-任子辛-政治与公共管理学院.pdf) page 9 "KEY WORDS:Digitalization..."；
-%   按真值源层次（参考论文 > spec §2.8 全角"："），半角胜出（PRD decision-log D-14）。
-\newcommand{\htu@ekeywords@title}{KEY WORDS:\enskip}
+% [基础] 英文关键词标签 = KEY WORDS 后接半角冒号（U+003A），冒号后无间距，标签非加粗。真值源：参考论文
+%   PDF page 9 文本抽取冒号紧接首关键词（无字符），整行 TimesNewRomanPSMT（非粗）。按真值源层次（参考论文 >
+%   spec §2.8 全角"："/加粗），半角冒号 + 无间距 + 非加粗胜出（Story 3.4 AC-6/AC-7；PRD D-14 半角冒号；
+%   用户决策 2026-06-16 非加粗；deferred-work §spec-defer 去原半角间距）。
+\newcommand{\htu@ekeywords@title}{KEY WORDS:}
 \newcommand{\htu@denotation@name}{主要符号对照表}
 \newcommand{\htu@ackname}{致\hspace{\ccwd} 谢}
   \newcommand{\htu@resume@title}{个人简历、在学期间发表的学术论文与研究成果}
@@ -821,17 +827,30 @@
   \endgroup}
 \newcommand{\htu@makeabstract}{%
   \cleardoublepage
-  \htu@chapter*[]{\cabstractname} % no tocline
+  \htu@chapter*[]{\cabstractname} % no tocline；中文标题 摘 要 = SimHei 三号（\sffamily CJK via 3.9）
   \pagestyle{htu@plain}
   \pagenumbering{Roman}
   \htu@cabstract
   \vskip\htu@abstract@keywordskip
-  \htu@put@keywords{\textbf\htu@ckeywords@title}{\htu@ckeywords}
-  \htu@chapter*[]{\eabstractname} % no tocline
-  \htu@eabstract
-  \vskip\htu@abstract@keywordskip
-  \htu@put@keywords{%
-    \textbf\htu@ekeywords@title}{\htu@ekeywords}%
+  % 中文关键词标签 = 黑体（SimHei via 3.9 \setCJKsansfont）。\sffamily 仅限标签 \hbox，关键词仍宋体。
+  %   Story 3.4 AC-3：原 \textbf 渲染为 SimSun（非黑体），改 \sffamily（RED-confirmed SimSun→SimHei）。
+  \htu@put@keywords{\sffamily\htu@ckeywords@title}{\htu@ckeywords}
+  % 英文标题：覆盖章节 \sffamily 格式（Latin→LMSans 缺口）使标题渲染为 TNR 加粗三号居中（Story 3.4 AC-4，
+  %   闭合 Story 3.9 ATDD-3.9-16 的 1 个 LMSans span）。三号行距/居中由 chapter 格式提供。
+  \htu@chapter*[]{\rmfamily\bfseries\eabstractname} % no tocline
+  % 英文摘要正文 + 关键词 scope：五号 TNR + 独立行距 ≈23.4bp（参考论文 page 6 Word "2倍行距"=2×自然行高，
+  %   非 2×字号 21bp；Story 3.4 R-14/AC-5，透明偏离 architecture.md:151 的 21bp 假设，用户决策 2026-06-16）。
+  %   显式 baselineskip + 锁 baselinestretch=1 防 ctex 1.2× 系数（R-3 陷阱）；不用拉伸类行距命令（architecture.md:84）。
+  \begingroup
+    \rmfamily
+    \fontsize{10.5bp}{23.4bp}\selectfont
+    \renewcommand{\baselinestretch}{1}\selectfont
+    \htu@eabstract
+    \vskip\htu@abstract@keywordskip
+    % 英文关键词标签非加粗（用户决策），分隔符为半角逗号（\htu@ekeywords@separator）。
+    \htu@put@keywords{\htu@ekeywords@title}{\htu@ekeywords}%
+  \endgroup
+  \normalsize% R-3 leak guard：恢复正文 12pt/18bp，防 scope 泄漏到 \AtEndDocument 自检（Story 3.3 模式）
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 主要符号对照表
