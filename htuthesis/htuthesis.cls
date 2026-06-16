@@ -496,13 +496,15 @@
 %% 目录及图表清单
 %% 目录利用titletoc宏包对目录进行定制
 %% 
-%% 各章目录：宋体14磅，单倍行距，段前6磅，段后0磅
-%%           两端对齐，页码右对齐
-%% 一级标题：宋体12磅，单倍行距，段前6磅，段后0磅
-%%           左缩进2字符，两端对齐，页码右对齐
-%% 二级标题：宋体10.5磅，单倍行距，段前6磅，段后0磅
-%%           左缩进4字符，两端对齐，页码右对齐
-%% 图和附表清单：宋体10.5磅，行距16磅
+%% 目录（HTU §2.6 目录 + §1.1.4；参考论文 p10 实测，三源三角 Decision 4）：
+%%   标题"目 录"= 三号黑体居中（\htu@chapter* → \sffamily\sanhao，cls:510）。
+%%   一级标题（章）= 小四号黑体（\xiaosi[1]\sffamily → 12pt SimHei，via 3.9 \setCJKsansfont{SimHei}）。
+%%   二级/三级标题（节/小节）= 小四号宋体（\xiaosi[1] → 12pt SimSun，文档默认 CJK 面）。
+%%   每下一级向右缩进一格（[0]/[2\ccwd]/[4\ccwd]；参考 p10 delta=24pt=2\ccwd/级）。
+%%   点引导线 \titlerule*{.}；显示至三级标题（\htu@tocdepth=2）。
+%%   页码：leader 内 \rmfamily 守卫使阿拉伯页码渲染 TNR（防 \sffamily→LMSans 退化；Story 3.5 Task 1.2）。
+%%   [基础] 旧 zzuthesis 原始值（章 14 磅宋体 / 小节 10.5 磅）已按 HTU §2.6 校正——spec+参考 PDF 一致，
+%%          纯实现漂移修正（非透明偏离）。图表清单（插图/表格清单）仍用 \wuhao[1.524]（§1.1.5，非 §2.6，FR-17 范围外）。
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \setcounter{secnumdepth}{\htu@secnumdepth}%章节编号深度：4
 \setcounter{tocdepth}{\htu@tocdepth}%目录深度：2
@@ -515,13 +517,13 @@
 \renewcommand\listoftables{%
   \htu@chapter*[]{\listtablename}
   \@starttoc{lot}}
-\titlecontents{chapter}[\z@]{\vspace{6bp}\sihao[1]}
+\titlecontents{chapter}[\z@]{\vspace{6bp}\xiaosi[1]\sffamily}
   {{\thecontentslabel}\quad}{}
-  {\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
+  {\hspace{.5em}\titlerule*{.}\xiaosi\rmfamily\contentspage}
 \titlecontents{section}[2\ccwd]{\vspace{6bp} \xiaosi[1]}
   {\thecontentslabel\quad}{}
   {\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
-\titlecontents{subsection}[4\ccwd]{\vspace{6bp} \wuhao[1]}
+\titlecontents{subsection}[4\ccwd]{\vspace{6bp} \xiaosi[1]}
   {\thecontentslabel\quad}{}
   {\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
 \titlecontents{figure}[\z@]{\wuhao[1.524]}%10.5bp，16bp
