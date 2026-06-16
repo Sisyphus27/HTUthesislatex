@@ -901,8 +901,15 @@
         {\renewcommand{\makelabel}[1]{##1\hfill}
          \settowidth\labelwidth{1.1cm}
          \setlength{\labelsep}{0.4em}
-         \setlength{\itemindent}{\z@}
-         \setlength{\leftmargin}{\labelwidth+\labelsep}
+         % [基础] 参考文献悬挂缩进 = 反转式（Story 3.7 AC-2 Option B，用户决策 2026-06-16）：
+         %   [N] 内缩约 2\ccwd 进入正文（label 落在 itemindent-labelwidth-labelsep = 2\ccwd 处），
+         %   续行贴左边距（leftmargin=0）。三源三角（CLAUDE.md Decision 4）：
+         %   1. spec §2.14 line 293「序号左顶格，悬挂缩进」（TEXTUAL）—— 当前为透明偏离（序号不再左顶格）；
+         %   2. 参考 PDF p227（VISUAL）—— [N] 内缩 x0≈111 / 续行贴边 x0≈90（偶页边距），[N] 较续行内缩 ~21pt≈2\ccwd；
+         %   3. 参考 PDF 是 Word 模板的替身（理论理想），参考 PDF 在视觉细节上胜出（Decision 4），故从 spec。
+         %   原 STANDARD 式（itemindent=0, leftmargin=labelwidth+labelsep → [N] 左顶格、正文内缩）改为反转式。
+         \setlength{\itemindent}{\dimexpr 2\ccwd+\labelwidth+\labelsep\relax}
+         \setlength{\leftmargin}{\z@}
          \addtolength{\itemsep}{-0.7em}
          \usecounter{enumiv}%
          \let\p@enumiv\@empty
