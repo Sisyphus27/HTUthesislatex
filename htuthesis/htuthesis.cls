@@ -208,7 +208,10 @@
 \newcommand{\htu@ekeywords@title}{KEY WORDS:}
 \newcommand{\htu@denotation@name}{主要符号对照表}
 \newcommand{\htu@ackname}{致\hspace{\ccwd} 谢}
-  \newcommand{\htu@resume@title}{个人简历、在学期间发表的学术论文与研究成果}
+  % [基础] 发表论文目录标题文本（真值来源：spec §2.17「攻读学位期间发表的学术论文目录」用三号黑体字居中）。
+  %   原上游模板的合并式「个人简历、在学期间发表的学术论文与研究成果」偏离 spec §2.17；参考 PDF 对此标题静默
+  %   （无 致谢/攻读 锚点）→ 按 CLAUDE.md Decision 4，spec 文本主导（用户决策 2026-06-16，Story 3.8 AC-3 Option A1）。
+  \newcommand{\htu@resume@title}{攻读学位期间发表的学术论文目录}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  字号设置
 %%  模板使用thuthesis论文模板的字号定义
@@ -352,6 +355,12 @@
 \setlist[1]{labelindent=\parindent} % Only the level 1
 \let\htu@footnotesize\footnotesize%脚注字体及行距
 \renewcommand\footnotesize{\htu@footnotesize\xiaowu[\htu@footnote@linespread]}
+% [基础] 脚注每页重新编号（真值来源：spec §1.2.4 line 109「页下注（脚注）…每页重新编号」+ 参考论文 PDF
+%   p15=[3]/p18=[1]/p19=[2]/p20=[1] 实测每页重启）。ctexbook/book 默认 \@addtoreset{footnote}{chapter}（按章重置），
+%   偏离 spec；此处 \@addtoreset{footnote}{page} 令 footnote 计数器每页归零（Story 3.8 AC-5 / R-16，用户决策 Option A
+%   无包方案 2026-06-16）。仅重置 footnote，不影响 page 计数器（页码连续性不受影响，AC-6）。
+%   注：LaTeX 脚注计数器名 = footnote（\c@footnote），非 foot（create-story 误记，编译期实证纠正）。
+\@addtoreset{footnote}{page}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    浮动对象、图片、表格、公式设置
 %% 1. 若插入的图片未指定扩展名，则在指定文件路径搜索pdf，eps，png，jpg，jpeg文件
@@ -881,7 +890,10 @@
 \newenvironment{ack}{%
     \cleardoublepage
     \htu@chapter*{\htu@ackname}
-    \fangsong\xiaosi[1.524]%仿宋五号，固定行距16磅
+    % [基础] 致谢正文字体 = 小四号宋体（真值来源：spec §2.16 line 445「致谢内容一般用小四号宋体字」）。
+    %   原上游模板用 \fangsong（仿宋小四）偏离 spec；参考 PDF 对致谢正文静默 → 按 Decision 4 spec 主导
+    %   （用户决策 2026-06-16，Story 3.8 AC-2 Option A：\fangsong → \songti）。\xiaosi[1.524] = 小四固定行距 16 磅。
+    \songti\xiaosi[1.524]%宋体小四，固定行距16磅
   }{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    参考文献环境
