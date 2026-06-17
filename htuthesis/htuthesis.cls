@@ -599,20 +599,45 @@
   %   R-9（score 6）：9 个元素绝对定位，±3mm 容差；R-6（score 6）：绝对定位相对纸张（非 \textwidth），
   %     消除 includeheadfoot 后 textwidth 146→160mm 变化对封面的耦合（Story 2.1 deferred 债）。
   \begin{tikzpicture}[remember picture, overlay]
-    % --- 元数据（左上 x≈23mm，仿宋小四≈12pt）：单位代码 / 学号 / 分类号 ---
-    %   \htu@fangsong@latin：ASCII 数字/字母也走 FangSong（匹配参考论文 page 2 span 级字体）
+    % --- 元数据表格（4H×3V 边框；FR-11，spec §1.1.1）---
+    %   真值源（三源三角，CLAUDE.md Decision 4，spec 优先）：
+    %     1) spec §1.1.1「封面统一使用学校规定的样式」→ 委托学校 .doc（权威空白形式）
+    %     2) 参考论文 2107084001 page 2（辅助视觉真值）：7 线段表格 =
+    %        4 横线 y=20.5/29.5/38.4/47.4mm + 3 竖线 x=21.4/45.7/74.3mm；
+    %        label 列 21.4→45.7mm(24.3mm) + value 列 45.7→74.3mm(28.6mm)
+    %     3) 本 [基础] 注释（实现层映射）
+    %   Story 3.1 已把文本行放对 y 位置（22.8/31.9/40.8mm = 参考精确匹配）；Story 3.10 仅：
+    %     (a) 拆 label/value 为双节点落进各自列（实现真 2 列），(b) 补 7 条 \draw 边线。
+    %   纯 frame-ADD，不挪文本 y → R-9 ±3mm + ATDD-3.1-I06 不变。
+    %   \htu@fangsong@latin：ASCII 数字/字母也走 FangSong（匹配参考论文 page 2 span 级字体）。
+    %   放弃 \htu@underline（原 value 下划线）—— 单元格边框取代之；\htu@underline 仍由
+    %   \htu@abstractcover 使用（Story 3.14 将删除该封面，届时宏成死代码）。
+    \draw[thin] ($(current page.north west)+(21.4mm,-20.5mm)$) -- ($(current page.north west)+(74.3mm,-20.5mm)$);% 上边
+    \draw[thin] ($(current page.north west)+(21.4mm,-29.5mm)$) -- ($(current page.north west)+(74.3mm,-29.5mm)$);% 行1/2 分隔
+    \draw[thin] ($(current page.north west)+(21.4mm,-38.4mm)$) -- ($(current page.north west)+(74.3mm,-38.4mm)$);% 行2/3 分隔
+    \draw[thin] ($(current page.north west)+(21.4mm,-47.4mm)$) -- ($(current page.north west)+(74.3mm,-47.4mm)$);% 下边
+    \draw[thin] ($(current page.north west)+(21.4mm,-20.5mm)$) -- ($(current page.north west)+(21.4mm,-47.4mm)$);% 左边
+    \draw[thin] ($(current page.north west)+(45.7mm,-20.5mm)$) -- ($(current page.north west)+(45.7mm,-47.4mm)$);% 列分隔
+    \draw[thin] ($(current page.north west)+(74.3mm,-20.5mm)$) -- ($(current page.north west)+(74.3mm,-47.4mm)$);% 右边
+    % --- 元数据文本（label 列 x=23.3 / value 列 x=50；仿宋小四 12pt）---
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -22.8mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode@title\hspace{1em}%
-       \htu@underline[25mm]{\htu@schoolcode}};
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode@title};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (50mm, -22.8mm)$)
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -31.9mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@id@title\hspace{1em}%
-       \htu@underline[25mm]{\htu@id}};
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@id@title};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (50mm, -31.9mm)$)
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@id};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -40.8mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel@title\hspace{1em}%
-       \htu@underline[25mm]{\htu@secretlevel}};
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel@title};
+    \node[anchor=north west, inner sep=0pt]
+      at ($(current page.north west) + (50mm, -40.8mm)$)
+      {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel};
     % --- 校名（书法体图像，居中，91mm×27.3mm；y=58.5mm 顶部）---
     \node[anchor=north, inner sep=0pt]
       at ($(current page.north) + (0mm, -58.5mm)$)
