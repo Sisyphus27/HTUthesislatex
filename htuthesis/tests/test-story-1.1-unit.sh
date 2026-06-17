@@ -130,11 +130,15 @@ test_main_documentclass() {
 }
 run_test "P0" "ATDD-1.1-09" "main.tex uses documentclass[doctor]{htuthesis}" test_main_documentclass
 
-# ATDD-1.1-10: main.tex references htuthesis.bst (AC-5)
+# ATDD-1.1-10: main.tex bibliography wiring (AC-5) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "main.tex references htuthesis.bst" (natbib+bibtex backend); now Option A
+#   biblatex (Zy 2026-06-17, §2.14 case-2, gap M1) — main.tex calls \makebibliography (cls macro:
+#   \nocite{*} + type-sectioned \printbibliography). htuthesis.bst SUPERSEDED by biblatex-gb7714-2015
+#   (kept as fallback file). Decision 2 cross-story override.
 test_main_bst() {
-  grep -q 'htuthesis.bst' main.tex 2>/dev/null
+  grep -q 'makebibliography' main.tex 2>/dev/null
 }
-run_test "P0" "ATDD-1.1-10" "main.tex references htuthesis.bst" test_main_bst
+run_test "P0" "ATDD-1.1-10" "main.tex bibliography wiring (\\makebibliography; REPOINTED by 3.12 — was htuthesis.bst/natbib)" test_main_bst
 
 # ATDD-1.1-11: Comprehensive zero zzu@ across all source files (AC-8)
 test_comprehensive_zero_zzu() {

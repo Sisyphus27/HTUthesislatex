@@ -40,10 +40,9 @@
 % 参考文献、致谢、附录等
 \backmatter
 
-% \bibliographystyle{gbt7714-unsrt.bst}%符合国标 GB/T 7714-2015 的文献风格
-% htuthesis.bst is based on gbt7714-unsrt style (GB/T 7714-2015)
-\bibliographystyle{htuthesis}%学校规范中示例文献风格
-\bibliography{ref/refs}%参考文献
+% 参考文献（Story 3.12 Option A — biblatex GB/T 7714-2015 双模式 §2.14 case-2）
+% \makebibliography 按文献类型分节重组（引文脚注 + 文末表；cls 定义）
+\makebibliography
 
 % 附录
 % 研究论文：致谢

@@ -117,28 +117,27 @@ test_refs_body_wuhao() {
 }
 run_test "P1" "ATDD-3.7-03" "thebibliography \\wuhao[1.524] 五号宋体 (AC-2 wiring, TC-E3-34; GREEN)" test_refs_body_wuhao
 
-# ATDD-3.7-04: \@biblabel [N] numbering via \list (AC-2 wiring, TC-E3-34)
-# Truth source: spec §2.14 "参考文献的序号左顶格...悬挂缩进" + [N] sequential numbering. The thebibliography env
-#   must use \list{\@biblabel{...}} to produce [1] [2]... GREEN pre/post (inherited zzuthesis + natbib).
+# ATDD-3.7-04: end-list [N] numbering wiring (AC-2, TC-E3-34) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "thebibliography \list{\@biblabel} → [N]" (natbib); now Option A biblatex
+#   (Zy 2026-06-17) — \printbibliography (gb7714-2015 numeric style produces [N] numbering). thebibliography
+#   env removed. §2.14 case-2, gap M1. Decision 2. Behavior proof = integration I07/I08.
 test_refs_biblabel_list() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'list\{\\@biblabel\{\\@arabic\\c@enumiv\}\}' htuthesis.cls
+  grep -qE 'printbibliography\[type=' htuthesis.cls && \
+  grep -qE 'style=gb7714-2015' htuthesis.cls
 }
-run_test "P1" "ATDD-3.7-04" "thebibliography \\list{\\@biblabel} → [N] numbering (AC-2 wiring, TC-E3-34; GREEN)" test_refs_biblabel_list
+run_test "P1" "ATDD-3.7-04" "end-list [N] via biblatex \\printbibliography (REPOINTED by 3.12 — was thebibliography \\@biblabel)" test_refs_biblabel_list
 
-# ATDD-3.7-05: thebibliography \list reversed hanging config (AC-2 Option B, TC-E3-34)
-# AC-2 DECISION RESOLVED 2026-06-16: Zy chose Option B — follow the reference PDF p227 REVERSED style (Decision 4:
-#   reference wins on visual detail; transparent deviation from spec §2.14 "序号左顶格" text). The \list must declare
-#   the reversed config: itemindent = 2\ccwd+\labelwidth+\labelsep (label lands at 2\ccwd into the body), leftmargin = 0
-#   (continuation at the body margin). PROMOTED from the value-agnostic "dims DECLARED" guard (ATDD checklist: "PROMOTE
-#   once decided") — the previous guard matched the DENOTATION env's leftmargin (false-positive); this asserts the
-#   unique-to-bibliography reversed itemindent dimexpr + leftmargin{\z@}. The behavior proof is the integration suite I05.
+# ATDD-3.7-05: end-list heading wiring (AC-2, TC-E3-34) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "thebibliography \list reversed-hanging dims (3.7 Option B)"; now Option A
+#   biblatex \printbibliography (the thebibliography \list removed). The end-list HANGING DIRECTION
+#   (§2.14 序号左顶格 standard vs 3.7 reverse) is REWORK scope of Story 3.13 — not asserted here.
+#   §2.14 case-2, gap M1. Decision 2 cross-story override. (Behavior = integration I07 end-list present.)
 test_refs_list_reversed_dims() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'setlength\{\\itemindent\}\{\\dimexpr 2\\ccwd\+\\labelwidth\+\\labelsep\\relax\}' htuthesis.cls && \
-  grep -qE 'setlength\{\\leftmargin\}\{\\z@\}' htuthesis.cls
+  grep -qE 'defbibheading\{htu-refs' htuthesis.cls
 }
-run_test "P1" "ATDD-3.7-05" "thebibliography \\list reversed hanging (itemindent=2\\ccwd+..., leftmargin=0; AC-2 Option B, TC-E3-34; PROMOTED from value-agnostic)" test_refs_list_reversed_dims
+run_test "P1" "ATDD-3.7-05" "end-list via biblatex defbibheading (REPOINTED by 3.12 — was thebibliography reversed-hanging; direction→3.13)" test_refs_list_reversed_dims
 
 echo ""
 
@@ -199,16 +198,16 @@ echo ""
 # ==========================================
 echo "=== P2: compile wiring (bibstyle + \bibliography) + regression + scope guards ==="
 
-# ATDD-3.7-10: \bibliographystyle{htuthesis} + \bibliography{ref/refs} in main.tex (AC-2 compile wiring)
-# The references must be wired in main.tex back matter: \bibliographystyle{htuthesis} (gbt7714-unsrt, GB/T 7714-2015)
-#   + \bibliography{ref/refs} (13 entries). GREEN pre/post. htuthesis.bst must exist (architecture.md:92 已兼容).
+# ATDD-3.7-10: bibliography compile wiring (AC-2) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "\bibliographystyle{htuthesis} + \bibliography{ref/refs} + htuthesis.bst";
+#   now Option A biblatex — main.tex \makebibliography + cls \addbibresource{ref/refs.bib} + biblatex-gb7714-2015.
+#   htuthesis.bst SUPERSEDED (kept as fallback). §2.14 case-2, gap M1. Decision 2.
 test_bibliography_wired() {
   [[ -f "main.tex" ]] || return 1
-  grep -qE 'bibliographystyle\{htuthesis\}' main.tex && \
-  grep -qE 'bibliography\{ref/refs\}' main.tex && \
-  [[ -f "htuthesis.bst" ]]
+  grep -q 'makebibliography' main.tex && \
+  grep -qE 'addbibresource\{ref/refs\.bib\}' htuthesis.cls
 }
-run_test "P2" "ATDD-3.7-10" "main.tex \\bibliographystyle{htuthesis} + \\bibliography{ref/refs} + htuthesis.bst (AC-2; GREEN)" test_bibliography_wired
+run_test "P2" "ATDD-3.7-10" "bibliography wiring (\\makebibliography + \\addbibresource; REPOINTED by 3.12 — was natbib \\bibliography)" test_bibliography_wired
 
 # ATDD-3.7-11: regression — \setmainfont{Times New Roman} preserved (Story 3.9, AC-7/AC-8)
 # 3.7 consumes 3.9's \rmfamily→TNR so references Latin digits/punct ("[J].", ",", page-range) render TNR (NOT
@@ -249,15 +248,15 @@ test_appendix_let_primitive() {
 }
 run_test "P2" "ATDD-3.7-14" "scope guard: \\let\\htu@appendix\\appendix primitive bound (AC-4; GREEN)" test_appendix_let_primitive
 
-# ATDD-3.7-15: natbib config intact (AC-2 — [N] super cite) (regression)
-# natbib \RequirePackage[numbers,super,sort&compress] + \bibpunct{[}{]}{,}{s}{}{,} produce the [N] bracket + super
-#   cite numbering. Must remain. GREEN pre/post.
+# ATDD-3.7-15: bibliography backend (AC-2) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "natbib [numbers,super,sort&compress] + \bibpunct intact"; now Option A biblatex
+#   (Zy 2026-06-17) — natbib REMOVED, \bibpunct REMOVED. §2.14 case-2, gap M1. Decision 2 cross-story override.
 test_natbib_config() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'RequirePackage\[numbers,super,sort&compress\]\{natbib\}' htuthesis.cls && \
-  grep -qE 'bibpunct\{\[\}\{\]\}' htuthesis.cls
+  grep -qE 'RequirePackage\[backend=biber[^]]*\]\{biblatex\}' htuthesis.cls && \
+  ! grep -vE '^\s*%' htuthesis.cls | grep -qE 'RequirePackage(\[[^]]*\])?\{natbib\}'
 }
-run_test "P2" "ATDD-3.7-15" "regression: natbib [numbers,super,sort&compress] + \\bibpunct intact (AC-2; GREEN)" test_natbib_config
+run_test "P2" "ATDD-3.7-15" "bibliography backend = biblatex (natbib removed; REPOINTED by 3.12 — was natbib+\\bibpunct)" test_natbib_config
 
 echo ""
 

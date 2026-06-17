@@ -115,7 +115,8 @@
 \RequirePackage{booktabs}%三线表格
 \RequirePackage[labelformat=simple]{subcaption}% subcaption with labelformat=simple
 \RequirePackage{graphicx}%图形支持
-\RequirePackage[numbers,super,sort&compress]{natbib}% natbib with numbers,super,sort&compress
+\RequirePackage[backend=biber,style=gb7714-2015]{biblatex}% biblatex GB/T 7714-2015 (Story 3.12 Option A, §2.14 case-2 双模式). 替换 natbib [numbers,super] 末端 case-1。
+\addbibresource{ref/refs.bib}% 参考文献（GB/T 7714-2015；Zy 决策 2026-06-17 Option A）
 \RequirePackage{hyperref}%超链接、书签
   \hypersetup{%
     linktoc=all,
@@ -355,18 +356,17 @@
 \setlist[1]{labelindent=\parindent} % Only the level 1
 \let\htu@footnotesize\footnotesize%脚注字体及行距
 \renewcommand\footnotesize{\htu@footnotesize\xiaowu[\htu@footnote@linespread]}
-% [基础] 脚注每页重新编号（真值来源：spec §1.2.4 line 109「页下注（脚注）…每页重新编号」+ 参考论文 PDF
-%   p15=[3]/p18=[1]/p19=[2]/p20=[1] 实测每页重启）。ctexbook/book 默认 \@addtoreset{footnote}{chapter}（按章重置），
-%   偏离 spec；此处 \@addtoreset{footnote}{page} 令 footnote 计数器每页归零（Story 3.8 AC-5 / R-16，用户决策 Option A
-%   无包方案 2026-06-16）。仅重置 footnote，不影响 page 计数器（页码连续性不受影响，AC-6）。
-%   注：LaTeX 脚注计数器名 = footnote（\c@footnote），非 foot（create-story 误记，编译期实证纠正）。
-%   机制局限性（code review 2026-06-16 透明记录，用户决策保留 Option A 无包方案）：(1) \@addtoreset 为叠加式——
-%   不取消 book 类默认的 per-chapter reset，两者并行；本模板章节起始页另起（\cleardoublepage），故按章/按页重置
-%   在章节首页同时触发，行为正确。(2) TeX 异步 shipout：page 计数器在 shipout 时步进，页边脚注理论上有编号偏移
-%   风险；HTU 论文脚注稀疏（1-7/页，参考 PDF 实测），该边缘情形不触发。(3) per-page 使 \thefootnote 非唯一，
-%   hyperref 脚注反链可能跳错页（本模板脚注反链非关键功能）。若未来需 bulletproof（密脚注/页边/反链），
-%   改用 \usepackage[perpage]{footmisc}（Option B，需验证 \xiaowu override 存活）。
-\@addtoreset{footnote}{page}
+% [基础] 脚注每页重新编号（真值来源：spec §1.2.4 line 109「页下注（脚注）…每页重新编号」+ §2.14 line 291
+%   case-2「每页重新编号」+ 参考论文 PDF p20=[1]/p21=[1] 实测每页重启）。
+%   机制（Story 3.12 切换）：原 Story 3.8 Option A 无包 \@addtoreset{footnote}{page}（cls:369 旧）在 biblatex
+%   后端下失效——biblatex \footfullcite 引文脚注 + 解释性 \footnote 共用 footnote 计数器，但 biblatex
+%   AtBeginDocument 重定义覆盖了 \@addtoreset 的每页重置（实测：引文脚注跨页连续编号 [2][3]…、解释脚注 p32
+%   缺 [1]）。改用 \usepackage[perpage]{footmisc}（Story 3.8 Option B，3.8 code review 2026-06-16 已记录为
+%   未来加固路径；Story 3.12 biblatex 切换正是该时机）。footmisc[perpage] 在 \footnote 层面强制每页归零，
+%   biblatex \footfullcite 经 \footnote → 同样每页重置（引文脚注 [1] 每页重现，AC-2/I05）。Decision 2：
+%   Story 3.8 ATDD-3.8-09/I08 接受 footmisc[perpage]（OR 模式），无需重指向；行为等价（每页重置）。
+%   仅重置 footnote，不影响 page 计数器（页码连续性不受影响，AC-6）。
+\usepackage[perpage]{footmisc}%每页脚注重置（Story 3.12 Option A biblatex 下替换 \@addtoreset；§1.2.4 line 109）
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    浮动对象、图片、表格、公式设置
 %% 1. 若插入的图片未指定扩展名，则在指定文件路径搜索pdf，eps，png，jpg，jpeg文件
@@ -927,47 +927,44 @@
     \songti\xiaosi[1.524]%宋体小四，固定行距16磅
   }{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%    参考文献环境
-%% 1. 文献作者不超过3位时，全部列出；超过时只列前3位，后面加“等”或相应外文；
-%% 2. 作者姓名之间用“,”分开，建议根据《中国高校自然科学学报编排规范》的要求
-%%    书写参考文献，并按引用顺序将其附于文末，该规范建议根据国标书写参考文献。
-%% 3. 引用参考文献的位置，上标标注[参考文献序号]
+%%    参考文献环境（Story 3.12 Option A — biblatex GB/T 7714-2015，§2.14 case-2 双模式）
+%% [基础] 真值来源（spec PRIORITY，CLAUDE.md Decision 4 修正 2026-06-17）：
+%%   1. spec §2.14 line 291（case-2 PRIORITY）「引文参考文献已出现在文中的页下注（脚注），每页
+%%      重新编号，需标注引文内容在原文献中的具体页码。文后参考文献可将引文参考文献和阅读型参考
+%%      文献放在一起重新编号，先按照文献类型分类，每一类再按照作者姓氏字母顺序编号。」
+%%   2. spec §1.2.4 line 109「若文中引文文献采用页下注（脚注）的形式，每页重新编号。」
+%%   3. spec §2.4 line 197「脚注用小五号宋体字。」+ §2.14 line 285「参考文献的内容使用五号宋体字」
+%%      + line 293「序号左顶格，悬挂缩进」（悬挂方向 = Story 3.13 范围）。
+%%   机制（Zy 决策 2026-06-17 Option A）：natbib+bibtex 末端 [N] 上标（case-1）→ biblatex+biber
+%%   +biblatex-gb7714-2015 双模式（case-2）。引文 → \footfullcite 每页脚注（完整 GB/T 7714 条目，
+%%   小五号宋体；per-page reset 复用 \@addtoreset{footnote}{page} cls:369 Story 3.8）；文末表 →
+%%   \makebibliography 按文献类型分节重组（§2.14 line 291 先按照文献类型分类）。
+%%   参考 PDF（2107084001-任子辛-...pdf）p20-36（引文脚注：[N] author.title[TYPE].pub,year，每页
+%%   重置，SimSun 9pt）+ p227（类型分节文末表：一、党的文献…每类 [1] 起）印证。
+%%   Option B（natbib + footmisc + 手维护宏表）已拒绝（重复 .bib 漂移、违反成熟库优先规则）。
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bibpunct{[}{]}{,}{s}{}{,}
-\renewcommand\NAT@citesuper[3]{\ifNAT@swa%
-  \unskip\kern\p@\textsuperscript{\NAT@@open #1\NAT@@close}%
-  \if*#3*\else\ (#3)\fi\else #1\fi\endgroup}
-\DeclareRobustCommand\onlinecite{\@onlinecite}
-\def\@onlinecite#1{\begingroup\let\@cite\NAT@citenum\citep{#1}\endgroup}
-\renewenvironment{thebibliography}[1]{%
-   \htu@chapter*{\bibname}%
-   \wuhao[1.524]%宋体五号，行距16磅
-   \list{\@biblabel{\@arabic\c@enumiv}}%
-        {\renewcommand{\makelabel}[1]{##1\hfill}
-         \settowidth\labelwidth{1.1cm}
-         \setlength{\labelsep}{0.4em}
-         % [基础] 参考文献悬挂缩进 = 反转式（Story 3.7 AC-2 Option B，用户决策 2026-06-16）：
-         %   [N] 内缩约 2\ccwd 进入正文（label 落在 itemindent-labelwidth-labelsep = 2\ccwd 处），
-         %   续行贴左边距（leftmargin=0）。三源三角（CLAUDE.md Decision 4）：
-         %   1. spec §2.14 line 293「序号左顶格，悬挂缩进」（TEXTUAL）—— 当前为透明偏离（序号不再左顶格）；
-         %   2. 参考 PDF p227（VISUAL）—— [N] 内缩 x0≈111 / 续行贴边 x0≈90（偶页边距），[N] 较续行内缩 ~21pt≈2\ccwd；
-         %   3. 参考 PDF 是 Word 模板的替身（理论理想），参考 PDF 在视觉细节上胜出（Decision 4），故从 spec。
-         %   原 STANDARD 式（itemindent=0, leftmargin=labelwidth+labelsep → [N] 左顶格、正文内缩）改为反转式。
-         \setlength{\itemindent}{\dimexpr 2\ccwd+\labelwidth+\labelsep\relax}
-         \setlength{\leftmargin}{\z@}
-         \addtolength{\itemsep}{-0.7em}
-         \usecounter{enumiv}%
-         \let\p@enumiv\@empty
-         \renewcommand\theenumiv{\@arabic\c@enumiv}}%
-    \sloppy\frenchspacing
-    \clubpenalty4000
-    \@clubpenalty \clubpenalty
-    \widowpenalty4000%
-    \interlinepenalty4000%
-    \sfcode`\.\@m}
-   {\def\@noitemerr
-     {\@latex@warning{Empty `thebibliography' environment}}%
-    \endlist\frenchspacing}
+% biblatex GB/T 7714-2015 文末表正文字体 = 五号宋体（Story 3.7 AC-2 §2.14 line 285）
+\renewcommand*{\bibfont}{\wuhao[1.524]}%
+% 文末表主标题：参考文献 三号黑体居中、另起一页（Story 3.7 AC-1 §2.14 line 285）+ 首节子标题（[1]=title）。
+%   \htu@chapter* 含 \cleardoublepage（另起一页）。首节用 htu-refs（主标题+子标题）；后续节用 htu-refs-sub（仅子标题）。
+\defbibheading{htu-refs}[1]{\htu@chapter*{\bibname}\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\centerline{#1}}\par\vspace{0.3\baselineskip}}%
+% 文末表类型分节子标题：二、著作 …（§2.14 line 291 按文献类型分类；小四黑体居中）
+\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\centerline{#1}}\par\vspace{0.3\baselineskip}}%
+% 文末表：按文献类型分节重组（引文 + 阅读型，§2.14 case-2 line 291）。
+%   \nocite{*} 收录全部条目（引文已为页下注脚；阅读型仅入文末表）。
+%   每节 \printbibliography[type=...] 按 entrytype 过滤（biber 映射 @phdthesis→thesis、@standard→book）。
+%   13 条样例全被前 6 节覆盖（article/book/incollection/thesis/patent/online）→ 无需 nottype 兜底
+%   （兜底节空 → "Empty bibliography" 警告）。未来增异型条目（Epic 4.1）可按需补节。
+\BiblatexSplitbibDefernumbersWarningOff
+\newcommand{\makebibliography}{%
+  \nocite{*}% 收录全部参考文献（引文 + 阅读型，§2.14 line 291）
+  \printbibliography[type=article,heading=htu-refs,title={一、期刊论文}]%
+  \printbibliography[type=book,heading=htu-refs-sub,title={二、著作}]%
+  \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）}]%
+  \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文}]%
+  \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利}]%
+  \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源}]%
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 附录
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

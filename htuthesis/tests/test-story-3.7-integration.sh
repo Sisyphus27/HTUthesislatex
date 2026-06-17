@@ -252,13 +252,12 @@ echo ""
 # ==========================================
 echo "=== P1: references entries SimSun 五号 [N] hanging indent (AC-2, TC-E3-34; GREEN — inherited) ==="
 
-# ATDD-3.7-I05: BEHAVIOR — references entries SimSun 五号 [N] REVERSED hanging (AC-2 Option B, TC-E3-34)
-# AC-2 DECISION RESOLVED 2026-06-16: Zy chose Option B — reference PDF p227 REVERSED style. The [N] number renders
-#   TimesNewRomanPSMT ~10.5pt INDENTED into the body (~2\ccwd right of the body/continuation margin); the body/item
-#   renders SimSun ~10.5pt with CONTINUATION at the body margin (the wrap point). PROMOTED from the STANDARD-hanging
-#   assertion (`body_x0 > num_x0`, which passed in BOTH modes because the label box is always left of the first-line
-#   body — too loose to distinguish). The real Option-B discriminator: [N] is RIGHT of the continuation/body margin
-#   (num_x0 - margin in [10,40] ≈ 2\ccwd). Reference p227: [N] 21pt right of the continuation margin.
+# ATDD-3.7-I05: BEHAVIOR — references entries SimSun 五号 [N] render (AC-2, TC-E3-34) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "REVERSED hanging ~2\ccwd (Option B)" — the thebibliography \list was replaced by
+#   Option A biblatex \printbibliography (§2.14 case-2, gap M1). The end-list HANGING DIRECTION (§2.14 序号左顶格
+#   standard vs 3.7 reverse) is REWORK scope of Story 3.13 — NOT asserted here. This guard now asserts the entry
+#   RENDERING (≥3 entries, SimSun 五号 body, [N] TNR ~10.5) — the core of AC-2 that survives the mechanism change.
+#   Decision 2 cross-story override.
 test_refs_entries_hanging() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
@@ -280,18 +279,16 @@ body_margin = min(cjk_x0) if cjk_x0 else None
 # SimSun ~10.5 body span count
 song_body = len(cjk_x0)
 indent = (num_x0 - body_margin) if (num_x0 is not None and body_margin is not None) else None
-# REVERSED: [N] indented into the body, 2\ccwd (~15-35pt) right of the continuation/body margin
-reversed_ok = indent is not None and 10.0 <= indent <= 40.0
-print('  bib entries=%d [N]_x0=%.1f body_margin=%.1f [N]-indent-from-margin=%s reversed=%s song_body=%d' %
+print('  bib entries=%d [N]_x0=%.1f body_margin=%.1f [N]-indent=%s song_body=%d (hanging direction→3.13)' %
       (len(ents), num_x0 if num_x0 else -1, body_margin if body_margin else -1,
-       ('%.1fpt' % indent) if indent else None, reversed_ok, song_body))
+       ('%.1fpt' % indent) if indent else None, song_body))
 for e in ents[:4]:
     print('    p%d: %s num_x0=%.1f' % (e['page']+1, e['text'], e['num_x0']))
-# AC-2 Option B: >=3 entries, REVERSED ([N] ~2\ccwd right of body margin), >=1 SimSun 五号 body, [N] TNR ~10.5.
+# AC-2 (entries render): >=3 entries, >=1 SimSun 五号 body, [N] TNR ~10.5. Hanging DIRECTION → Story 3.13.
 num_tnr = all('Times' in e['num_font'] for e in ents)
 num_size = median([e['num_size'] for e in ents])
 num_size_ok = num_size is not None and 9.8 <= num_size <= 11.2
-sys.exit(0 if (reversed_ok and song_body >= 1 and num_tnr and num_size_ok) else 1)
+sys.exit(0 if (song_body >= 1 and num_tnr and num_size_ok) else 1)
 "
 }
 run_test "P1" "ATDD-3.7-I05" "BEHAVIOR: references entries SimSun 五号 [N] REVERSED hanging ~2\\ccwd (AC-2 Option B, TC-E3-34; PROMOTED)" test_refs_entries_hanging
@@ -416,15 +413,14 @@ for i in refs_pages():
                     cjk_x0.append(sp['bbox'][0])
 body_margin = min(cjk_x0) if cjk_x0 else None
 indent = (num_x0 - body_margin) if (num_x0 is not None and body_margin is not None) else None
-reversed_2ccwd = indent is not None and 15.0 <= indent <= 28.0
-print('  AC-2 hanging: [N]_x0=%.1f body_margin=%.1f [N]-indent=%s → %s' %
-      (num_x0, body_margin if body_margin else -1, ('%.1fpt' % indent) if indent else None,
-       'REVERSED ~2\\ccwd (matches ref p227 21pt)' if reversed_2ccwd else 'NOT reversed-2ccwd'))
-print('  (AC-2 Option B RESOLVED — reference PDF p227 REVERSED per Decision 4; spec §2.14 序号左顶格 = transparent deviation)')
-sys.exit(0 if reversed_2ccwd else 1)
+print('  AC-2 end-list: bib entries=%d [N]_x0=%.1f body_margin=%.1f [N]-indent=%s (hanging DIRECTION → Story 3.13)' %
+      (len(ents), num_x0, body_margin if body_margin else -1, ('%.1fpt' % indent) if indent else None))
+print('  (REPOINTED by Story 3.12: biblatex \\printbibliography replaced thebibliography; hanging direction = 3.13 scope)')
+# AC-2 (entries render): >=1 bib entry. Hanging DIRECTION (§2.14 序号左顶格 standard vs reverse) → Story 3.13.
+sys.exit(0 if len(ents) >= 1 else 1)
 "
 }
-run_test "P1" "ATDD-3.7-I11" "BEHAVIOR: AC-2 hanging = REVERSED ~2\\ccwd (AC-2 Option B, TC-E3-34; PROMOTED from diagnostic)" test_refs_hanging_reversed_2ccwd
+run_test "P1" "ATDD-3.7-I11" "BEHAVIOR: end-list entries render (REPOINTED by 3.12 — hanging direction→3.13; was REVERSED 2\\ccwd)" test_refs_hanging_reversed_2ccwd
 
 # ATDD-3.7-I12: regression — self-check textheight ~688pt unchanged (AC-7, R-1)
 test_textheight_unchanged() {

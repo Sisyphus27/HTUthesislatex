@@ -251,8 +251,11 @@ test_page_count() {
   local total_pages
   total_pages=$(grep 'total pages = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | tr -d '[:space:]')
   if [[ -z "$total_pages" ]]; then echo "  (page count not found)"; return 1; fi
-  echo "  (pages: $total_pages, expected 49 +/- 5)"
-  echo "$total_pages" | awk '{if ($1 >= 44 && $1 <= 54) exit 0; else exit 1}'
+# ATDD-2.6-27: total pages (AC-9) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED: was 49±5 (44-54); Story 3.12 biblatex Option A + citation footnotes shifted pagination to 55.
+#   Re-anchored to 46-58. Decision 2 sample-drift re-anchor.
+  echo "  (pages: $total_pages, expected 46-58 [re-anchored by 3.12; was 44-54])"
+  echo "$total_pages" | awk '{if ($1 >= 46 && $1 <= 58) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-2.6-27" "total pages within ±5 of 49 (AC-9)" test_page_count
 

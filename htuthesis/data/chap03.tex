@@ -203,14 +203,14 @@
 关于参考文献模板推荐使用\BibTeX{}，文献库采用 \emph{bib} 格式
 的文献引用信息，通常的文献管理软件均能比较方便的导出该格式的文件。
 
-模板中使用命令 \verb|\cite{}| 表示上标标注，并另外定义了 \verb|\onlinecite{}|
-命令，作为形文中的参考文献标注。
+模板采用页下注（脚注）引文模式（spec §2.14 case-2 双模式）：引文以 \verb|\footfullcite{}|
+命令置于当页页下注，每页重新编号；文末另附按文献类型分节的参考文献表。
 
 下面是示例：
 
-上标引用 \cite{chen2001,nadkarni1992,hua1973,zhu1973,huo1981,timoshenko1959,zhang1991,dupont1974,ding2001,cairns1965,patent,standard,wang2005}。
+页下注引用 \footfullcite{chen2001,nadkarni1992,hua1973}。
 
-有时候不想要上标，那么可以这样 \onlinecite{chen2001}。如果有不如意的地方，请手动修改\emph{bbl} 文件。
+单篇页下注引用 \footfullcite{zhu1973}。引文内容在原文献中的具体页码可用可选参数标注，如 \footfullcite[][26]{ding2001}。
 
 \section{其它部分}
 \label{sec:otherparts}

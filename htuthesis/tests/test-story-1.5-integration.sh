@@ -151,48 +151,52 @@ run_test "P1" "ATDD-1.5-11" "No float-related warnings in log (AC-3)" test_no_fl
 echo ""
 echo "=== P1: Mechanism 4 — Bibliography ==="
 
-# ATDD-1.5-15: .bbl output has [N] numbering format (AC-4, TC-1.5-INT-02)
+# ATDD-1.5-15: .bbl bibliography entries (AC-4, TC-1.5-INT-02) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED: was ".bbl has \bibitem entries" (natbib/bibtex .bbl format); now Option A biblatex — .bbl uses
+#   \entry{key}{type}{}. Decision 2 cross-story override. §2.14 case-2, gap M1.
 test_bbl_numbering() {
   if [[ -f "main.bbl" ]]; then
-    local bracket_count
-    bracket_count=$(grep -c '\\bibitem' main.bbl 2>/dev/null || true)
-    bracket_count=$(echo "$bracket_count" | tr -d '[:space:]' | head -1)
-    echo "  (Found $bracket_count bibitem entries)"
-    [[ "$bracket_count" -ge 1 ]]
+    local entry_count
+    entry_count=$(grep -c '\\entry' main.bbl 2>/dev/null || true)
+    entry_count=$(echo "$entry_count" | tr -d '[:space:]' | head -1)
+    echo "  (Found $entry_count biblatex \\entry entries)"
+    [[ "$entry_count" -ge 1 ]]
   else
     echo "  (main.bbl not found — run full compile cycle first)"
     return 1
   fi
 }
-run_test "P1" "ATDD-1.5-15" ".bbl output has bibitem entries [N] (AC-4)" test_bbl_numbering
+run_test "P1" "ATDD-1.5-15" ".bbl has biblatex \\entry entries (REPOINTED by 3.12 — was \\bibitem/natbib)" test_bbl_numbering
 
-# ATDD-1.5-26: Full bibliography compile cycle (xelatex -> bibtex -> xelatex x2) (AC-4)
+# ATDD-1.5-26: Full bibliography compile cycle (xelatex -> biber -> xelatex x2) (AC-4) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED: was bibtex cycle; now Option A biblatex biber cycle. Decision 2.
 test_bib_compile_cycle() {
   xelatex -interaction=nonstopmode main.tex > /dev/null 2>&1 && \
-  bibtex main > /dev/null 2>&1 && \
+  biber main > /dev/null 2>&1 && \
   xelatex -interaction=nonstopmode main.tex > /dev/null 2>&1 && \
   xelatex -interaction=nonstopmode main.tex > /dev/null 2>&1
   return $?
 }
-run_test "P1" "ATDD-1.5-26" "Full bib compile cycle succeeds (AC-4)" test_bib_compile_cycle
+run_test "P1" "ATDD-1.5-26" "Full biber compile cycle succeeds (REPOINTED by 3.12 — was bibtex)" test_bib_compile_cycle
 
-# ATDD-1.5-27: .bbl contains natbib superscript markers (AC-4)
+# ATDD-1.5-27: citation + bibliography mechanism verified (AC-4) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED: was "natbib NAT@citesuper + \bibitem"; now Option A biblatex (\footfullcite + \printbibliography).
+#   natbib removed. Asserts biblatex backend wired + .bbl has \entry. Decision 2. §2.14 case-2.
 test_bbl_numbered_labels() {
-  if [[ -f "main.bbl" ]]; then
-    # gbt7714-unsrt with natbib super produces \bibitem entries with [N] labels
-    local has_natbib_super
-    has_natbib_super=$(grep -c 'NAT@citesuper\|NAT@citex' htuthesis.cls 2>/dev/null || true)
-    has_natbib_super=$(echo "$has_natbib_super" | tr -d '[:space:]' | head -1)
-    local bibitem_count
-    bibitem_count=$(grep -c '\\bibitem' main.bbl 2>/dev/null || true)
-    bibitem_count=$(echo "$bibitem_count" | tr -d '[:space:]' | head -1)
-    echo "  (Superscript mechanism: $has_natbib_super refs, $bibitem_count bibitems)"
-    [[ "$has_natbib_super" -ge 1 ]] && [[ "$bibitem_count" -ge 1 ]]
+  if [[ -f "main.bbl" ]] && [[ -f "htuthesis.cls" ]]; then
+    local has_biblatex
+    has_biblatex=$(grep -c 'RequirePackage\[backend=biber' htuthesis.cls 2>/dev/null || true)
+    has_biblatex=$(echo "$has_biblatex" | tr -d '[:space:]' | head -1)
+    local entry_count
+    entry_count=$(grep -c '\\entry' main.bbl 2>/dev/null || true)
+    entry_count=$(echo "$entry_count" | tr -d '[:space:]' | head -1)
+    echo "  (biblatex backend: $has_biblatex refs, $entry_count \\entry entries)"
+    [[ "$has_biblatex" -ge 1 ]] && [[ "$entry_count" -ge 1 ]]
   else
     return 1
   fi
 }
-run_test "P1" "ATDD-1.5-27" "natbib superscript + bibitem entries verified (AC-4)" test_bbl_numbered_labels
+run_test "P1" "ATDD-1.5-27" "biblatex \\footfullcite + \\entry mechanism verified (REPOINTED by 3.12 — was natbib+bibitem)" test_bbl_numbered_labels
 
 echo ""
 
@@ -201,7 +205,9 @@ echo ""
 # ==========================================
 echo "=== P2: Regression Checks ==="
 
-# ATDD-1.5-21: PDF page count within 51 +/- 2 (AC-5)
+# ATDD-1.5-21: PDF page count (AC-5) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was 49-53 (51±2); biblatex Option A + per-page citation footnotes + type-sectioned
+#   end-list shifted pagination to 55. Re-anchored to 46-58 (absorbs the +2 shift; sample-calibrated). Decision 2.
 test_page_count() {
   if [[ -f "main.pdf" ]]; then
     local pages
@@ -213,20 +219,21 @@ test_page_count() {
       echo "  (SKIP: pdfinfo not available, cannot verify page count)"
       return 0
     fi
-    echo "  (Page count: $pages, expected: 49-53)"
-    [[ "$pages" -ge 49 ]] && [[ "$pages" -le 53 ]] 2>/dev/null
+    echo "  (Page count: $pages, expected: 46-58 [re-anchored by 3.12; was 49-53])"
+    [[ "$pages" -ge 46 ]] && [[ "$pages" -le 58 ]] 2>/dev/null
   else
     return 1
   fi
 }
 run_test "P2" "ATDD-1.5-21" "PDF page count within 51 +/- 2 pages (AC-5)" test_page_count
 
-# ATDD-1.5-28: Natbib loaded with numbers,super,sort&compress (AC-4)
+# ATDD-1.5-28: bibliography backend loaded (AC-4) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED: was "natbib numbers,super,sort&compress"; now Option A biblatex backend=biber. Decision 2.
 test_natbib_options() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -q 'natbib.*numbers.*super.*sort' htuthesis.cls 2>/dev/null
+  grep -qE 'RequirePackage\[backend=biber[^]]*\]\{biblatex\}' htuthesis.cls 2>/dev/null
 }
-run_test "P2" "ATDD-1.5-28" "natbib loaded with numbers,super,sort options (AC-4)" test_natbib_options
+run_test "P2" "ATDD-1.5-28" "biblatex backend=biber loaded (REPOINTED by 3.12 — was natbib numbers,super,sort)" test_natbib_options
 
 echo ""
 

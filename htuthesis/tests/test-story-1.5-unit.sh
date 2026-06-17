@@ -195,12 +195,14 @@ test_captionsetup() {
 }
 run_test "P1" "ATDD-1.5-09" "captionsetup intact with correct options (AC-3)" test_captionsetup
 
-# ATDD-1.5-16: Superscript citation style active (natbib NAT@citesuper) (AC-4)
+# ATDD-1.5-16: citation backend active (AC-4) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "natbib NAT@citesuper superscript citation"; now Option A biblatex
+#   (Zy 2026-06-17) — \footfullcite per-page footnote citation (§2.14 case-2). natbib removed. Decision 2.
 test_superscript_citation() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -q 'NAT@citesuper' htuthesis.cls 2>/dev/null
+  grep -qE 'RequirePackage\[backend=biber[^]]*\]\{biblatex\}' htuthesis.cls 2>/dev/null
 }
-run_test "P1" "ATDD-1.5-16" "Superscript citation style active in cls (AC-4)" test_superscript_citation
+run_test "P1" "ATDD-1.5-16" "citation backend = biblatex (REPOINTED by 3.12 — was natbib superscript; §2.14 case-2)" test_superscript_citation
 
 echo ""
 echo "=== P1: Mechanism 4 — Bibliography Style ==="
@@ -211,12 +213,14 @@ test_bst_exists() {
 }
 run_test "P1" "ATDD-1.5-12" "htuthesis.bst exists and non-empty (AC-4)" test_bst_exists
 
-# ATDD-1.5-13: bibliographystyle reference in main.tex (AC-4)
+# ATDD-1.5-13: bibliography wiring in main.tex (AC-4) — REPOINTED by Story 3.12 (2026-06-17)
+# REPOINTED by Story 3.12: was "bibliographystyle{htuthesis} in main.tex" (natbib); now Option A biblatex —
+#   main.tex calls \makebibliography (cls: \printbibliography). §2.14 case-2, gap M1. Decision 2.
 test_bibliographystyle_ref() {
   [[ -f "main.tex" ]] || return 1
-  grep -q 'bibliographystyle{htuthesis}' main.tex 2>/dev/null
+  grep -q 'makebibliography' main.tex 2>/dev/null
 }
-run_test "P1" "ATDD-1.5-13" "bibliographystyle{htuthesis} in main.tex (AC-4)" test_bibliographystyle_ref
+run_test "P1" "ATDD-1.5-13" "bibliography wiring (\\makebibliography; REPOINTED by 3.12 — was bibliographystyle{htuthesis})" test_bibliographystyle_ref
 
 echo ""
 

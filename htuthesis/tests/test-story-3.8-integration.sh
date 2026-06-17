@@ -139,12 +139,18 @@ def footnote_pages():
     #   750-775 after empirical probe: a page with 2 footnotes stacks them at y≈736 + y≈762, so the narrow band missed
     #   the first marker). The 10.5pt page-number footer (y≈783) is excluded by both the size gate (5-8pt) and y<778.
     # TIGHTENED 2026-06-17 (Story 3.11 ripple, Decision 2): exclude MATH-FONT digits (`"Math" not in font`). The body
-    #   baselineskip recalibration (18→23.4bp) reflowed body content → a math equation's exponents (LatinModernMath-Regular,
+    #   baselineskip recalibration (18→23.4bp) reflowed body content → a math equation exponents (LatinModernMath-Regular,
     #   size 6, y≈730 on phys 41: R³/R² orbital-equation superscripts) landed in the footnote y-band, producing a spurious
     #   [3,2,2] false-positive → I08 false-FAIL. Genuine footnote markers render in the body font (SimSun digit), NOT a math
     #   font — excluding math fonts removes the false-positive without weakening real detection. Footnote per-page-RESET
     #   mechanism proven intact (5 genuine reset pages: phys 19/25/30/45/49, all contain "1"). See deferred-work §3.8
     #   (footnote_pages sample-calibrated + false-match-prone — this tightens it).
+    # WIDENED 2026-06-17 (Story 3.12 ripple, Decision 2): band [720,778] → [H*0.62, H*0.96]. Story 3.12 Option A
+    #   biblatex \footfullcite citation footnotes share the per-page counter (footmisc[perpage]); a long citation
+    #   footnote (3 entries) pushes its marker up to y≈687 (H*0.82), outside the old [720,778] band → the helper
+    #   saw only the later explanatory marker (e.g. [4]) on a citation-bearing page → false "lacking 1" → I08
+    #   false-FAIL. The wider band catches both citation (y~687) + explanatory (y~750) markers; per-page reset
+    #   (footmisc[perpage]) means every footnote-page still has "1". size 5-8 + digit + non-Math stays precise.
     out = {}
     for i in range(doc.page_count):
         nums = []
@@ -153,7 +159,7 @@ def footnote_pages():
             for ln in b.get("lines", []):
                 for sp in ln.get("spans", []):
                     t = sp["text"].strip(); y0 = sp["bbox"][1]
-                    if 5.0 <= sp["size"] <= 8.0 and 720 <= y0 <= 778 and re.fullmatch(r"\d+", t) and "Math" not in sp["font"]:
+                    if 5.0 <= sp["size"] <= 8.0 and H * 0.62 <= y0 <= H * 0.96 and re.fullmatch(r"\d+", t) and "Math" not in sp["font"]:
                         nums.append(int(t))
         if nums:
             out[i] = sorted(set(nums))
