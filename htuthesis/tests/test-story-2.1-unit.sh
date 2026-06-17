@@ -223,12 +223,13 @@ test_old_leftmargin_gone() {
 }
 run_test "P1" "ATDD-2.1-16" ".def old \\htu@leftmargin{32mm} removed" test_old_leftmargin_gone
 
-# ATDD-2.1-29: body baselineskip = 18bp (REPOINTED by Story 2.5: was a 20bp scope-boundary guard, now 18bp per §2.7/§2.9 1.5x)
+# ATDD-2.1-29: body baselineskip = 23.4bp (REPOINTED by Story 3.11: was 18bp naive ×fontsize via Story 2.5,
+#   now 23.4bp = Word「1.5倍」×natural per §2.7/§2.9; sprint-change-proposal-2026-06-17 gap G4)
 test_body_baselineskip_18bp_def() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@body@baselineskip{18bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@body@baselineskip{23.4bp}' htuthesis.def 2>/dev/null
 }
-run_test "P1" "ATDD-2.1-29" "body baselineskip = 18bp in .def (repointed by Story 2.5; §2.7/§2.9 1.5x)" test_body_baselineskip_18bp_def
+run_test "P1" "ATDD-2.1-29" "body baselineskip = 23.4bp in .def (REPOINTED by Story 3.11; §2.7/§2.9 Word 1.5倍)" test_body_baselineskip_18bp_def
 
 echo ""
 

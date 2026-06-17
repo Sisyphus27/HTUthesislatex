@@ -155,13 +155,14 @@ test_abstractcover_not_reframed() {
 }
 run_test "P1" "ATDD-3.10-04" "\\htu@abstractcover NOT reframed (scope boundary — Story 3.14 deletes it)" test_abstractcover_not_reframed
 
-# ATDD-3.10-05: regression — \htu@body@baselineskip{18bp} in .def unchanged (R-3/R-18 pre-3.11)
-# The cover table is page-1-only; it MUST NOT touch body baselineskip (Story 3.11 owns that).
+# ATDD-3.10-05: regression — \htu@body@baselineskip{23.4bp} in .def (REPOINTED by Story 3.11: was 18bp, now
+#   23.4bp Word「1.5倍」×natural; cover table is page-1-only, still did NOT touch body baselineskip; gap G4)
+# The cover table is page-1-only; it MUST NOT touch body baselineskip (Story 3.11 owns the 18→23.4 recalibration).
 test_body_baselineskip_18bp() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q 'htu@body@baselineskip{18bp}' htuthesis.def
+  grep -q 'htu@body@baselineskip{23.4bp}' htuthesis.def
 }
-run_test "P1" "ATDD-3.10-05" "regression: \\htu@body@baselineskip{18bp} in .def unchanged (R-3)" test_body_baselineskip_18bp
+run_test "P1" "ATDD-3.10-05" "regression: \\htu@body@baselineskip{23.4bp} in .def (REPOINTED by Story 3.11; R-3)" test_body_baselineskip_18bp
 
 echo ""
 

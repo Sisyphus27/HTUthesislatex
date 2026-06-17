@@ -138,6 +138,13 @@ def footnote_pages():
     # {page_index: [footnote_numbers]} — 5-8pt digit markers in the page-bottom footnote band (y 720-778; widened from
     #   750-775 after empirical probe: a page with 2 footnotes stacks them at y≈736 + y≈762, so the narrow band missed
     #   the first marker). The 10.5pt page-number footer (y≈783) is excluded by both the size gate (5-8pt) and y<778.
+    # TIGHTENED 2026-06-17 (Story 3.11 ripple, Decision 2): exclude MATH-FONT digits (`"Math" not in font`). The body
+    #   baselineskip recalibration (18→23.4bp) reflowed body content → a math equation's exponents (LatinModernMath-Regular,
+    #   size 6, y≈730 on phys 41: R³/R² orbital-equation superscripts) landed in the footnote y-band, producing a spurious
+    #   [3,2,2] false-positive → I08 false-FAIL. Genuine footnote markers render in the body font (SimSun digit), NOT a math
+    #   font — excluding math fonts removes the false-positive without weakening real detection. Footnote per-page-RESET
+    #   mechanism proven intact (5 genuine reset pages: phys 19/25/30/45/49, all contain "1"). See deferred-work §3.8
+    #   (footnote_pages sample-calibrated + false-match-prone — this tightens it).
     out = {}
     for i in range(doc.page_count):
         nums = []
@@ -146,7 +153,7 @@ def footnote_pages():
             for ln in b.get("lines", []):
                 for sp in ln.get("spans", []):
                     t = sp["text"].strip(); y0 = sp["bbox"][1]
-                    if 5.0 <= sp["size"] <= 8.0 and 720 <= y0 <= 778 and re.fullmatch(r"\d+", t):
+                    if 5.0 <= sp["size"] <= 8.0 and 720 <= y0 <= 778 and re.fullmatch(r"\d+", t) and "Math" not in sp["font"]:
                         nums.append(int(t))
         if nums:
             out[i] = sorted(set(nums))
@@ -409,16 +416,16 @@ test_textheight_unchanged() {
 }
 run_test "P1" "ATDD-3.8-I10" "regression: self-check textheight unchanged ~688pt (AC-7, R-1)" test_textheight_unchanged
 
-# ATDD-3.8-I11: regression — self-check baselineskip ≈ 18bp (AC-7 — ack/papers/footnote must not touch body spacing)
+# ATDD-3.8-I11: regression — self-check baselineskip ≈ 23.4bp (AC-7 — ack/papers/footnote must not touch body spacing) — REPOINTED by Story 3.11
 test_baselineskip_18bp() {
   if [[ ! -f "main.log" ]]; then return 1; fi
   local bs
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$bs" ]]; then echo "  (baselineskip not found in self-check)"; return 1; fi
-  echo "  (baselineskip: ${bs}pt, expect ~18.07 [body 18bp])"
-  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~23.49 [body 23.4bp])"
+  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) exit 0; else exit 1}'
 }
-run_test "P1" "ATDD-3.8-I11" "regression: self-check baselineskip ~18bp (AC-7 — ack/papers/footnote must not touch body spacing)" test_baselineskip_18bp
+run_test "P1" "ATDD-3.8-I11" "regression: self-check baselineskip ~23.4bp (REPOINTED by Story 3.11; AC-7 — ack/papers/footnote must not touch body spacing)" test_baselineskip_18bp
 
 # ATDD-3.8-I12: total pages ~51 ±5 (AC-7; ack/papers in-place; footnote reset is zero-page-shift)
 test_total_pages() {

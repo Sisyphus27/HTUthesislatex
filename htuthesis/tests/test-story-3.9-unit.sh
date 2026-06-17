@@ -119,13 +119,14 @@ test_packageerror_wired() {
 }
 run_test "P1" "ATDD-3.9-03" "\PackageError wired for missing TNR (AC-3, TC-E3-03; GREEN guard — already cls:76-79)" test_packageerror_wired
 
-# ATDD-3.9-05: regression — \htu@body@baselineskip{18bp} in .def unchanged (R-3)
+# ATDD-3.9-05: regression — \htu@body@baselineskip{23.4bp} in .def (REPOINTED by Story 3.11: was 18bp, now
+#   23.4bp Word「1.5倍」×natural; font change still did NOT alter body baselineskip; §2.7/2.9, gap G4)
 # Font change must NOT alter body baselineskip (set via \@setfontsize, independent of \setmainfont).
 test_body_baselineskip_18bp() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q 'htu@body@baselineskip{18bp}' htuthesis.def
+  grep -q 'htu@body@baselineskip{23.4bp}' htuthesis.def
 }
-run_test "P1" "ATDD-3.9-05" "regression: \htu@body@baselineskip{18bp} in .def unchanged (R-3)" test_body_baselineskip_18bp
+run_test "P1" "ATDD-3.9-05" "regression: \htu@body@baselineskip{23.4bp} in .def (REPOINTED by Story 3.11; R-3)" test_body_baselineskip_18bp
 
 # ATDD-3.9-06: regression — NO \setstretch in cls (R-3 anti-pattern)
 # \setstretch is the CJK line-spacing trap (Epic 2 R-3); must remain absent.

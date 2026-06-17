@@ -355,21 +355,27 @@ test_chinese_keyword_label_heiti() {
 if ch_abs is None:
     print('  (Chinese abstract page not found)'); sys.exit(1)
 label = None
-for b in doc[ch_abs].get_text('dict').get('blocks', []):
-    for ln in b.get('lines', []):
-        for sp in ln.get('spans', []):
-            # Match the LABEL span EXACTLY ("关键词：" + full-width colon), NOT body text mentioning 关键词.
-            # Detection-accuracy fix: the Ch-abstract BODY discusses 关键词 at size 12 SimSun (appears BEFORE
-            # the label), so a substring match false-grabs the body span. The label is its own boxed span
-            # (exactly "关键词："). A genuinely-SimSun label would still FAIL this (it checks the label span).
-            if sp['text'].strip() == '关键词：' and 11.0 <= sp['size'] <= 13.0:
-                label = sp; break
+# Search ch_abs AND the next 2 pages: Story 3.11's body baselineskip recalibration (18→23.4bp) LOOSENED the
+#   abstract body → the Chinese abstract now spills onto a 2nd page, so the 关键词： label moved from ch_abs
+#   (phys 7, now body-prose mentioning 关键词) to ch_abs+1 (phys 8). Searching only ch_abs missed the label
+#   (detection-drift from the reflow, NOT a font regression — the label is still SimHei). Search ch_abs..ch_abs+2.
+for pi in range(ch_abs, min(ch_abs + 3, doc.page_count)):
+    for b in doc[pi].get_text('dict').get('blocks', []):
+        for ln in b.get('lines', []):
+            for sp in ln.get('spans', []):
+                # Match the LABEL span EXACTLY ("关键词：" + full-width colon), NOT body text mentioning 关键词.
+                # Detection-accuracy fix: the Ch-abstract BODY discusses 关键词 at size 12 SimSun (appears BEFORE
+                # the label), so a substring match false-grabs the body span. The label is its own boxed span
+                # (exactly "关键词："). A genuinely-SimSun label would still FAIL this (it checks the label span).
+                if sp['text'].strip() == '关键词：' and 11.0 <= sp['size'] <= 13.0:
+                    label = sp; break
+            if label: break
         if label: break
     if label: break
 if label is None:
-    print('  (关键词 label span not found — regression)'); sys.exit(1)
+    print('  (关键词 label span not found on ch_abs..ch_abs+2 — regression)'); sys.exit(1)
 heiti = 'SimHei' in label['font'] or 'Hei' in label['font']
-print('  关键词 label font=%r size=%.1f heiti=%s (spec §2.7 黑体; ref p5 SimHei)' % (label['font'], label['size'], heiti))
+print('  关键词 label (phys %d) font=%r size=%.1f heiti=%s (spec §2.7 黑体; ref p5 SimHei)' % (pi+1, label['font'], label['size'], heiti))
 sys.exit(0 if heiti else 1)
 "
 }
@@ -387,19 +393,23 @@ test_textheight_unchanged() {
 }
 run_test "P1" "ATDD-3.4-I12" "regression: self-check textheight unchanged ~688pt (AC-8, R-1)" test_textheight_unchanged
 
-# ATDD-3.4-I13: regression — self-check baselineskip ≈ 18bp (AC-8, R-3 LEAK GUARD — the critical one)
-# The English-abstract ~23.4bp scope is LOCAL (Task 2.1 \begingroup...\endgroup + \baselinestretch=1 pin).
-# This asserts the self-check still reads the BODY 18bp (NOT 23.4bp leak) — the R-3 leak guard (Story Task 2.3).
-#   If it reads ~23.4, the English scope leaked → fix the scope boundary (mirror Story 3.3 \normalsize restore).
+# ATDD-3.4-I13: regression — self-check baselineskip ≈ 23.4bp (AC-8, R-3) — REPOINTED by Story 3.11
+# LEAK-GUARD NOTE (Decision 2): pre-3.11 this guard asserted body self-check = 18bp to discriminate it from the
+#   English-abstract 23.4bp scope (a 23.4bp read = English scope LEAKED into the self-check). Story 3.11
+#   RECALIBRATED the body itself to 23.4bp (Word「1.5倍」×natural) — so body and English-abstract are now BOTH
+#   ~23.4bp BY DESIGN. The self-check can no longer distinguish them (they coincide). The English-abstract
+#   independence is now verified via the fitz English-abstract line-gap test (3.4-I06 / 3.11-I07: English page
+#   line-gap = 23.4bp specifically), NOT via this self-check value. This guard now asserts the recalibrated body
+#   value (band [22.5,24.5]; still excludes the 21.6bp R-3 trap and the old 18bp naive).
 test_baselineskip_18bp_leak_guard() {
   if [[ ! -f "main.log" ]]; then return 1; fi
   local bs
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$bs" ]]; then echo "  (baselineskip not found in self-check)"; return 1; fi
-  echo "  (baselineskip: ${bs}pt, expect ~18.07 [body 18bp]; 23.4 = English-abstract LEAK → R-3 fail)"
-  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~23.49 [body 23.4bp, recalibrated by Story 3.11]; 21.6=R-3 trap)"
+  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) exit 0; else exit 1}'
 }
-run_test "P1" "ATDD-3.4-I13" "regression: self-check baselineskip ~18bp (R-3 leak guard — English 23.4bp scope must NOT leak)" test_baselineskip_18bp_leak_guard
+run_test "P1" "ATDD-3.4-I13" "regression: self-check baselineskip ~23.4bp (REPOINTED by Story 3.11; body=English=23.4 by design; English-independence via fitz 3.4-I06)" test_baselineskip_18bp_leak_guard
 
 # ATDD-3.4-I14: total pages ~51 ±5 (AC-8; abstract already exists pre-impl → no new page expected)
 # The abstract renders pre-impl (just wrongly formatted); 3.4 changes formatting, not page count. Expect ~51

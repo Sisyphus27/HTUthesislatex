@@ -176,12 +176,13 @@ test_def_geometry_unchanged() {
 }
 run_test "P0" "ATDD-2.3-13" "no geometry parameter changes in .def (R-1 regression guard)" test_def_geometry_unchanged
 
-# ATDD-2.3-14: body baselineskip = 18bp in .def (REPOINTED by Story 2.5: was a 20bp scope-guard for 2.3, now 18bp per §2.7/2.9 1.5x line spacing)
+# ATDD-2.3-14: body baselineskip = 23.4bp in .def (REPOINTED by Story 3.11: was 18bp naive ×fontsize via
+#   Story 2.5, now 23.4bp = Word「1.5倍」×natural per §2.7/2.9; sprint-change-proposal-2026-06-17 gap G4)
 test_body_baselineskip_18bp_def() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@body@baselineskip{18bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@body@baselineskip{23.4bp}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.3-14" "body baselineskip = 18bp in .def (repointed by Story 2.5; §2.7/2.9 1.5x)" test_body_baselineskip_18bp_def
+run_test "P0" "ATDD-2.3-14" "body baselineskip = 23.4bp in .def (REPOINTED by Story 3.11; §2.7/2.9 Word 1.5倍)" test_body_baselineskip_18bp_def
 
 # ATDD-2.3-15: counter separator externalized as hyphen (REPOINTED by Story 2.6; was "still period, Story 2.6 scope", R-12)
 test_separator_unchanged() {

@@ -218,17 +218,17 @@ test_textheight_unchanged() {
 }
 run_test "P1" "ATDD-3.10-11" "self-check textheight unchanged ~688pt (AC-6, R-1)" test_textheight_unchanged
 
-# ATDD-3.10-12: self-check baselineskip ~18bp unchanged (AC-6, R-3/R-18 pre-3.11; GREEN guard)
-# Cover table is page-1-only; MUST NOT touch body baselineskip (Story 3.11 owns the 18→23 recalibration).
+# ATDD-3.10-12: self-check baselineskip ≈ 23.4bp (AC-6, R-3; REPOINTED by Story 3.11: was 18bp, now 23.4bp)
+# Cover table is page-1-only; MUST NOT touch body baselineskip (Story 3.11 owns the 18→23.4 recalibration).
 test_baselineskip_18bp() {
   if [[ ! -f "main.log" ]]; then return 1; fi
   local bs
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$bs" ]]; then echo "  (baselineskip not found in self-check)"; return 1; fi
-  echo "  (baselineskip: ${bs}pt, expect ~18.07 [18bp, pre-3.11; 21.6=R-3 trap])"
-  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~23.49 [23.4bp, repointed by Story 3.11; NOT 21.6 = R-3 trap])"
+  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) exit 0; else exit 1}'
 }
-run_test "P1" "ATDD-3.10-12" "self-check baselineskip ~18bp (AC-6, R-3; cover reframe must not touch it)" test_baselineskip_18bp
+run_test "P1" "ATDD-3.10-12" "self-check baselineskip ~23.4bp (REPOINTED by Story 3.11; AC-6, R-3; cover reframe must not touch it)" test_baselineskip_18bp
 
 # ATDD-3.10-13: main.pdf exists + total pages ~50 ±5 unchanged (AC-6; GREEN guard)
 # The cover table is a page-1 visual reframe — zero pagination effect expected.

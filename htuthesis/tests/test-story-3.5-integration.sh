@@ -316,18 +316,18 @@ test_textheight_unchanged() {
 }
 run_test "P1" "ATDD-3.5-I12" "regression: self-check textheight unchanged ~688pt (AC-8, R-1)" test_textheight_unchanged
 
-# ATDD-3.5-I13: regression — self-check baselineskip ≈ 18bp (AC-8 — TOC must not touch body spacing)
+# ATDD-3.5-I13: regression — self-check baselineskip ≈ 23.4bp (AC-8 — TOC must not touch body spacing) — REPOINTED by Story 3.11
 # The TOC \titlecontents before-args use their own size-macro baselineskip (\xiaosi[1] single); they do NOT touch
-#   the body \baselinestretch. Assert the self-check still reads body 18bp.
+#   the body \baselinestretch. Assert the self-check still reads body 23.4bp (recalibrated 18→23.4 by Story 3.11).
 test_baselineskip_18bp() {
   if [[ ! -f "main.log" ]]; then return 1; fi
   local bs
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$bs" ]]; then echo "  (baselineskip not found in self-check)"; return 1; fi
-  echo "  (baselineskip: ${bs}pt, expect ~18.07 [body 18bp])"
-  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~23.49 [body 23.4bp])"
+  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) exit 0; else exit 1}'
 }
-run_test "P1" "ATDD-3.5-I13" "regression: self-check baselineskip ~18bp (AC-8 — TOC must not touch body spacing)" test_baselineskip_18bp
+run_test "P1" "ATDD-3.5-I13" "regression: self-check baselineskip ~23.4bp (REPOINTED by Story 3.11; AC-8 — TOC must not touch body spacing)" test_baselineskip_18bp
 
 # ATDD-3.5-I14: total pages ~51 ±5 (AC-8; TOC is one page pre- and post-impl — font change is in-place)
 test_total_pages() {

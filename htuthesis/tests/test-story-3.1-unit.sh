@@ -131,13 +131,14 @@ test_geometry_topmargin() {
 }
 run_test "P1" "ATDD-3.1-04" "regression: \htu@topmargin{22mm} in .def unchanged (R-1, AC-10)" test_geometry_topmargin
 
-# ATDD-3.1-05: regression — \htu@body@baselineskip{18bp} in .def unchanged (R-3, AC-10)
+# ATDD-3.1-05: regression — \htu@body@baselineskip{23.4bp} in .def (REPOINTED by Story 3.11: was 18bp, now
+#   23.4bp Word「1.5倍」×natural; cover rewrite still did NOT touch body line spacing; §2.7/2.9, gap G4)
 # Cover rewrite must NOT touch body line spacing.
 test_body_baselineskip_18bp() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q 'htu@body@baselineskip{18bp}' htuthesis.def
+  grep -q 'htu@body@baselineskip{23.4bp}' htuthesis.def
 }
-run_test "P1" "ATDD-3.1-05" "regression: \htu@body@baselineskip{18bp} in .def unchanged (R-3, AC-10)" test_body_baselineskip_18bp
+run_test "P1" "ATDD-3.1-05" "regression: \htu@body@baselineskip{23.4bp} in .def (REPOINTED by Story 3.11; R-3, AC-10)" test_body_baselineskip_18bp
 
 # ATDD-3.1-06: regression — \htu@songtibold (L4 bold-SimSun, Story 2.5) preserved (AC-10)
 test_songtibold_preserved() {

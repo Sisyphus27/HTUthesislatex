@@ -70,13 +70,13 @@ echo "=== P0: Blocking Tests ==="
 
 # --- AC-1: body line spacing 20bp → 18bp (R-3 crux) ---
 
-# ATDD-2.5-01: def has \htu@body@baselineskip{18bp} (AC-1, TC-E2-20, R-3)
-# RED pre-impl: def:62 is {20bp}.
+# ATDD-2.5-01: def has \htu@body@baselineskip{23.4bp} (REPOINTED by Story 3.11: AC-1, TC-E2-20, R-3)
+# Was {18bp} (Story 2.5 naive ×fontsize); Story 3.11 recalibrated to 23.4bp = Word「1.5倍」×natural (§2.7/2.9, gap G4).
 test_body_baselineskip_18bp() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@body@baselineskip{18bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@body@baselineskip{23.4bp}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.5-01" "def has \\htu@body@baselineskip{18bp} (AC-1, TC-E2-20, R-3)" test_body_baselineskip_18bp
+run_test "P0" "ATDD-2.5-01" "def has \\htu@body@baselineskip{23.4bp} (REPOINTED by Story 3.11; AC-1, TC-E2-20, R-3)" test_body_baselineskip_18bp
 
 # --- AC-2: Level 1 (chapter) centered + 36bp spacing ---
 

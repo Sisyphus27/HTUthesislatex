@@ -58,8 +58,12 @@
 % [基础] 正文字号：小四号 = 12bp（标准中文排版字号，一般不需修改）
 \def\htu@body@fontsize{12bp}
 
-% [基础] 正文行距 = 1.5 倍小四号 = 18bp（真值来源：HTU 格式要求 §2.7/§2.9「小四号宋体，1.5 倍行间距」）
-\def\htu@body@baselineskip{18bp}
+% [基础] 正文行距 = spec §2.7/§2.9「小四号宋体，1.5 倍行间距」= Word「倍数行距」语义 = 1.5×小四宋体
+%   natural-line-height ≈23.4pt（非 naive 1.5×fontsize=18bp）。真值：参考论文 PDF 正文行距实测
+%   23.4pt（103 页中位；min 21.84 / max 23.40）。Story 3.11 校准 18bp→23.4bp，闭合
+%   sprint-change-proposal-2026-06-17 gap G4 + Epic 2 R-3/Story 2.5 body debt。
+%   spec 沉默于数值 → 参考 PDF（Word 填充实例）诠释「倍数行距」语义（非「参考胜 spec」，spec 自身留空）。
+\def\htu@body@baselineskip{23.4bp}
 
 % [基础] 显示公式前后间距（zzuthesis 原始模板 默认值）
 \def\htu@display@skip{12bp}

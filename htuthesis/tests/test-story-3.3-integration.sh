@@ -333,16 +333,16 @@ test_textheight_unchanged() {
 }
 run_test "P1" "ATDD-3.3-I10" "regression: self-check textheight unchanged ~688pt (AC-8, R-1)" test_textheight_unchanged
 
-# ATDD-3.3-I11: regression — self-check baselineskip ~18bp (AC-8, R-3)
+# ATDD-3.3-I11: regression — self-check baselineskip ≈ 23.4bp (AC-8, R-3) — REPOINTED by Story 3.11
 test_baselineskip_18bp() {
   if [[ ! -f "main.log" ]]; then return 1; fi
   local bs
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$bs" ]]; then echo "  (baselineskip not found in self-check)"; return 1; fi
-  echo "  (baselineskip: ${bs}pt, expect ~18.07 [18bp]; 21.6=R-3 trap)"
-  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~23.49 [23.4bp]; 18.0=old naive, 21.6=R-3 trap)"
+  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) exit 0; else exit 1}'
 }
-run_test "P1" "ATDD-3.3-I11" "regression: self-check baselineskip ~18bp (AC-8, R-3)" test_baselineskip_18bp
+run_test "P1" "ATDD-3.3-I11" "regression: self-check baselineskip ~23.4bp (REPOINTED by Story 3.11; AC-8, R-3)" test_baselineskip_18bp
 
 # ATDD-3.3-I12: total pages ~51 ±5 (AC-8; declaration +1 vs Story 3.2 baseline 50 — Decision 2)
 # Story 3.2 baseline = 50 pages. Story 3.3 adds the declaration page (+1) → ~51. Range 46-56 absorbs drift;

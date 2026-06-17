@@ -198,16 +198,17 @@ test_textheight_unchanged() {
 }
 run_test "P1" "ATDD-3.9-11" "self-check textheight unchanged ~688pt (AC-6, R-1)" test_textheight_unchanged
 
-# ATDD-3.9-12: self-check baselineskip ≈ 18bp (R-3 regression — \setmainfont must not touch it)
+# ATDD-3.9-12: self-check baselineskip ≈ 23.4bp (REPOINTED by Story 3.11: was 18bp, now 23.4bp Word「1.5倍」×natural;
+#   R-3 — \setmainfont still did not touch it; §2.7/2.9, gap G4)
 test_baselineskip_18bp() {
   if [[ ! -f "main.log" ]]; then return 1; fi
   local bs
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$bs" ]]; then echo "  (baselineskip not found in self-check)"; return 1; fi
-  echo "  (baselineskip: ${bs}pt, expect ~18.07 [18bp]; 21.6=R-3 trap regression)"
-  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~23.49 [23.4bp]; 18.0=old naive, 21.6=R-3 trap regression)"
+  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) exit 0; else exit 1}'
 }
-run_test "P1" "ATDD-3.9-12" "self-check baselineskip ≈ 18bp (R-3 regression, font-change must not touch it)" test_baselineskip_18bp
+run_test "P1" "ATDD-3.9-12" "self-check baselineskip ≈ 23.4bp (REPOINTED by Story 3.11; R-3)" test_baselineskip_18bp
 
 # ATDD-3.9-16: BEHAVIOR — English abstract ASCII spans render TNR (AC-2, TC-E3-02)
 # Find English abstract page by "KEY WORDS" label (cls:174, post-2.6 uppercase). Pre-impl: Latin Modern → RED.

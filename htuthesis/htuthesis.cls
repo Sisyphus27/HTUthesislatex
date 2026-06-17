@@ -240,8 +240,8 @@
 \htu@def@fontsize{bahao}{5bp}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 正文字体及行距
-%% 博士：小四号 (12bp) 字，固定行距 20bp
-%% Word 小四号字 1.25 倍行距与固定行距 20bp 较接近
+%% 博士：小四号 (12bp) 字，行距 23.4bp = Word「1.5 倍行距」(1.5×小四宋体 natural-line-height，参考 PDF 实测 23.4pt)
+%% spec §2.7/§2.9「1.5 倍行间距」= Word 倍数行距语义（非 naive 1.5×fontsize=18bp）；Story 3.11 校准 18bp→23.4bp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand\normalsize{%
   \@setfontsize\normalsize{\htu@body@fontsize}{\htu@body@baselineskip}%

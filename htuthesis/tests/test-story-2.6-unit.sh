@@ -131,12 +131,13 @@ test_def_geometry_unchanged() {
 }
 run_test "P0" "ATDD-2.6-05" "no geometry changes in .def (R-1 regression guard)" test_def_geometry_unchanged
 
-# ATDD-2.6-06: body baselineskip still 18bp (R-3 regression guard — Story 2.5 value preserved)
+# ATDD-2.6-06: body baselineskip = 23.4bp (REPOINTED by Story 3.11: R-3 regression guard — value recalibrated
+#   18bp→23.4bp by Story 3.11 Word「1.5倍」×natural; 2.6's counter/keyword change did not touch it; gap G4)
 test_body_baselineskip_unchanged() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@body@baselineskip{18bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@body@baselineskip{23.4bp}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.6-06" "body baselineskip still 18bp (R-3 regression guard, Story 2.5)" test_body_baselineskip_unchanged
+run_test "P0" "ATDD-2.6-06" "body baselineskip = 23.4bp in .def (REPOINTED by Story 3.11; R-3)" test_body_baselineskip_unchanged
 
 # ATDD-2.6-07: header config unchanged — \fancyhead[CE]/[CO] present (Story 2.3 guard)
 test_header_config_unchanged() {

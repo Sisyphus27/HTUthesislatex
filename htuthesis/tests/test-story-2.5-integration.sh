@@ -135,18 +135,18 @@ test_warning_count() {
 }
 run_test "P0" "ATDD-2.5-19" "warning count <= 3 (AC-7, NFR <=3 new vs baseline)" test_warning_count
 
-# ATDD-2.5-20: self-check baselineskip ≈ 18bp (R-3 trap detector) (AC-1, TC-E2-20/21)
-# Pre-impl: 20.075pt → outside [17.5,19.0] → FAIL. Post-impl correct: ~18.07pt → PASS.
-# If R-3 trap fires: ~21.6pt → FAIL (caught). THE R-3 test.
+# ATDD-2.5-20: self-check baselineskip ≈ 23.4bp (R-3 trap detector) (AC-1, TC-E2-20/21) — REPOINTED by Story 3.11
+# Was ~18bp (Story 2.5 naive ×fontsize); Story 3.11 recalibrated to 23.4bp = Word「1.5倍」×natural (§2.7/2.9, gap G4).
+# If R-3 trap fires: ~21.6pt → FAIL (caught, below the 22.5 floor). THE R-3 test (band [22.5,24.5] excludes 21.6 AND 18).
 test_baselineskip_18bp() {
   if [[ ! -f "main.log" ]]; then return 1; fi
   local bs
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$bs" ]]; then echo "  (baselineskip not found in self-check)"; return 1; fi
-  echo "  (baselineskip: ${bs}pt, expect ~18.07 [18bp]; 20.0=pre-impl, 21.6=R-3 trap)"
-  echo "$bs" | awk '{if ($1 >= 17.5 && $1 <= 19.0) exit 0; else exit 1}'
+  echo "  (baselineskip: ${bs}pt, expect ~23.49 [23.4bp]; 18.0=old naive, 21.6=R-3 trap)"
+  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) exit 0; else exit 1}'
 }
-run_test "P0" "ATDD-2.5-20" "self-check baselineskip ≈ 18bp (NOT 20, NOT 21.6) (AC-1, TC-E2-20/21, R-3)" test_baselineskip_18bp
+run_test "P0" "ATDD-2.5-20" "self-check baselineskip ≈ 23.4bp (NOT 18, NOT 21.6) (REPOINTED by Story 3.11; AC-1, TC-E2-20/21, R-3)" test_baselineskip_18bp
 
 # ATDD-2.5-21: BEHAVIOR — chapter titles CENTERED on rendered body pages (AC-2, TC-E2-22)
 # Block-level: find 16bp (sanhao) blocks on body pages. Pre-impl: 4 body chapters LEFT + 3 back-matter
