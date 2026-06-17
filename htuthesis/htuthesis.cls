@@ -894,7 +894,7 @@
     % 英文关键词标签非加粗（用户决策），分隔符为半角逗号（\htu@ekeywords@separator）。
     \htu@put@keywords{\htu@ekeywords@title}{\htu@ekeywords}%
   \endgroup
-  \normalsize% R-3 leak guard：恢复正文 12pt/18bp，防 scope 泄漏到 \AtEndDocument 自检（Story 3.3 模式）
+  \normalsize% R-3 leak guard：恢复正文 12pt/23.4bp，防 scope 泄漏到 \AtEndDocument 自检（Story 3.3 模式；3.11 重校准正文行距 18→23.4bp）
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 主要符号对照表

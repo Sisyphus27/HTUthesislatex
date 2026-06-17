@@ -73,38 +73,38 @@
 
 % --- 章节标题间距 ---
 
-% [基础] 章标题段前间距 = 2 行（真值来源：HTU §2.10「一级标题段前 2 行」= 2×18bp）
-\def\htu@chapter@beforeskip{36bp}
+% [基础] 章标题段前间距 = 2 行（真值来源：HTU §2.10「一级标题段前 2 行」= 2×正文行 23.4bp = 46.8bp；Story 3.11 重锚定，旧 36bp=2×18bp naive）
+\def\htu@chapter@beforeskip{46.8bp}
 
-% [基础] 章标题段后间距 = 2 行（真值来源：HTU §2.10「一级标题段后 2 行」= 2×18bp）
-\def\htu@chapter@afterskip{36bp}
+% [基础] 章标题段后间距 = 2 行（真值来源：HTU §2.10「一级标题段后 2 行」= 2×正文行 23.4bp = 46.8bp；Story 3.11 重锚定，旧 36bp=2×18bp naive）
+\def\htu@chapter@afterskip{46.8bp}
 
 % [基础] 章标题行距因子（zzuthesis 原始模板 研究生行距因子 1）
 \def\htu@chapter@linespread{1}
 
-% [基础] 节标题段前间距 = 0.5 行（真值来源：HTU §2.10「二级标题段前 0.5 行」= 0.5×18bp）
-\def\htu@section@beforeskip{9bp}
+% [基础] 节标题段前间距 = 0.5 行（真值来源：HTU §2.10「二级标题段前 0.5 行」= 0.5×正文行 23.4bp = 11.7bp；Story 3.11 重锚定，旧 9bp=0.5×18bp naive）
+\def\htu@section@beforeskip{11.7bp}
 
-% [基础] 节标题段后间距 = 0.5 行（真值来源：HTU §2.10「二级标题段后 0.5 行」= 0.5×18bp）
-\def\htu@section@afterskip{9bp}
+% [基础] 节标题段后间距 = 0.5 行（真值来源：HTU §2.10「二级标题段后 0.5 行」= 0.5×正文行 23.4bp = 11.7bp；Story 3.11 重锚定，旧 9bp=0.5×18bp naive）
+\def\htu@section@afterskip{11.7bp}
 
 % [基础] 节标题行距因子（zzuthesis 原始模板 研究生行距因子 1.429）
 \def\htu@section@linespread{1.429}
 
-% [基础] 小节标题段前间距 = 0.5 行（真值来源：HTU §2.10「三级标题段前 0.5 行」= 0.5×18bp）
-\def\htu@subsection@beforeskip{9bp}
+% [基础] 小节标题段前间距 = 0.5 行（真值来源：HTU §2.10「三级标题段前 0.5 行」= 0.5×正文行 23.4bp = 11.7bp；Story 3.11 重锚定，旧 9bp=0.5×18bp naive）
+\def\htu@subsection@beforeskip{11.7bp}
 
-% [基础] 小节标题段后间距 = 0.5 行（真值来源：HTU §2.10「三级标题段后 0.5 行」= 0.5×18bp）
-\def\htu@subsection@afterskip{9bp}
+% [基础] 小节标题段后间距 = 0.5 行（真值来源：HTU §2.10「三级标题段后 0.5 行」= 0.5×正文行 23.4bp = 11.7bp；Story 3.11 重锚定，旧 9bp=0.5×18bp naive）
+\def\htu@subsection@afterskip{11.7bp}
 
 % [基础] 小节标题行距因子（zzuthesis 原始模板 研究生行距因子 1.538）
 \def\htu@subsection@linespread{1.538}
 
-% [基础] 小小节标题段前间距 = 0.5 行（推断值：HTU §2.10 未明确四级，袭二三级 0.5 行 = 0.5×18bp）
-\def\htu@subsubsection@beforeskip{9bp}
+% [基础] 小小节标题段前间距 = 0.5 行（推断值：HTU §2.10 未明确四级，袭二三级 0.5 行 = 0.5×正文行 23.4bp = 11.7bp；Story 3.11 重锚定，旧 9bp=0.5×18bp naive）
+\def\htu@subsubsection@beforeskip{11.7bp}
 
-% [基础] 小小节标题段后间距 = 0.5 行（推断值：HTU §2.10 未明确四级，袭二三级 0.5 行 = 0.5×18bp）
-\def\htu@subsubsection@afterskip{9bp}
+% [基础] 小小节标题段后间距 = 0.5 行（推断值：HTU §2.10 未明确四级，袭二三级 0.5 行 = 0.5×正文行 23.4bp = 11.7bp；Story 3.11 重锚定，旧 9bp=0.5×18bp naive）
+\def\htu@subsubsection@afterskip{11.7bp}
 
 % [基础] 小小节标题行距因子（zzuthesis 原始模板 研究生行距因子 1.667）
 \def\htu@subsubsection@linespread{1.667}

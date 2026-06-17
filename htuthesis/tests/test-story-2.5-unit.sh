@@ -89,14 +89,14 @@ test_mainmatter_chapter_centered() {
 }
 run_test "P0" "ATDD-2.5-02" "\\mainmatter centers chapters (format+=\\centering) (AC-2, TC-E2-22)" test_mainmatter_chapter_centered
 
-# ATDD-2.5-03: def chapter spacing = 36bp before AND after (AC-2; §2.10 一级 2 行 = 2×18bp)
-# RED pre-impl: def:73/76 = 9bp/24bp.
+# ATDD-2.5-03: def chapter spacing = 46.8bp before AND after (AC-2; §2.10 一级 2 行 = 2×正文行 23.4bp; REPOINTED by Story 3.11)
+# Was 36bp = 2×18bp (naive old body); Story 3.11 re-anchored to 2×23.4bp = 46.8bp (§2.10 2行 under new body line).
 test_chapter_spacing_36bp() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@chapter@beforeskip{36bp}' htuthesis.def 2>/dev/null && \
-  grep -q '\\def\\htu@chapter@afterskip{36bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@chapter@beforeskip{46.8bp}' htuthesis.def 2>/dev/null && \
+  grep -q '\\def\\htu@chapter@afterskip{46.8bp}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.5-03" "def chapter spacing = 36bp/36bp (AC-2, §2.10 2行)" test_chapter_spacing_36bp
+run_test "P0" "ATDD-2.5-03" "def chapter spacing = 46.8bp/46.8bp (REPOINTED by Story 3.11; AC-2, §2.10 2行=2×23.4)" test_chapter_spacing_36bp
 
 # --- AC-3: Level 2 (section) xiaosan 15bp + centered + 9bp ---
 
@@ -113,10 +113,10 @@ run_test "P0" "ATDD-2.5-04" "section format = \\xiaosan + \\centering (AC-3, TC-
 # RED pre-impl: def:82/85 = 24bp/6bp.
 test_section_spacing_9bp() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@section@beforeskip{9bp}' htuthesis.def 2>/dev/null && \
-  grep -q '\\def\\htu@section@afterskip{9bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@section@beforeskip{11.7bp}' htuthesis.def 2>/dev/null && \
+  grep -q '\\def\\htu@section@afterskip{11.7bp}' htuthesis.def 2>/dev/null
 }
-run_test "P0" "ATDD-2.5-05" "def section spacing = 9bp/9bp (AC-3, §2.10 0.5行)" test_section_spacing_9bp
+run_test "P0" "ATDD-2.5-05" "def section spacing = 11.7bp/11.7bp (REPOINTED by Story 3.11; AC-3, §2.10 0.5行=0.5×23.4)" test_section_spacing_9bp
 
 # --- AC-4: Level 3 (subsection) sihao 14bp + indent 2ccwd ---
 
@@ -206,16 +206,16 @@ echo ""
 # ==========================================
 echo "=== P1: Critical Path Tests ==="
 
-# ATDD-2.5-14: def subsection + subsubsection spacing = 9bp/9bp (AC-4/5; §2.10 0.5 行)
-# RED pre-impl: def:91/94 = 12bp/6bp, def:100/103 = 12bp/6bp.
+# ATDD-2.5-14: def subsection + subsubsection spacing = 11.7bp/11.7bp (AC-4/5; §2.10 0.5 行 = 0.5×23.4bp; REPOINTED by Story 3.11)
+# Was 9bp = 0.5×18bp (naive old body); Story 3.11 re-anchored to 0.5×23.4bp = 11.7bp.
 test_sub_spacing_9bp() {
   [[ -f "htuthesis.def" ]] || return 1
-  grep -q '\\def\\htu@subsection@beforeskip{9bp}' htuthesis.def 2>/dev/null && \
-  grep -q '\\def\\htu@subsection@afterskip{9bp}' htuthesis.def 2>/dev/null && \
-  grep -q '\\def\\htu@subsubsection@beforeskip{9bp}' htuthesis.def 2>/dev/null && \
-  grep -q '\\def\\htu@subsubsection@afterskip{9bp}' htuthesis.def 2>/dev/null
+  grep -q '\\def\\htu@subsection@beforeskip{11.7bp}' htuthesis.def 2>/dev/null && \
+  grep -q '\\def\\htu@subsection@afterskip{11.7bp}' htuthesis.def 2>/dev/null && \
+  grep -q '\\def\\htu@subsubsection@beforeskip{11.7bp}' htuthesis.def 2>/dev/null && \
+  grep -q '\\def\\htu@subsubsection@afterskip{11.7bp}' htuthesis.def 2>/dev/null
 }
-run_test "P1" "ATDD-2.5-14" "def subsection/subsubsection spacing = 9bp/9bp (AC-4/5, §2.10 0.5行)" test_sub_spacing_9bp
+run_test "P1" "ATDD-2.5-14" "def subsection/subsubsection spacing = 11.7bp/11.7bp (REPOINTED by Story 3.11; AC-4/5, §2.10 0.5行=0.5×23.4)" test_sub_spacing_9bp
 
 # ATDD-2.5-15: backmatter still centers chapters (cls:117 unchanged — no regression from mainmatter change)
 test_backmatter_chapter_centered() {
