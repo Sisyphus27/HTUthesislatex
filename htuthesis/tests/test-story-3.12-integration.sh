@@ -368,22 +368,46 @@ sys.exit(0 if (hei and centered and size_ok and len(rp) >= 1) else 1)
 }
 run_test "P1" "ATDD-3.12-I07" "BEHAVIOR: end-of-doc supplementary list present (AC-3, TC-E3-49; GREEN — survives mechanism change)" test_endlist_present
 
-# ATDD-3.12-I08: BEHAVIOR — end-list TYPE-SECTIONED re-grouped (AC-3 §2.14 case-2 先按照文献类型分类) — RED driver
-# Pre-impl: thebibliography is a single continuous [1]..[N] list (no type sections) → 0 Chinese-numeral headers → RED.
-# Post-impl: biblatex \printbibliography[type=...] sections → >=1 一、/二、 type-section header → GREEN.
-#   Reference PDF p227: 一、党的文献与领导人讲话 (then 二、三、…).
+# ATDD-3.12-I08: BEHAVIOR — end-list TYPE-SECTIONED + PER-SECTION [1] RESTART (AC-3 §2.14 line 291) — RED driver
+# AC-3 has TWO §2.14 line 291 requirements: (a) 先按照文献类型分类 (type-sectioning) + (b) 重新编号 (each section
+#   re-numbered from [1]). Pre-impl (natbib continuous [1]..[N]): 0 type-section headers + [1] appears once → RED.
+#   Post-impl (biblatex \printbibliography[type=...,resetnumbers=true] + defernumbers): ≥1 type-section header +
+#   [1] appears ≥2 times (once per section = per-section restart signature). STRENGTHENED 2026-06-17 (code review F2):
+#   the original I08 only checked "≥1 header exists" → could not detect a missing resetnumbers (Decision-1 lesson,
+#   Acceptance Auditor finding). Now also asserts the [1] recurrence (per-section restart).
+#   (Within-section author-surname sort via sorting=nyt is verified by inspection; CJK=pinyin precision needs .bib
+#   sortkeys, Epic 4.1 — not asserted here.) Reference PDF p227: each section restarts at [1].
 test_endlist_type_sectioned() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 secs = endlist_type_sections()
-print('  end-list type-section headers (一、二、…): %d' % len(secs))
-for s in secs[:5]:
-    print('    p%d: %r %.1fpt' % (s['page']+1, s['text'], s['size']))
-# AC-3 (type-sectioning): >=1 Chinese-numeral type-section header within the end-list.
-sys.exit(0 if len(secs) >= 1 else 1)
+# count [N] entry markers across the end-list pages; [1] recurrence = per-section restart signature
+num_re = re.compile(r'^\[(\d+)\]$')
+ones = 0
+total_entries = 0
+for i in refs_pages():
+    for b in doc[i].get_text('dict').get('blocks', []):
+        if b.get('type', 0) != 0: continue
+        for ln in b.get('lines', []):
+            sps = ln.get('spans', [])
+            if sps:
+                t = sps[0]['text'].strip()
+                m = num_re.match(t)
+                if m and 9 <= sps[0]['size'] <= 12:
+                    total_entries += 1
+                    if int(m.group(1)) == 1:
+                        ones += 1
+print('  end-list type-section headers=%d; entries=%d; [1] markers=%d' % (len(secs), total_entries, ones))
+for s in secs[:6]:
+    print('    p%d: %r' % (s['page']+1, s['text']))
+# AC-3: >=1 type-section header (先按照文献类型分类) AND [1] appears >=2 times (重新编号 per-section restart).
+type_ok = len(secs) >= 1
+restart_ok = ones >= 2
+print('  → type-sectioning=%s, per-section [1] restart=%s' % (type_ok, restart_ok))
+sys.exit(0 if (type_ok and restart_ok) else 1)
 "
 }
-run_test "P1" "ATDD-3.12-I08" "BEHAVIOR: end-list type-sectioned re-grouped (AC-3 §2.14 case-2; RED — pre-impl continuous)" test_endlist_type_sectioned
+run_test "P1" "ATDD-3.12-I08" "BEHAVIOR: end-list type-sectioned + per-section [1] restart (AC-3 §2.14 line 291; STRENGTHENED by code review F2)" test_endlist_type_sectioned
 
 echo ""
 

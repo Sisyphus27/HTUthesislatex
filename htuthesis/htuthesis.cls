@@ -115,7 +115,7 @@
 \RequirePackage{booktabs}%三线表格
 \RequirePackage[labelformat=simple]{subcaption}% subcaption with labelformat=simple
 \RequirePackage{graphicx}%图形支持
-\RequirePackage[backend=biber,style=gb7714-2015]{biblatex}% biblatex GB/T 7714-2015 (Story 3.12 Option A, §2.14 case-2 双模式). 替换 natbib [numbers,super] 末端 case-1。
+\RequirePackage[backend=biber,style=gb7714-2015,sorting=nyt,defernumbers=true]{biblatex}% biblatex GB/T 7714-2015 (Story 3.12 Option A, §2.14 case-2 双模式). 替换 natbib [numbers,super] 末端 case-1。sorting=nyt = 文末表按作者姓名序（§2.14 line 291 每一类再按照作者姓氏字母顺序编号；CJK 为 Unicode 码点序≈拼音需 .bib sortkeys 精化，4.1）；defernumbers=true + 每节 resetnumbers=true = 每类 [1] 重启（§2.14 line 291 重新编号）。
 \addbibresource{ref/refs.bib}% 参考文献（GB/T 7714-2015；Zy 决策 2026-06-17 Option A）
 \RequirePackage{hyperref}%超链接、书签
   \hypersetup{%
@@ -958,12 +958,26 @@
 \BiblatexSplitbibDefernumbersWarningOff
 \newcommand{\makebibliography}{%
   \nocite{*}% 收录全部参考文献（引文 + 阅读型，§2.14 line 291）
-  \printbibliography[type=article,heading=htu-refs,title={一、期刊论文}]%
-  \printbibliography[type=book,heading=htu-refs-sub,title={二、著作}]%
-  \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）}]%
-  \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文}]%
-  \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利}]%
-  \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源}]%
+  \printbibliography[type=article,heading=htu-refs,title={一、期刊论文},resetnumbers=true]%
+  \printbibliography[type=book,heading=htu-refs-sub,title={二、著作},resetnumbers=true]%
+  \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）},resetnumbers=true]%
+  \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文},resetnumbers=true]%
+  \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利},resetnumbers=true]%
+  \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源},resetnumbers=true]%
+  % 七、其他 catch-all（code review 2026-06-17 决策 a 复加）：未映射到前 6 类的条目（@report/@manual/
+  %   @misc/@unpublished/@software 等，biblatex 别名→@misc）。guarded by \htu@printbibother（仅当存在
+  %   nottype 条目时打印，避免空节 "Empty bibliography" 警告）。
+  \htu@printbibother{七、其他}%
+}%
+% \htu@printbibother{<title>} — guarded catch-all（code review 2026-06-17 F2 决策 a）。本地静默 biblatex 空节
+%   警告 \blx@warn@bibempty（biblatex.sty:1511），再无条件 \printbibliography：空时节头不渲染、无输出、
+%   无警告；非空时正常打印 七、其他。比 \ifboolexpr{citecount}（用户态不可读 biber 计数）简单且稳健。
+\newcommand{\htu@printbibother}[1]{%
+  \begingroup
+    % 静默 biblatex 空节 "Empty bibliography" 警告（仅此组，仅当七、其他 实际为空时触发）
+    \def\blx@warn@bibempty{}%
+    \printbibliography[nottype=article,nottype=book,nottype=incollection,nottype=thesis,nottype=patent,nottype=online,heading=htu-refs-sub,title={#1}]%
+  \endgroup
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 附录
