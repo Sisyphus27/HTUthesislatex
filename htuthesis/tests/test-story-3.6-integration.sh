@@ -401,12 +401,11 @@ echo ""
 # ==========================================
 echo "=== P2: AC-3 separator DIAGNOSTIC (decision-pending) + self-check regression + layout diagnostic ==="
 
-# ATDD-3.6-I12: BEHAVIOR — AC-3 caption separator = fullwidth colon "：" (AC-3, TC-E3-30) — PROMOTED from diagnostic
-# AC-3 DECISION RESOLVED 2026-06-16: Zy chose Option A — follow the reference PDF (Decision 4: reference wins on
-#   visual detail). cls:373 now declares \DeclareCaptionLabelSeparator{htu}{：}. This test asserts the colon is
-#   RENDERED on body captions (LOF/LOT excluded — those use their own \quad format per §1.1.5). The caption label
-#   "图 N-N" and title render on separate fitz lines; the colon attaches to the title side, so check the label line
-#   AND the next line for "：" (U+FF1A). Reference PDF pp.58/95/138/140/207 render "图 1-1：标题".
+# ATDD-3.6-I12: BEHAVIOR — AC-3 caption separator = half-space, NO fullwidth colon (AC-3, TC-E3-30)
+# REPOINTED by Story 3.13: was fullwidth colon "：" (Option A, reference-wins 2026-06-16 per Decision 4 v1); now
+#   half-space \hspace{0.5\ccwd} (spec §2.11/§2.12「空半格」PRIORITY, CLAUDE.md Decision 4 修正 2026-06-17,
+#   gap 1a). This test now asserts NO fullwidth colon renders on body captions (the separator is a half-space gap,
+#   not ：). Reference PDF pp.58/95/138/140/207 fullwidth-colon = Word-artifact deviation, overridden by spec.
 test_caption_separator_colon() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
@@ -427,13 +426,12 @@ for i in range(doc.page_count):
             if '：' in cur or '：' in nxt:
                 hits += 1
                 if len(samples) < 4: samples.append('p%d %s%s' % (i+1, t0, spans[1]['text'].strip()))
-print('  body captions rendering fullwidth colon (U+FF1A): %d %s' % (hits, samples))
-print('  (AC-3 Option A — reference PDF colon form per Decision 4; cls:373 = DeclareCaptionLabelSeparator{htu}{：})')
-# AC-3: >=1 body caption renders the fullwidth colon (Option A).
-sys.exit(0 if hits >= 1 else 1)
+print('  body captions rendering fullwidth colon (U+FF1A): %d %s (expect 0 — half-space separator per spec §2.11/2.12)' % (hits, samples))
+# AC-3: NO body caption renders the fullwidth colon (half-space separator per §2.11/§2.12, Story 3.13 gap 1a).
+sys.exit(0 if hits == 0 else 1)
 "
 }
-run_test "P1" "ATDD-3.6-I12" "BEHAVIOR: AC-3 caption separator = fullwidth colon (AC-3 Option A, TC-E3-30; PROMOTED from diagnostic)" test_caption_separator_colon
+run_test "P1" "ATDD-3.6-I12" "BEHAVIOR: AC-3 caption separator = half-space, NO fullwidth ： (REPOINTED by 3.13: spec §2.11/2.12 空半格; was colon)" test_caption_separator_colon
 
 # ATDD-3.6-I13: regression — self-check textheight ~688pt unchanged (AC-7, R-1)
 test_textheight_unchanged() {

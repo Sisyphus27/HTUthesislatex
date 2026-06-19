@@ -160,15 +160,16 @@ echo ""
 # ==========================================
 echo "=== P2: AC-3 separator declared (decision-pending) + scope/regression guards ==="
 
-# ATDD-3.6-07: \DeclareCaptionLabelSeparator{htu}{：} — caption separator = fullwidth colon (AC-3 Option A, TC-E3-30)
-# AC-3 DECISION RESOLVED 2026-06-16: Zy chose Option A (reference PDF wins per Decision 4). The separator macro
-#   must declare the fullwidth colon {：} (U+FF1A), NOT the previous \hspace{\ccwd} space. Tightened from the
-#   value-agnostic "DECLARED" guard (ATDD checklist: "PROMOTE once decided"). The behavior proof is I12.
+# ATDD-3.6-07: \DeclareCaptionLabelSeparator{htu}{\hspace{0.5\ccwd}} — caption separator = half-space (REPOINTED, TC-E3-30)
+# REPOINTED by Story 3.13: was fullwidth colon {：} (AC-3 Option A, Zy 2026-06-16 reference-wins per Decision 4 v1);
+#   now half-space \hspace{0.5\ccwd} (spec §2.11/§2.12 「编号和图题间空半格」PRIORITY, CLAUDE.md Decision 4 修正
+#   2026-06-17, sprint-change-proposal-2026-06-17 gap 1a). The reference PDF's fullwidth colon is a Word-artifact
+#   deviation, overridden by spec. Behavior proof: test-story-3.13-integration.sh I08 (0 fullwidth ： post-impl).
 test_caption_labelsep_colon() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'DeclareCaptionLabelSeparator\{htu\}\{：\}' htuthesis.cls
+  grep -qE 'DeclareCaptionLabelSeparator\{htu\}\{\\hspace\{0\.5\\ccwd\}\}' htuthesis.cls
 }
-run_test "P1" "ATDD-3.6-07" "\\DeclareCaptionLabelSeparator{htu}{：} fullwidth colon (AC-3 Option A, TC-E3-30; PROMOTED from value-agnostic)" test_caption_labelsep_colon
+run_test "P1" "ATDD-3.6-07" "\\DeclareCaptionLabelSeparator{htu}{\\hspace{0.5\\ccwd}} half-space (REPOINTED by 3.13: spec §2.11/2.12 空半格; was {：} reference-wins)" test_caption_labelsep_colon
 
 # ATDD-3.6-08: regression — \setmainfont{Times New Roman} preserved (Story 3.9, AC-7/AC-8)
 # 3.6 consumes 3.9's \rmfamily→TNR so caption Latin digits/parens render TNR (NOT Latin Modern). Must remain intact.

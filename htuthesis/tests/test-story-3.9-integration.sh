@@ -275,37 +275,43 @@ echo "=== P2: L4 Latin Numeral + \sffamily Diagnostic ==="
 
 # ATDD-3.9-17: BEHAVIOR — L4 heading Latin numeral renders TNR (AC-2, TC-E3-02; deferred-work §2.5 gap)
 # The L4 heading CJK span is bold-SimSun (Story 2.5 \htu@songtibold); its Latin NUMERAL span is \bfseries
-# rmfamily → Latin Modern Bold (LMRoman12-Bold) pre-impl, TNR Bold post-impl. Find ^N.N.N.N body blocks.
+# rmfamily → Latin Modern Bold (LMRoman12-Bold) pre-impl, TNR Bold post-impl.
+# REPOINTED by Story 3.13 (spec §2.10, gap M4): heading numbering Arabic→humanities. L4 was ^N.N.N.N
+#   (subsubsection); now L4 = （N） (the 4th humanities level). The numeral "N" inside （N） is still Latin/
+#   \bfseries rmfamily → the TNR-vs-LatinModern assertion is UNCHANGED (only the heading-block detection
+#   regex changed: ^\d+\.\d+\.\d+\.\d+ → ^（\d+）). The probe target = the ASCII digit span in the block.
 test_l4_numeral_tnr_behavior() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 bs = body_start
+l4_re = re.compile(r'^（\d+）')        # REPOINTED by Story 3.13: humanities L4 label （N） (was ^N.N.N.N)
 lm = tnr = other = found = 0
 for i in range(bs, doc.page_count):
     for blk in doc[i].get_text('dict').get('blocks', []):
         txt, ms, spans = block_ts(blk)
-        if txt and re.match(r'^\d+\.\d+\.\d+\.\d+', txt) and not re.match(r'^\d+\.\d+\.\d+\.\d+\.\d+', txt):
-            # L4 heading block — probe its ASCII numeral span (separate from CJK title span)
+        if txt and l4_re.match(txt):                                # L4 heading block （N）title
+            # probe the ASCII digit span (the （N） numeral), separate from the CJK title span
             for sp in spans:
-                if ascii_re.search(sp['text']) and not re.match(r'^[\d.]+$', sp['text'].strip()):
-                    continue  # skip non-numeral ASCII (rare in L4)
-                if re.match(r'^[\d.]+$', sp['text'].strip()):
+                if re.match(r'^\d+\$', sp['text'].strip()):
                     found += 1
                     c = classify_font(sp['font'])
                     if c == 'lm': lm += 1
                     elif c == 'tnr': tnr += 1
                     else: other += 1
                     break
-print(f'  L4 numeral spans={found}, LatinModern={lm}, TNR={tnr}, other={other}')
+print(f'  L4 （N） numeral spans={found}, LatinModern={lm}, TNR={tnr}, other={other}')
 sys.exit(0 if (found >= 1 and lm == 0 and tnr >= 1) else 1)
 "
 }
-run_test "P2" "ATDD-3.9-17" "BEHAVIOR: L4 heading Latin numeral renders TNR (AC-2, deferred-work §2.5 gap)" test_l4_numeral_tnr_behavior
+run_test "P2" "ATDD-3.9-17" "BEHAVIOR: L4 heading Latin numeral renders TNR (AC-2, deferred-work §2.5 gap; REPOINTED to （N） humanities label by Story 3.13)" test_l4_numeral_tnr_behavior
 
 # ATDD-3.9-18: DIAGNOSTIC — record \sffamily CJK rendered font name on a heading (AC-4 empirical input)
 # This RECORDS the current heading CJK font (SimHei / YaHei / other) as input to the AC-4 decision.
 # It does not hard-pass/fail — it prints the value for the dev/reference-PDF comparison (Story Task 2.2).
 # Info-only: exits 0 if a heading CJK span was found (regardless of which font), 1 if none found.
+# REPOINTED by Story 3.13 (spec §2.10, gap M4): heading numbering Arabic→humanities. Headings no longer
+#   start with ^\d (was N.N.N etc.); now they start with 第N章 (chapter, size≈16) / 第N节 (section, size≈15).
+#   The size band 14.5-16.6 still captures both; only the block-prefix predicate changed (^\d → ^第).
 test_sffamily_cjk_diagnostic() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
@@ -317,7 +323,8 @@ for i in range(bs, min(bs + 10, doc.page_count)):
         txt, ms, spans = block_ts(blk)
         if not txt: continue
         # heading CJK spans: chapter (~16bp sffamily) or section (~15bp) — the \sffamily headings
-        if 14.5 <= ms <= 16.6 and re.match(r'^\d', txt):
+        # REPOINTED by Story 3.13: prefix ^第 (was ^\d) — humanities 第N章/第N节
+        if 14.5 <= ms <= 16.6 and re.match(r'^第', txt):
             for sp in spans:
                 if cjk_re.search(sp['text']):
                     seen[sp['font']] = seen.get(sp['font'], 0) + 1
@@ -328,7 +335,7 @@ print('  (AC-4 input: compare to reference PDF heading 黑体 face; decide SimHe
 sys.exit(0)
 "
 }
-run_test "P2" "ATDD-3.9-18" "DIAGNOSTIC: record \sffamily CJK font on headings (AC-4 empirical input)" test_sffamily_cjk_diagnostic
+run_test "P2" "ATDD-3.9-18" "DIAGNOSTIC: record \sffamily CJK font on headings (AC-4 empirical input; REPOINTED to ^第 humanities headings by Story 3.13)" test_sffamily_cjk_diagnostic
 
 echo ""
 

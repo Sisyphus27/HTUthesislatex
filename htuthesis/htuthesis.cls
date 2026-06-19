@@ -202,10 +202,11 @@
 %   "governance, Responsive politics"。\htu@parse@keywords 按逗号切分 \ekeywords 参数后用此分隔符重组输出。
 \def\htu@ekeywords@separator{, }
 \newcommand{\htu@ckeywords@title}{关键词：}
-% [基础] 英文关键词标签 = KEY WORDS 后接半角冒号（U+003A），冒号后无间距，标签非加粗。真值源：参考论文
-%   PDF page 9 文本抽取冒号紧接首关键词（无字符），整行 TimesNewRomanPSMT（非粗）。按真值源层次（参考论文 >
-%   spec §2.8 全角"："/加粗），半角冒号 + 无间距 + 非加粗胜出（Story 3.4 AC-6/AC-7；PRD D-14 半角冒号；
-%   用户决策 2026-06-16 非加粗；deferred-work §spec-defer 去原半角间距）。
+% [基础] 英文关键词标签 = KEY WORDS 后接半角冒号（U+003A），冒号后无间距，标签加粗。真值源：spec §2.8 line 223
+%   PRIORITY「'KEY WORDS：'用五号'Times New Roman'字体，加粗」（CLAUDE.md Decision 4 修正 2026-06-17）。半角冒号
+%   保留（参考论文 PDF page 9 实测半角冒号紧接首关键词；Epic 2 retro D-14 已闭合冒号宽度问题）。加粗 = Story 3.13
+%   翻案 Story 3.4（2026-06-16 reference-wins 非加粗）→ 回归 spec §2.8 加粗（gap 1b）；仅标签加粗，关键词非加粗
+%   （§2.8「其后的关键词用五号 TNR」）。加粗在 \htu@makeabstract 的 \htu@put@keywords 调用处 \bfseries 包裹。
 \newcommand{\htu@ekeywords@title}{KEY WORDS:}
 \newcommand{\htu@denotation@name}{主要符号对照表}
 \newcommand{\htu@ackname}{致\hspace{\ccwd} 谢}
@@ -385,7 +386,7 @@
 \renewcommand{\bottomfraction}{\htu@bottomfraction}%页底浮动对象高/页高的最大值(0.3)
 \renewcommand{\floatpagefraction}{\htu@floatpagefraction}%浮动页由浮动对象占用的最小比例(0.5)
 \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}%搜索指定扩展名
-\DeclareCaptionLabelSeparator{htu}{：}%图表序与图表名之间用全角冒号「：」分隔（U+FF1A）。真值源三方：参考论文 PDF pp.58/95/138/140/207 实测为「：」冒号（视觉真值，优先）；spec §2.11/§2.12 言"编号和图题间空半格"（文字真值）。按 CLAUDE.md Decision 4「spec 文字与参考 PDF 在视觉细节冲突时，参考 PDF 优先」→ 取冒号；此为偏离 spec 文字的透明偏离，业经 Zy 批准 2026-06-16（故事 3.6 AC-3 Option A）。
+\DeclareCaptionLabelSeparator{htu}{\hspace{0.5\ccwd}}%图表序与图表名之间空半格（spec §2.11/§2.12「编号和图题间空半格」= 0.5\ccwd 半字距）。真值源：spec PRIORITY（CLAUDE.md Decision 4 修正 2026-06-17）。参考论文 PDF pp.58/95/138/140/207 实测为全角冒号「：」（参考为 Word 填充实例，此处偏离 spec）。Story 3.13 翻案 Story 3.6 Option A（2026-06-16 reference-wins 取冒号）→ 回归 spec 空半格（gap 1a）。
 \DeclareCaptionFont{htu}{\wuhao[1.5]}
 \captionsetup{
   font           = htu,
@@ -443,42 +444,61 @@
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 章节标题
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [基础] 标题编号 = 人文社科制 第一章/第一节/一、/（1）（spec §2.10 line 239-243 PRIORITY，CLAUDE.md Decision 4
+%   修正 2026-06-17）。参考论文 PDF（政治与公共管理学院，人文社科）用同制印证。Story 3.13 翻案 Story 2.5 自然科学制
+%   Arabic（name=\relax）→ 人文社科制（sprint-change-proposal-2026-06-17 gap M4）。机制：ctex name={前,后} + number=
+%   显示键。§2.10 人文社科「标题编号和标题名称间不空格」→ aftername={}（原 \hskip\ccwd 半字距为自然科学制，删除）。
+%   AC-3a 关键护栏：number= 仅改 \CTEXthechapter 显示（第一章），绝不可重定义 \thechapter（否则图表编号 图 一-1 灾难）；
+%   下方 \thechapter 防御性锁定 \@arabic\c@chapter，图表编号仍 图 1-1（Arabic，§2.11/2.12/2.13）。
 \ctexset{%
-  chapter={%一级标题：黑体三号(16bp)，居中，段前段后2行(36bp)（HTU §2.10）
+  chapter={%一级标题：黑体三号(16bp)，居中，段前段后2行（HTU §2.10 人文社科 第一章）
     afterindent=true,
     pagestyle={htu@headings},
     beforeskip=\htu@chapter@beforeskip,
-    aftername=\hskip\ccwd,
+    aftername={},%§2.10 人文社科「标题编号和标题名称间不空格」（原 \hskip\ccwd 为自然科学制，删）
     afterskip=\htu@chapter@afterskip,
     format={\sffamily\sanhao[\htu@chapter@linespread]},
-    name=\relax,
+    name={第,章},
+    number=\chinese{chapter},
     nameformat=\relax,
     titleformat=\relax,
     lofskip=0pt,
     lotskip=0pt,
   },
-  section={%二级标题：黑体小三号(15bp)，居中，段前段后0.5行(9bp)（HTU §2.10）
+  section={%二级标题：黑体小三号(15bp)，居中，段前段后0.5行（HTU §2.10 人文社科 第一节）
     afterindent=true,
     beforeskip={\htu@section@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@section@afterskip \@plus .2ex},
     format={\sffamily\xiaosan[\htu@section@linespread]\centering},
+    name={第,节},
+    number=\chinese{section},
   },
-  subsection={%三级标题：黑体四号(14bp)，居左空两格，段前段后0.5行(9bp)（HTU §2.10）
+  subsection={%三级标题：黑体四号(14bp)，居左空两格，段前段后0.5行（HTU §2.10 人文社科 一、）
     afterindent=true,
     indent=2\ccwd,
     beforeskip={\htu@subsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsection@afterskip \@plus .2ex},
     format={\sffamily\sihao[\htu@subsection@linespread]},
+    name={,、},
+    number=\chinese{subsection},
   },
-  subsubsection={%四级标题：宋体小四号(12bp)加粗，居左空两格，段前段后0.5行(9bp)（HTU §2.10；段前段后为推断值）
+  subsubsection={%四级标题：宋体小四号(12bp)加粗，居左空两格（HTU §2.10 人文社科 L4 （1）；段前段后为推断值）
     afterindent=true,
     indent=2\ccwd,
     beforeskip={\htu@subsubsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsubsection@afterskip \@plus .2ex},
     format={\htu@songtibold\bfseries\xiaosi[\htu@subsubsection@linespread]},
+    name={（,）},
+    number=\arabic{subsubsection},
   },
   paragraph/afterindent=true,
   subparagraph/afterindent=true}
+% [基础] AC-3a 防御护栏：锁定 \thechapter = Arabic 计数器（Story 3.13 Task 3.2）。ctex number=\chinese{chapter}
+%   仅改 \CTEXthechapter（标题显示 第一章），此处强制 \thechapter 保持 \@arabic\c@chapter，确保 \thefigure/
+%   \thetable/\theequation（cls 上方 cls:413-418）仍呈 图 1-1 / 表 1-1 / (1-1) Arabic（§2.11/2.12/2.13）。
+%   \appendix 运行时（文档体内，晚于此处）会重定义 \thechapter 为 \@Alph（附录 A），故附录不受影响。
+%   若移除此行且 ctex 内部回写 \thechapter，图表编号将退化为 图 一-1（灾难）。ATDD I05 + unit-09/10 守卫。
+\renewcommand{\thechapter}{\@arabic\c@chapter}
 \newcounter{htu@bookmark}
 \def\htu@chapter*{%\htu@chapter*[tocline]{title}[header]
   %% \@ifnextchar peeks at the following character and compares it with its first argument. 
@@ -891,8 +911,8 @@
     \fontsize{10.5bp}{23.4bp}\selectfont
     \htu@eabstract
     \vskip\htu@abstract@keywordskip
-    % 英文关键词标签非加粗（用户决策），分隔符为半角逗号（\htu@ekeywords@separator）。
-    \htu@put@keywords{\htu@ekeywords@title}{\htu@ekeywords}%
+    % 英文关键词标签加粗（spec §2.8 line 223「加粗」，Story 3.13 翻案 3.4 reference-wins 非加粗）；分隔符为半角逗号。
+    \htu@put@keywords{\bfseries\htu@ekeywords@title}{\htu@ekeywords}%
   \endgroup
   \normalsize% R-3 leak guard：恢复正文 12pt/23.4bp，防 scope 泄漏到 \AtEndDocument 自检（Story 3.3 模式；3.11 重校准正文行距 18→23.4bp）
 }
@@ -934,7 +954,7 @@
 %%      文献放在一起重新编号，先按照文献类型分类，每一类再按照作者姓氏字母顺序编号。」
 %%   2. spec §1.2.4 line 109「若文中引文文献采用页下注（脚注）的形式，每页重新编号。」
 %%   3. spec §2.4 line 197「脚注用小五号宋体字。」+ §2.14 line 285「参考文献的内容使用五号宋体字」
-%%      + line 293「序号左顶格，悬挂缩进」（悬挂方向 = Story 3.13 范围）。
+%%      + line 293「序号左顶格，悬挂缩进」（标准悬挂，biblatex gb7714-2015 默认已满足；Story 3.13 实测确认 [N] flush-left，无需 \bibhang 改动）。
 %%   机制（Zy 决策 2026-06-17 Option A）：natbib+bibtex 末端 [N] 上标（case-1）→ biblatex+biber
 %%   +biblatex-gb7714-2015 双模式（case-2）。引文 → \footfullcite 每页脚注（完整 GB/T 7714 条目，
 %%   小五号宋体；per-page reset 复用 \@addtoreset{footnote}{page} cls:369 Story 3.8）；文末表 →

@@ -92,6 +92,10 @@ doc = fitz.open("main.pdf")
 W = doc[0].rect.width; mid = W / 2.0
 cjk_re = re.compile(r"[一-鿿]")
 sec_label_re = re.compile(r"^\s*\d+\.\d+")
+# REPOINTED by Story 3.13 (spec §2.10, gap M4): heading numbering switched Arabic→humanities.
+#   L1 chapter label = 第N章, L2 section label = 第N节, L3 subsection label = 一、. The old Arabic
+#   helpers (sec_label_re for N.N, N.N.N) no longer match the rendered TOC — repointed below to
+#   humanities label detection (row-pairing + label regexes). Font/size/indent ACs are UNCHANGED.
 # TOC page detection: SimHei title 目/录 size>14 at y<170.
 toc = None
 for i in range(doc.page_count):
@@ -110,31 +114,62 @@ def median(xs):
     if not xs: return None
     ys = sorted(xs); n = len(ys); return ys[n // 2]
 def l1_entries(idx):
-    # L1 chapter entries: CJK text at x0<100, size in [11,15], len>=2 CJK chars, NOT a N.N section label.
-    # Pre-impl: SimSun 14pt; post-impl: SimHei 12pt. Returns list of (font, size, x0, text).
+    # REPOINTED by Story 3.13 (spec §2.10, gap M4): L1 = humanities chapter "第N章 + title".
+    #   OLD Arabic detection: x0<100 CJK title span, skip N.N section label. Now the TOC renders the
+    #   "第N章" CONTENTSLABEL as a SimSun span at x0≈70.9 (the only thing at x0<100), so the old x0<100
+    #   filter caught the LABEL (SimSun) instead of the SimHei TITLE. Detection now: a chapter title is
+    #   the non-label CJK span sharing a y-row with a "第N章" label (font-AGNOSTIC — the SimHei assertion
+    #   in I05 stays meaningful). Returns list of (font, size, x0, text).
+    chap_label_re = re.compile(r"^第[一二三四五六七八九十百]+章$")
     if idx is None: return []
-    pg = doc[idx]; out = []
+    pg = doc[idx]
+    rows = {}
     for b in pg.get_text("dict").get("blocks", []):
         if b.get("type", 0) != 0: continue
         for ln in b.get("lines", []):
             for sp in ln.get("spans", []):
-                tx = sp["text"].strip(); x0 = sp["bbox"][0]
-                if x0 < 100 and cjk_re.search(tx) and 11 <= sp["size"] <= 15 and len(tx) >= 2:
-                    if sec_label_re.match(tx): continue   # skip "2.1" section labels
-                    out.append((sp["font"], sp["size"], x0, tx))
+                tx = sp["text"].strip()
+                if not cjk_re.search(tx): continue
+                if not (11 <= sp["size"] <= 15): continue
+                yr = round(sp["bbox"][1], 1)
+                rows.setdefault(yr, []).append(sp)
+    out = []
+    for yr, spans in rows.items():
+        if any(chap_label_re.match(sp["text"].strip()) for sp in spans):
+            for sp in spans:
+                tx = sp["text"].strip()
+                if chap_label_re.match(tx): continue             # skip the "第N章" label itself
+                if len(tx) >= 2:
+                    out.append((sp["font"], sp["size"], sp["bbox"][0], tx))
     return out
 def section_entries(idx):
-    # L2 section entries: CJK title span at x0 in [115,130], size in [11,13]. (Our section indent = 2\ccwd
-    # renders x0≈121.9.) Returns list of (font, size, x0, text).
+    # REPOINTED by Story 3.13 (spec §2.10, gap M4): L2 = humanities section "第N节 + title".
+    #   OLD Arabic detection: CJK span at x0 in [115,130] (the 2\ccwd section indent). Now the humanities
+    #   chapter TITLE (SimHei) sits at x0≈118.9-169.5 and bleeds into the [115,130] band → mixed
+    #   SimSun+SimHei → song=False. Detection now: a section title is the non-label CJK span sharing a
+    #   y-row with a "第N节" label (font-AGNOSTIC — excludes the SimHei chapter-title bleed by row
+    #   context, not by font). Returns list of (font, size, x0, text).
+    sec_lab_re = re.compile(r"^第[一二三四五六七八九十百]+节$")
     if idx is None: return []
-    pg = doc[idx]; out = []
+    pg = doc[idx]
+    rows = {}
     for b in pg.get_text("dict").get("blocks", []):
         if b.get("type", 0) != 0: continue
         for ln in b.get("lines", []):
             for sp in ln.get("spans", []):
-                tx = sp["text"].strip(); x0 = sp["bbox"][0]
-                if 115 <= x0 <= 130 and cjk_re.search(tx) and 11 <= sp["size"] <= 13 and len(tx) >= 2:
-                    out.append((sp["font"], sp["size"], x0, tx))
+                tx = sp["text"].strip()
+                if not cjk_re.search(tx): continue
+                if not (11 <= sp["size"] <= 13): continue
+                yr = round(sp["bbox"][1], 1)
+                rows.setdefault(yr, []).append(sp)
+    out = []
+    for yr, spans in rows.items():
+        if any(sec_lab_re.match(sp["text"].strip()) for sp in spans):
+            for sp in spans:
+                tx = sp["text"].strip()
+                if sec_lab_re.match(tx): continue             # skip the "第N节" label itself
+                if len(tx) >= 2:
+                    out.append((sp["font"], sp["size"], sp["bbox"][0], tx))
     return out
 def subsection_entries(idx):
     # L3 subsection entries: CJK title span at x0 in [140,165], size in [9,13] (pre-impl 10.5pt, post-impl 12pt).
@@ -359,45 +394,51 @@ echo "=== P2: indent per level + dot leaders + depth + L3 \\wuhao-leak guard ===
 
 # ATDD-3.5-I08: BEHAVIOR — per-level indent ≈ 24pt (2\ccwd; AC-5, TC-E3-27)
 # GREEN guard (AC-5 = VERIFY; story does NOT change indent). Measures the TRUE indent = label-start x0 delta
-#   (N.N section label → N.N.N subsection label), NOT the title-text x0 delta (which is confounded by label-width
-#   differences: L1 label 第N章 vs Latin 2.1/4.1.1). Reference PDF p10 = uniform +24.0pt/level (= 2\ccwd at 12pt).
-#   PATCHED 2026-06-16 (code review): the original measured title-text x0 (91.9/121.9/150.4 → 30/28.5pt, a
-#   measurement artifact); label-start is a clean 24.0pt/level matching the reference. Assert subsection_label_x0 −
-#   section_label_x0 ≈ 24pt (the per-level indent, reference-independent) + section_label_x0 − margin ≈ 24pt.
+#   (section label → subsection label), NOT the title-text x0 delta (confounded by label-width differences:
+#   L1 label 第N章 vs Latin 2.1/4.1.1). Reference PDF p10 = uniform +24.0pt/level (= 2\ccwd at 12pt).
+#   PATCHED 2026-06-16 (code review): the original measured title-text x0; label-start is a clean 24.0pt/level.
+#   REPOINTED by Story 3.13 (spec §2.10, gap M4): heading numbering Arabic→humanities. The label regexes
+#   changed from N.N (section) / N.N.N (subsection) to 第N节 (section) / 一、 (subsection). The measured
+#   delta stays ≈24pt = 2\ccwd per level (humanities §2.10 still indents per level: chap=0, sec=24, sub=48).
 test_indent_per_level() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 if toc is None:
     print('  (TOC page not found — RED)'); sys.exit(1)
+# REPOINTED by Story 3.13: humanities labels (spec §2.10). OLD: re.fullmatch(r'\d+\.\d+', tx) (section) /
+#   re.fullmatch(r'\d+\.\d+\.\d+', tx) (subsection) — Arabic label detection that no longer matches.
+sec_lab_re = re.compile(r'^第[一二三四五六七八九十百]+节\$')      # L2 section contentslabel (第一节)
+sub_lab_re = re.compile(r'^[一二三四五六七八九十]+、')             # L3 subsection contentslabel (一、)
+chap_lab_re = re.compile(r'^第[一二三四五六七八九十百]+章\$')      # L1 chapter contentslabel (第一章)
 sec_lab = []; sub_lab = []; l1_edge = None
 for b in doc[toc].get_text('dict').get('blocks', []):
     for ln in b.get('lines', []):
         for sp in ln.get('spans', []):
             tx = sp['text'].strip(); x0 = sp['bbox'][0]
-            if re.fullmatch(r'\d+\.\d+', tx) and 11 <= sp['size'] <= 13:
-                sec_lab.append(x0)                                  # section label-start (e.g. 2.1)
-            elif re.fullmatch(r'\d+\.\d+\.\d+', tx) and 9 <= sp['size'] <= 13:
-                sub_lab.append(x0)                                  # subsection label-start (e.g. 4.1.1)
-            elif cjk_re.search(tx) and sp['size'] > 13 and len(tx) >= 2 and x0 < 100:
+            if sec_lab_re.match(tx) and 11 <= sp['size'] <= 13:
+                sec_lab.append(x0)                                  # section label-start (第一节)
+            elif sub_lab_re.match(tx) and 9 <= sp['size'] <= 13:
+                sub_lab.append(x0)                                  # subsection label-start (一、)
+            elif chap_lab_re.match(tx) and 11 <= sp['size'] <= 15:
                 if l1_edge is None or x0 < l1_edge:
-                    l1_edge = x0                                    # chapter entry left edge (margin)
+                    l1_edge = x0                                    # chapter contentslabel left edge (margin)
 sec_x = median(sec_lab) if sec_lab else None
 sub_x = median(sub_lab) if sub_lab else None
-# Per-level delta (subsection − section) is the clean, reference-matching indent. If subsection labels are absent
-# (a build with no L3), fall back to section − margin.
+# Per-level delta (subsection − section) is the clean, reference-matching indent. If subsection labels are
+# absent (a build with no L3), fall back to section − margin.
 if sub_x is not None and sec_x is not None:
     delta = sub_x - sec_x; where = 'subsection-section'
 elif sec_x is not None and l1_edge is not None:
     delta = sec_x - l1_edge; where = 'section-margin'
 else:
-    print('  (no N.N or N.N.N labels found to measure indent — L1=%s sec=%d sub=%d)' %
+    print('  (no 第N节 or 一、 labels found to measure indent — L1=%s sec=%d sub=%d)' %
           (l1_edge, len(sec_lab), len(sub_lab))); sys.exit(1)
 print('  l1_edge=%s sec_label_x0=%s sub_label_x0=%s | %s delta=%.1fpt (expect ≈24 = 2\\ccwd; ref p10 24/level)' %
       (l1_edge, sec_x, sub_x, where, delta))
 sys.exit(0 if 22.0 <= delta <= 26.0 else 1)
 "
 }
-run_test "P2" "ATDD-3.5-I08" "BEHAVIOR: per-level indent ≈ 24pt (label-start delta; AC-5, TC-E3-27; GREEN — PATCHED to measure true indent)" test_indent_per_level
+run_test "P2" "ATDD-3.5-I08" "BEHAVIOR: per-level indent ≈ 24pt (label-start delta; AC-5, TC-E3-27; GREEN — REPOINTED to humanities labels by Story 3.13)" test_indent_per_level
 
 # ATDD-3.5-I09: BEHAVIOR — dot leaders present (AC-6, TC-E3-26)
 # GREEN guard. \titlerule*{.} produces a run of '.' spans between entry text and page number. Assert the TOC page

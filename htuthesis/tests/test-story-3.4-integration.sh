@@ -268,9 +268,11 @@ sys.exit(0 if ((not has_semi) and has_comma) else 1)
 }
 run_test "P1" "ATDD-3.4-I07" "BEHAVIOR: English keyword separator = half-width comma (AC-6, TC-E3-23; RED pre-impl — \"; \")" test_english_keyword_comma
 
-# ATDD-3.4-I08: BEHAVIOR — English KEY WORDS label NON-bold (AC-6, user decision 2026-06-16)
-# Find the "KEY WORDS" label span. Pre-impl: \\textbf → TNR Bold (font has "Bold"). Post-impl: \\textbf dropped
-#   → TNR regular (no "Bold"). Assert label font has NO "Bold". Reference p9 = TimesNewRomanPSMT (non-bold).
+# ATDD-3.4-I08: BEHAVIOR — English KEY WORDS label BOLD (AC-6 §2.8 加粗)
+# REPOINTED by Story 3.13: was NON-bold (user decision 2026-06-16, reference-wins per Decision 4 v1); now BOLD
+#   (spec §2.8 line 223「'KEY WORDS：'用五号 TNR，加粗」PRIORITY, CLAUDE.md Decision 4 修正 2026-06-17,
+#   sprint-change-proposal-2026-06-17 gap 1b). \bfseries wrap → TNR Bold (font has "Bold"). Reference p9
+#   non-bold = Word-artifact deviation, overridden by spec. Find the label span, assert font HAS "Bold".
 test_english_keywords_label_nonbold() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
@@ -287,11 +289,11 @@ for b in doc[en_abs].get_text('dict').get('blocks', []):
 if label is None:
     print('  (KEY WORDS label span not found — RED)'); sys.exit(1)
 fn = label['font']; bold = 'Bold' in fn or 'bold' in fn
-print('  KEY WORDS label font=%r size=%.1f bold=%s (user decision: NON-bold; ref p9 TimesNewRomanPSMT)' % (fn, label['size'], bold))
-sys.exit(0 if not bold else 1)
+print('  KEY WORDS label font=%r size=%.1f bold=%s (spec §2.8 加粗; ref p9 deviation overridden)' % (fn, label['size'], bold))
+sys.exit(0 if bold else 1)
 "
 }
-run_test "P1" "ATDD-3.4-I08" "BEHAVIOR: English KEY WORDS label NON-bold (AC-6, user decision; RED pre-impl — \\textbf Bold)" test_english_keywords_label_nonbold
+run_test "P1" "ATDD-3.4-I08" "BEHAVIOR: English KEY WORDS label BOLD (REPOINTED by 3.13: spec §2.8 加粗; was NON-bold reference-wins)" test_english_keywords_label_nonbold
 
 # ATDD-3.4-I09: BEHAVIOR — Chinese title "摘 要" SimHei ~16pt centered (AC-1, TC-E3-18)
 # GREEN guard (already correct via \htu@chapter* \sffamily\sanhao → SimHei 三号). "摘" and "要" render as TWO

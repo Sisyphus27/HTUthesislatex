@@ -170,8 +170,9 @@ sys.exit(0 if (len(chap) >= 3 and len(centered) >= len(chap) - 2) else 1)
 run_test "P0" "ATDD-2.5-21" "BEHAVIOR: chapter titles CENTERED on body pages (AC-2, TC-E2-22)" test_chapter_centered_behavior
 
 # ATDD-2.5-22: BEHAVIOR — section titles CENTERED on rendered body pages (AC-3, TC-E2-23)
-# Block-level: find blocks matching ^N.N (excl N.N.N). Pre-impl: all LEFT (center ~115-146) → 0 centered → RED.
-# Post-impl: centered → GREEN. (Reference thesis confirms sections centered in real HTU humanities thesis.)
+# REPOINTED by Story 3.13: detection was ^N.N Arabic (Story 2.5 natural-science); now humanities 第一节
+#   (spec §2.10, gap M4). Section (= L2) stays CENTERED under humanities §2.10「一、二级标题居中」— the
+#   centering assertion is unchanged; only the detection regex updated.
 test_section_centered_behavior() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
@@ -180,7 +181,7 @@ for i in range(body_start, doc.page_count):
     for blk in doc[i].get_text('dict').get('blocks', []):
         txt, ms, _ = block_ts(blk)
         if not txt: continue
-        if re.match(r'^\d+\.\d+', txt) and not re.match(r'^\d+\.\d+\.\d+', txt):
+        if re.match(r'^第[一二三四五六七八九十百]+节', txt):  # REPOINTED by 3.13: humanities 第一节 (was ^\d+\.\d+)
             bx = blk['bbox']; cx = (bx[0] + bx[2]) / 2
             sect.append((i + 1, round(cx, 1)))
 centered = [c for _, c in sect if abs(c - mid) < 45]
@@ -243,29 +244,35 @@ echo ""
 echo "=== P2: Supplementary Behavior ==="
 
 # ATDD-2.5-27: BEHAVIOR — subsection titles LEFT-aligned + indented (AC-4, TC-E2-24)
-# Block-level: ^N.N.N (excl N.N.N.N). Must be LEFT (cx well below mid) — pre-impl already left (GREEN guard).
+# REPOINTED by Story 3.13: detection was ^N.N.N Arabic; now humanities 一、 (spec §2.10, gap M4). Subsection
+#   (= L3) stays LEFT + 空两格 under humanities §2.10「三级以下居左、空两格」— assertion unchanged.
 test_subsection_left_behavior() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 subs = []
+# REPOINTED by Story 3.13: detection ^N.N.N Arabic → humanities 一、 (spec §2.10, gap M4). LEFT-check switched
+#   from block CENTER (cx) to block LEFT-EDGE (bx[0]): a left-aligned subsection has bx[0] at the L3 indent
+#   (~95pt); the CENTERED biblatex end-list type-sections (一、期刊论文 … cls centerline, Story 3.12, in back
+#   matter) have bx[0]~200 — the bx[0] check cleanly excludes them. (A page-bound heuristic is unviable: chap03
+#   has a demo \\section{参考文献} in the body.) Subsection (= L3) stays LEFT per §2.10「三级以下居左、空两格」.
 for i in range(body_start, doc.page_count):
     for blk in doc[i].get_text('dict').get('blocks', []):
         txt, ms, _ = block_ts(blk)
         if not txt: continue
-        if re.match(r'^\d+\.\d+\.\d+', txt) and not re.match(r'^\d+\.\d+\.\d+\.\d+', txt):
-            bx = blk['bbox']; cx = (bx[0] + bx[2]) / 2
-            subs.append((i + 1, round(cx, 1)))
-left = [c for _, c in subs if c < mid - 80]
-print(f'  subsection blocks={len(subs)}, left-aligned={len(left)} (centers: {subs[:6]})')
-sys.exit(0 if (len(subs) >= 1 and len(left) >= len(subs) - 2) else 1)
+        if re.match(r'^[一二三四五六七八九十]+、', txt):  # REPOINTED by 3.13: humanities 一、 (was ^\d+\.\d+\.\d+)
+            bx = blk['bbox']
+            subs.append((i + 1, round(bx[0], 1)))
+left = [x0 for _, x0 in subs if x0 < 150.0]  # left-edge at L3 indent (excludes centered type-sections)
+print(f'  subsection 一、 blocks={len(subs)}, left-edge-aligned={len(left)} (left-edges: {subs[:6]})')
+sys.exit(0 if (len(subs) >= 1 and len(left) >= 3) else 1)
 "
 }
 run_test "P2" "ATDD-2.5-27" "BEHAVIOR: subsection titles LEFT-aligned (AC-4, TC-E2-24)" test_subsection_left_behavior
 
 # ATDD-2.5-28: BEHAVIOR — subsubsection title CJK span is SimSun (bold-SimSun via AutoFakeBold, option A) (AC-5, TC-E2-25)
+# REPOINTED by Story 3.13: detection was ^N.N.N.N Arabic; now humanities L4 （1） (spec §2.10 四级以下「（1）」, gap M4).
+#   The L4 FONT (\htu@songtibold\bfseries → SimSun + AutoFakeBold) is UNCHANGED — only the number form changed.
 # Option A: \htu@songtibold\bfseries → SimSun + AutoFakeBold. Check the CJK span font NAME = SimSun (not SimHei).
-# Note: AutoFakeBold does NOT set the bold font-flag bit, so check the font NAME (SimSun) not the bold flag.
-# Pre-impl: \sffamily → CJK span SimHei → RED. Post-impl (option A): \htu@songtibold\bfseries → SimSun → GREEN.
 test_subsubsection_bold_songti_behavior() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
@@ -274,7 +281,7 @@ found = ok = 0
 for i in range(body_start, doc.page_count):
     for blk in doc[i].get_text('dict').get('blocks', []):
         txt, ms, spans = block_ts(blk)
-        if txt and re.match(r'^\d+\.\d+\.\d+\.\d+', txt):
+        if txt and re.match(r'^（\d+）', txt):  # REPOINTED by 3.13: humanities L4 （1） (was ^\d+\.\d+\.\d+\.\d+)
             found += 1
             for sp in spans:
                 # L4 must render its CJK span as SimSun (bold-SimSun via AutoFakeBold), NOT SimHei/YaHei.
