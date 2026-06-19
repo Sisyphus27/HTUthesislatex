@@ -261,7 +261,7 @@ test_page_count() {
   local total_pages
   total_pages=$(grep 'total pages = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | tr -d '[:space:]')
   if [[ -z "$total_pages" ]]; then echo "  (page count not found)"; return 1; fi
-  echo "  (pages: $total_pages, expected 50 +/- 5 [R-13: TNR metrics may shift — repoint if drifts])"
+  echo "  (pages: $total_pages, expected 40-55 [re-anchored by Story 3.14: → 44 pp; was 45-55])"
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 55) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-3.9-19" "total pages ~50 (+/- 5; R-13 watch — TNR may shift pagination)" test_page_count

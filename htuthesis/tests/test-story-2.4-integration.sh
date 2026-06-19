@@ -202,7 +202,7 @@ test_page_count() {
     echo "  (page count not found)"
     return 1
   fi
-  echo "  (pages: $total_pages, expected ~53 +/- (3.11 recalibration reflow); band [47,58])"
+  echo "  (pages: $total_pages, expected 40-58 [re-anchored by Story 3.14: -> 44 pp; was [47,58] post-3.11])"
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 58) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-2.4-24" "total pages in [47,58] (REPOINTED by Story 3.11; AC-9, recalibration reflow absorbed)" test_page_count

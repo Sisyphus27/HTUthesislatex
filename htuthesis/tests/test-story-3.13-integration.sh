@@ -496,7 +496,7 @@ test_total_pages() {
   local total_pages
   total_pages=$(grep 'total pages = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | tr -d '[:space:]')
   if [[ -z "$total_pages" ]]; then echo "  (page count not found)"; return 1; fi
-  echo "  (pages: $total_pages, expected ~55 ±5 [Story 3.12 baseline; humanities/caption may shift ±few])"
+  echo "  (pages: $total_pages, expected 40-62 [re-anchored by Story 3.14: → 44 pp; was [46,62]])"
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 62) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-3.13-I13" "total pages within tolerance (AC-6; humanities/caption may shift ±few)" test_total_pages

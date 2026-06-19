@@ -352,7 +352,7 @@ test_total_pages() {
   local total_pages
   total_pages=$(grep 'total pages = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | tr -d '[:space:]')
   if [[ -z "$total_pages" ]]; then echo "  (page count not found)"; return 1; fi
-  echo "  (pages: $total_pages, expected ~51 ±5 [declaration +1 vs 3.2 baseline 50 — repoint if drifts])"
+  echo "  (pages: $total_pages, expected 40-56 [re-anchored by Story 3.14: → 44 pp; was ~51 ±5] [declaration +1 vs 3.2 baseline 50 — repoint if drifts])"
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 56) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-3.3-I12" "total pages ~51 ±5 (AC-8; declaration +1 — Decision 2 repoint if drifts)" test_total_pages

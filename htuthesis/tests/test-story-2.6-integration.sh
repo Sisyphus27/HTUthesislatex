@@ -254,7 +254,7 @@ test_page_count() {
 # ATDD-2.6-27: total pages (AC-9) — REPOINTED by Story 3.12 (2026-06-17)
 # REPOINTED: was 49±5 (44-54); Story 3.12 biblatex Option A + citation footnotes shifted pagination to 55.
 #   Re-anchored to 46-58. Decision 2 sample-drift re-anchor.
-  echo "  (pages: $total_pages, expected 46-58 [re-anchored by 3.12; was 44-54])"
+  echo "  (pages: $total_pages, expected 40-58 [re-anchored by Story 3.14: -> 44 pp; was 46-58 post-3.12])"
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 58) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-2.6-27" "total pages within ±5 of 49 (AC-9)" test_page_count

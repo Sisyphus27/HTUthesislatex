@@ -450,7 +450,7 @@ test_total_pages() {
   local total_pages
   total_pages=$(grep 'total pages = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | tr -d '[:space:]')
   if [[ -z "$total_pages" ]]; then echo "  (page count not found)"; return 1; fi
-  echo "  (pages: $total_pages, expected ~51 ±5 [references in-place; appendix doesn't render])"
+  echo "  (pages: $total_pages, expected 40-56 [re-anchored by Story 3.14: → 44 pp; was ~51 ±5] [references in-place; appendix doesn't render])"
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 56) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-3.7-I14" "total pages ~51 ±5 (AC-7; references in-place; appendix doesn't render)" test_total_pages

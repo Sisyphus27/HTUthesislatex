@@ -917,7 +917,7 @@
 % biblatex GB/T 7714-2015 文末表正文字体 = 五号宋体（Story 3.7 AC-2 §2.14 line 285）
 \renewcommand*{\bibfont}{\wuhao[1.524]}%
 % 文末表主标题：参考文献 三号黑体居中、另起一页（Story 3.7 AC-1 §2.14 line 285）+ 首节子标题（[1]=title）。
-%   \htu@chapter* 含 \cleardoublepage（另起一页）。首节用 htu-refs（主标题+子标题）；后续节用 htu-refs-sub（仅子标题）。
+%   \htu@chapter* 含 \clearpage（另起一页，无空白 verso — Story 3.14 把 \htu@chapter* 的 \cleardoublepage 转 \clearpage）。首节用 htu-refs（主标题+子标题）；后续节用 htu-refs-sub（仅子标题）。
 \defbibheading{htu-refs}[1]{\htu@chapter*{\bibname}\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\centerline{#1}}\par\vspace{0.3\baselineskip}}%
 % 文末表类型分节子标题：二、著作 …（§2.14 line 291 按文献类型分类；小四黑体居中）
 \defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\centerline{#1}}\par\vspace{0.3\baselineskip}}%

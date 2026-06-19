@@ -353,7 +353,7 @@ test_total_pages() {
   local total_pages
   total_pages=$(grep 'total pages = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | tr -d '[:space:]')
   if [[ -z "$total_pages" ]]; then echo "  (page count not found)"; return 1; fi
-  echo "  (pages: $total_pages, expected ~50 ±5 [abstract cover +1 / declaration −1 may shift — repoint if drifts])"
+  echo "  (pages: $total_pages, expected 40-55 [re-anchored by Story 3.14: abstract cover DELETED → 44 pp])"
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 55) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-3.2-I12" "total pages ~50 ±5 (AC-9; front-matter shift — Decision 2 repoint if drifts)" test_total_pages

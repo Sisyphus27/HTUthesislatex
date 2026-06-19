@@ -92,7 +92,7 @@ echo "=== P1: references wiring (GREEN — inherited config already matches spec
 
 # ATDD-3.7-01: \htu@chapter*{\bibname} — references title via the chapter mechanism (AC-1 wiring, TC-E3-33)
 # Truth source: spec §2.14 "'参考文献'用三号黑体字，居中" + reference p227 (title SimHei 15.95 centered). The
-#   thebibliography env must render the title via \htu@chapter*{\bibname} (→ \cleardoublepage new-page + chapter
+#   thebibliography env must render the title via \htu@chapter*{\bibname} (→ \clearpage new-page + chapter
 #   format \sffamily\sanhao = 三号黑体居中). GREEN pre/post (inherited zzuthesis).
 test_refs_title_chapter() {
   [[ -f "htuthesis.cls" ]] || return 1

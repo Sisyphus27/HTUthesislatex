@@ -92,7 +92,7 @@ echo "=== P1: ack/papers/footnote wiring (致谢 title + papers title + footnote
 
 # ATDD-3.8-01: \htu@chapter*{\htu@ackname} — 致谢 title via the chapter mechanism (AC-1 wiring, TC-E3-38)
 # Truth source: spec §2.16 "「致谢」用三号黑体字，居中" + main.pdf p47 (致/谢 SimHei 16pt centered pair). The ack env
-#   must render the title via \htu@chapter*{\htu@ackname} (→ \cleardoublepage new-page + chapter format \sffamily\sanhao
+#   must render the title via \htu@chapter*{\htu@ackname} (→ \clearpage new-page + chapter format \sffamily\sanhao
 #   = 三号黑体居中). GREEN pre/post (inherited zzuthesis).
 test_ack_title_chapter() {
   [[ -f "htuthesis.cls" ]] || return 1
