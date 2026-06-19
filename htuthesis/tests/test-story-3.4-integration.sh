@@ -273,7 +273,7 @@ run_test "P1" "ATDD-3.4-I07" "BEHAVIOR: English keyword separator = half-width c
 #   (spec §2.8 line 223「'KEY WORDS：'用五号 TNR，加粗」PRIORITY, CLAUDE.md Decision 4 修正 2026-06-17,
 #   sprint-change-proposal-2026-06-17 gap 1b). \bfseries wrap → TNR Bold (font has "Bold"). Reference p9
 #   non-bold = Word-artifact deviation, overridden by spec. Find the label span, assert font HAS "Bold".
-test_english_keywords_label_nonbold() {
+test_english_keywords_label_bold() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 if en_abs is None:
@@ -293,7 +293,7 @@ print('  KEY WORDS label font=%r size=%.1f bold=%s (spec §2.8 加粗; ref p9 de
 sys.exit(0 if bold else 1)
 "
 }
-run_test "P1" "ATDD-3.4-I08" "BEHAVIOR: English KEY WORDS label BOLD (REPOINTED by 3.13: spec §2.8 加粗; was NON-bold reference-wins)" test_english_keywords_label_nonbold
+run_test "P1" "ATDD-3.4-I08" "BEHAVIOR: English KEY WORDS label BOLD (REPOINTED by 3.13: spec §2.8 加粗; was NON-bold reference-wins)" test_english_keywords_label_bold
 
 # ATDD-3.4-I09: BEHAVIOR — Chinese title "摘 要" SimHei ~16pt centered (AC-1, TC-E3-18)
 # GREEN guard (already correct via \htu@chapter* \sffamily\sanhao → SimHei 三号). "摘" and "要" render as TWO

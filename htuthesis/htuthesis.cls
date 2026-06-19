@@ -450,6 +450,9 @@
 %   显示键。§2.10 人文社科「标题编号和标题名称间不空格」→ aftername={}（原 \hskip\ccwd 半字距为自然科学制，删除）。
 %   AC-3a 关键护栏：number= 仅改 \CTEXthechapter 显示（第一章），绝不可重定义 \thechapter（否则图表编号 图 一-1 灾难）；
 %   下方 \thechapter 防御性锁定 \@arabic\c@chapter，图表编号仍 图 1-1（Arabic，§2.11/2.12/2.13）。
+%   副作用（code review 2026-06-19 决策 b 接受）：ctex number=\chinese{chapter} 把中文写入 .aux label → \ref{ch:X}
+%   渲染「一/二」（章交叉引用），而图表式引用 \ref{fig:X} 仍 Arabic（图 1-1）。人文社科惯例：章引用用中文、图表式用
+%   Arabic——双轨符合 spec 意图（§2.10 人文社科 + §2.11/2.12/2.13 图表 Arabic）。已确认接受。
 \ctexset{%
   chapter={%一级标题：黑体三号(16bp)，居中，段前段后2行（HTU §2.10 人文社科 第一章）
     afterindent=true,
@@ -493,11 +496,12 @@
   },
   paragraph/afterindent=true,
   subparagraph/afterindent=true}
-% [基础] AC-3a 防御护栏：锁定 \thechapter = Arabic 计数器（Story 3.13 Task 3.2）。ctex number=\chinese{chapter}
-%   仅改 \CTEXthechapter（标题显示 第一章），此处强制 \thechapter 保持 \@arabic\c@chapter，确保 \thefigure/
-%   \thetable/\theequation（cls 上方 cls:413-418）仍呈 图 1-1 / 表 1-1 / (1-1) Arabic（§2.11/2.12/2.13）。
-%   \appendix 运行时（文档体内，晚于此处）会重定义 \thechapter 为 \@Alph（附录 A），故附录不受影响。
-%   若移除此行且 ctex 内部回写 \thechapter，图表编号将退化为 图 一-1（灾难）。ATDD I05 + unit-09/10 守卫。
+% [基础] AC-3a 防御护栏：锁定 \thechapter = Arabic 计数器（Story 3.13 Task 3.2，code review 2026-06-19 注释订正）。
+%   ctex number=\chinese{chapter} 写入 \CTEXthechapter（标题显示 第一章），不写 \thechapter（计数器宏）——ctex 源
+%   ctex-heading-book.def 验证。base book.cls 已定义 \thechapter=\@arabic\c@chapter，故此 \renewcommand 当前为 no-op，
+%   仅作防御性锁：若未来 ctex/其他宏包改写 \thechapter，此行将其钉回 Arabic，确保 \thefigure/\thetable/\theequation
+%   （cls 上方 cls:413-418）仍呈 图 1-1 / 表 1-1 / (1-1)（§2.11/2.12/2.13）。\appendix 运行时（文档体内，晚于此处）
+%   \gdef \thechapter=\@Alph（附录 A）覆盖此行，故附录 A-1 编号不受影响。ATDD I05（rendered 24 Arabic）+ unit-09/10 守卫。
 \renewcommand{\thechapter}{\@arabic\c@chapter}
 \newcounter{htu@bookmark}
 \def\htu@chapter*{%\htu@chapter*[tocline]{title}[header]
@@ -954,7 +958,8 @@
 %%      文献放在一起重新编号，先按照文献类型分类，每一类再按照作者姓氏字母顺序编号。」
 %%   2. spec §1.2.4 line 109「若文中引文文献采用页下注（脚注）的形式，每页重新编号。」
 %%   3. spec §2.4 line 197「脚注用小五号宋体字。」+ §2.14 line 285「参考文献的内容使用五号宋体字」
-%%      + line 293「序号左顶格，悬挂缩进」（标准悬挂，biblatex gb7714-2015 默认已满足；Story 3.13 实测确认 [N] flush-left，无需 \bibhang 改动）。
+%%      + line 293「序号左顶格，悬挂缩进」（标准悬挂，biblatex gb7714-2015 默认已满足；Story 3.13 实测确认 [N] flush-left
+%%        x0=70.9pt vs body-left-margin 64.4pt，delta=6.5pt 对齐 → 序号左顶格；无需 \bibhang 改动。ATDD I10 守卫）。
 %%   机制（Zy 决策 2026-06-17 Option A）：natbib+bibtex 末端 [N] 上标（case-1）→ biblatex+biber
 %%   +biblatex-gb7714-2015 双模式（case-2）。引文 → \footfullcite 每页脚注（完整 GB/T 7714 条目，
 %%   小五号宋体；per-page reset 复用 \@addtoreset{footnote}{page} cls:369 Story 3.8）；文末表 →
@@ -1006,6 +1011,12 @@
 \renewenvironment{appendix}{%
   \htu@appendix
   \gdef\@chapapp{\appendixname~\thechapter}%
+  % [基础] 附录章节 aftername + 居中本地恢复（Story 3.13 code review 2026-06-19 决策 a，§2.15 line 437）：
+  %   全局 chapter aftername={}（cls:458）服从 §2.10 正文「不空格」，但 §2.15 要求附录「序号和标题间空半格」。
+  %   \appendix 后（其后无正文章）本地覆盖 aftername=半字距 + 防御性重申居中（不依赖 \backmatter format+= 持久）。
+  %   附录当前未渲染（main.tex 无 \appendix；Story 4.1 接入时渲染验证 TC-E3-52）。
+  \ctexset{chapter/aftername=\hspace{0.5\ccwd}}%
+  \ctexset{chapter/format+=\centering}%
   % 附录编号沿用全局定义：\appendix 令 \thechapter 为字母（A、B…），
   % 故 \thefigure/\thetable/\theequation 自动呈 A-1 形式（HTU §2.11/§2.12/§2.13）。
   }{}
