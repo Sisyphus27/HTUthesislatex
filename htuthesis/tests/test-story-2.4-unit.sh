@@ -129,15 +129,19 @@ test_makeabstract_roman() {
 }
 run_test "P0" "ATDD-2.4-06" "\\htu@makeabstract retains \\pagenumbering{Roman} (AC-1)" test_makeabstract_roman
 
-# ATDD-2.4-07: cover/title pages retain \thispagestyle{htu@empty} (count >= 3) (AC-5 no number, TC-E2-17)
+# ATDD-2.4-07: cover/title pages retain \thispagestyle{htu@empty} (count >= 2) (AC-5 no number, TC-E2-17)
+# REPPOINTED 2026-06-19 (Story 3.14, Decision 2): was "count >= 3" (doctoral cover + engcover + abstractcover).
+#   Story 3.14 DELETED \htu@abstractcover (spec §1.1 line 5) → only doctoral cover + engcover retain htu@empty
+#   (= 2). FR-4 cover-no-number still holds for the 2 remaining covers. Threshold re-anchored 3 → 2.
 test_cover_empty_style() {
   [[ -f "htuthesis.cls" ]] || return 1
   local count
   count=$(grep -c '\\thispagestyle{htu@empty}' htuthesis.cls 2>/dev/null || true)
   count=$(echo "$count" | tr -d '[:space:]' | head -1)
-  [[ "$count" -ge 3 ]]
+  echo "  (thispagestyle{htu@empty} count: $count, expect >= 2 [doctoral cover + engcover; abstractcover removed])"
+  [[ "$count" -ge 2 ]]
 }
-run_test "P0" "ATDD-2.4-07" "cover/title pages retain \\thispagestyle{htu@empty} (count >= 3) (AC-5, TC-E2-17)" test_cover_empty_style
+run_test "P0" "ATDD-2.4-07" "cover/title pages retain \\thispagestyle{htu@empty} (count >= 2) (REPPOINTED by Story 3.14: was >=3; abstractcover deleted, §1.1 line 5)" test_cover_empty_style
 
 # ATDD-2.4-08: \mainmatter sets \pagestyle{htu@headings} (R-11 — main body keeps headers/footers, no 2.3 regression)
 test_mainmatter_headings() {

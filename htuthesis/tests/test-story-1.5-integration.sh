@@ -219,8 +219,8 @@ test_page_count() {
       echo "  (SKIP: pdfinfo not available, cannot verify page count)"
       return 0
     fi
-    echo "  (Page count: $pages, expected: 46-58 [re-anchored by 3.12; was 49-53])"
-    [[ "$pages" -ge 46 ]] && [[ "$pages" -le 58 ]] 2>/dev/null
+    echo "  (Page count: $pages, expected: 40-58 [re-anchored by Story 3.14: abstract cover + 10 blanks removed → 44; was 46-58 post-3.12])"
+    [[ "$pages" -ge 40 ]] && [[ "$pages" -le 58 ]] 2>/dev/null
   else
     return 1
   fi

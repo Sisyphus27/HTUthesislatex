@@ -184,25 +184,26 @@ test_warning_count() {
 }
 run_test "P0" "ATDD-3.2-I03" "warning count <= 3 (AC-9, NFR <=3 new)" test_warning_count
 
-# ATDD-3.2-I04: BEHAVIOR — page ORDER doctoral→english→abstractcover→chinese (AC-1, TC-E3-10)
-# THE AC-1 PROOF. A source-grep that \makecover calls the covers in order does NOT prove rendered order.
-# Pre-impl: abstract_cover is None (no such page) → RED. Post-impl: all 4 found and ordered → GREEN.
+# ATDD-3.2-I04: BEHAVIOR — page ORDER doctoral→english→chinese, abstract-cover ABSENT (REPPOINTED by Story 3.14)
+# REPPOINTED 2026-06-19 (Story 3.14, Decision 2): was 4-page order doctoral<english<abstract_cover<chinese (3.2 added
+#   the abstract cover under FR-12). Story 3.14 DELETED it (spec §1.1 line 5; FR-12 retired). New: 3-page order
+#   doctoral<english<chinese (contiguous, matches reference PDF pp.1-12). Assert abstract_cover None + 3-page order.
 test_page_ordering() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
-pages = {'doctoral': doctoral, 'english': english, 'abstract_cover': abstract_cover, 'chinese': chinese}
-missing = [k for k, v in pages.items() if v is None]
-if missing:
-    print('  MISSING pages: ' + ', '.join(missing) + ' (abstract_cover absent pre-impl is the RED signal)')
+if abstract_cover is not None:
+    print('  abstract-cover page FOUND at p%d — should be DELETED; RED (Story 3.14 §1.1 line 5)' % (abstract_cover+1))
     sys.exit(1)
-print('  doctoral=p%d, english=p%d, abstract_cover=p%d, chinese=p%d' %
-      (doctoral+1, english+1, abstract_cover+1, chinese+1))
-ok = doctoral < english < abstract_cover < chinese
-print('  order doctoral<english<abstract_cover<chinese: ' + ('OK' if ok else 'WRONG'))
+if None in (doctoral, english, chinese):
+    print('  MISSING cover/abstract page (doctoral/english/chinese); front-matter signature changed'); sys.exit(1)
+print('  doctoral=p%d, english=p%d, chinese=p%d (abstract-cover absent — contiguous per §1.1 line 5)' %
+      (doctoral+1, english+1, chinese+1))
+ok = doctoral < english < chinese
+print('  order doctoral<english<chinese (no abstract cover): ' + ('OK' if ok else 'WRONG'))
 sys.exit(0 if ok else 1)
 "
 }
-run_test "P0" "ATDD-3.2-I04" "BEHAVIOR: page order doctoral→english→abstractcover→chinese (AC-1, TC-E3-10; RED pre-impl — abstract cover absent)" test_page_ordering
+run_test "P0" "ATDD-3.2-I04" "BEHAVIOR: page order doctoral→english→chinese, abstract-cover ABSENT (REPPOINTED by Story 3.14: §1.1 line 5; was 4-page)" test_page_ordering
 
 # ATDD-3.2-I05: BEHAVIOR — English title ALL Latin spans = TNR (AC-2, TC-E3-11)
 # Story 3.9 made the English cover Latin = TNR; Story 3.2's rewrite (adding the 5-line degree statement)
@@ -229,26 +230,24 @@ sys.exit(0 if (lm == 0 and tnr >= 1) else 1)
 }
 run_test "P0" "ATDD-3.2-I05" "BEHAVIOR: English title page all Latin spans = TNR (AC-2, TC-E3-11; GREEN guard — 3.9 must not regress)" test_english_title_all_tnr
 
-# ATDD-3.2-I06: BEHAVIOR — abstract cover + English title NO page number — VISUAL SIGNATURE (AC-6, TC-E3-13, Decision 1)
-# Decision 1 conditional hard rule: "absence of page number" verified via VISUAL SIGNATURE (footer-band
-# get_drawings + span scan), NOT a text proxy. Both pages use \thispagestyle{htu@empty}.
-# Pre-impl: english found (GREEN for english), abstract_cover=None → can't verify → RED.
-# Post-impl: both found, both footer-band 0 drawings + 0 spans → GREEN.
+# ATDD-3.2-I06: BEHAVIOR — doctoral + English title NO page number — VISUAL SIGNATURE (REPPOINTED by Story 3.14)
+# REPPOINTED 2026-06-19 (Story 3.14, Decision 1): was "abstract cover + English title no-page-number". Story 3.14
+#   DELETED the abstract cover (§1.1 line 5) → only doctoral + English title remain with \thispagestyle{htu@empty}.
+#   Decision 1 VISUAL SIGNATURE (footer-band get_drawings + spans) — NOT a text proxy.
 test_no_page_number_visual() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 if english is None:
     print('  (English title page not found)'); sys.exit(1)
-if abstract_cover is None:
-    print('  (abstract cover page not found — cannot verify no-page-number; RED pre-impl)'); sys.exit(1)
 edc, esc = footer_band_visual(english)
-adc, asc = footer_band_visual(abstract_cover)
+ddc, dsc = footer_band_visual(doctoral) if doctoral is not None else (None, None)
+print('  doctoral=p%d footer-band drawings=%s spans=%s' % (doctoral+1 if doctoral is not None else -1, ddc, dsc))
 print('  english-title=p%d footer-band drawings=%d spans=%d' % (english+1, edc, esc))
-print('  abstract-cover=p%d footer-band drawings=%d spans=%d' % (abstract_cover+1, adc, asc))
-sys.exit(0 if (edc == 0 and esc == 0 and adc == 0 and asc == 0) else 1)
+ok = (edc == 0 and esc == 0) and (ddc == 0 and dsc == 0)
+sys.exit(0 if ok else 1)
 "
 }
-run_test "P0" "ATDD-3.2-I06" "BEHAVIOR: abstract cover + English title NO page number — VISUAL SIGNATURE (AC-6, TC-E3-13, Decision 1; RED pre-impl)" test_no_page_number_visual
+run_test "P0" "ATDD-3.2-I06" "BEHAVIOR: doctoral + English title NO page number — VISUAL SIGNATURE (REPPOINTED by Story 3.14: abstract cover deleted; §1.1 line 5)" test_no_page_number_visual
 
 echo ""
 
@@ -307,26 +306,21 @@ sys.exit(0 if not leaks else 1)
 }
 run_test "P1" "ATDD-3.2-I08" "BEHAVIOR: English title does NOT render emajor/edepartment (AC-4; RED — present pre-impl cls:652-653)" test_no_emajor_edepartment
 
-# ATDD-3.2-I09: BEHAVIOR — abstract cover element presence (AC-5, TC-E3-10/13)
-# Truth source (Task-0.2 default = .doc 摘要封面): 博士学位论文摘要 + 论文题目 + 单位代码 + 学科、专业.
-# Pre-impl: abstract_cover page does not exist → RED. Post-impl: all present → GREEN.
-# Note: if Task-0.2 picks the innovation-points structure instead, repoint these labels (Decision 2).
+# ATDD-3.2-I09: BEHAVIOR — abstract cover page ABSENT (REPPOINTED by Story 3.14; was element-presence)
+# REPPOINTED 2026-06-19 (Story 3.14): was "abstract cover elements present" (博士学位论文摘要/论文题目/单位代码/学科、专业).
+#   Story 3.14 DELETED the abstract cover (spec §1.1 line 5; FR-12 retired). This guard now asserts the page is
+#   ABSENT — reversed to the new spec-correct reality, NOT weakened. Mirrors 3.14-I04 / 3.2-01.
 test_abstract_cover_elements() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
-if abstract_cover is None:
-    print('  (abstract cover page not found — RED pre-impl, FR-12 page missing)'); sys.exit(1)
-t = doc[abstract_cover].get_text()
-required = ['博士学位论文摘要', '论文题目', '单位代码', '学科、专业']
-missing = [k for k in required if k not in t]
-if missing:
-    print('  abstract-cover=p%d MISSING: %s' % (abstract_cover+1, ', '.join(missing)))
+if abstract_cover is not None:
+    print('  abstract-cover page FOUND at p%d (博士学位论文摘要) — should be DELETED; RED (Story 3.14 §1.1 line 5)' % (abstract_cover+1))
     sys.exit(1)
-print('  abstract-cover=p%d all elements present: %s' % (abstract_cover+1, ', '.join(required)))
+print('  abstract-cover page ABSENT (FR-12 retired, §1.1 line 5) — GREEN')
 sys.exit(0)
 "
 }
-run_test "P1" "ATDD-3.2-I09" "BEHAVIOR: abstract cover element presence (博士学位论文摘要/论文题目/单位代码/学科、专业) (AC-5; RED pre-impl; Task-0.2 dependent)" test_abstract_cover_elements
+run_test "P1" "ATDD-3.2-I09" "BEHAVIOR: abstract cover page ABSENT (REPPOINTED by Story 3.14: was element-presence; now deleted §1.1 line 5, FR-12 retired)" test_abstract_cover_elements
 
 # ATDD-3.2-I10: regression — self-check textheight ~688pt unchanged (AC-9, R-1)
 # Covers are paper-absolute (TikZ overlay) — must NOT touch geometry.
@@ -360,7 +354,7 @@ test_total_pages() {
   total_pages=$(grep 'total pages = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | tr -d '[:space:]')
   if [[ -z "$total_pages" ]]; then echo "  (page count not found)"; return 1; fi
   echo "  (pages: $total_pages, expected ~50 ±5 [abstract cover +1 / declaration −1 may shift — repoint if drifts])"
-  echo "$total_pages" | awk '{if ($1 >= 44 && $1 <= 55) exit 0; else exit 1}'
+  echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 55) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-3.2-I12" "total pages ~50 ±5 (AC-9; front-matter shift — Decision 2 repoint if drifts)" test_total_pages
 

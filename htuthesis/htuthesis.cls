@@ -132,7 +132,7 @@
 %% 文前，正文，文后格式
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand\frontmatter{%
-  \cleardoublepage
+  \clearpage
   \ctexset{chapter/format+=\centering}
   \@mainmatterfalse
   \pagenumbering{Roman}
@@ -144,7 +144,7 @@
   \pagenumbering{arabic}%
   \pagestyle{htu@headings}}
 \renewcommand\backmatter{%
-  \cleardoublepage
+  \clearpage
   \ctexset{chapter/format+=\centering}
   \@mainmattertrue}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -516,7 +516,7 @@
     {\htu@@@chapter[#1]{#2}}
     {\htu@@@chapter[#1]{#2}[]}}
 \def\htu@@@chapter[#1]#2[#3]{%
-  \cleardoublepage\phantomsection%
+  \clearpage\phantomsection%
   \def\@tmpa{#1}
   \def\@tmpb{#3}
   \ifx\@tmpa\@empty
@@ -634,8 +634,8 @@
     %     (a) 拆 label/value 为双节点落进各自列（实现真 2 列），(b) 补 7 条 \draw 边线。
     %   纯 frame-ADD，不挪文本 y → R-9 ±3mm + ATDD-3.1-I06 不变。
     %   \htu@fangsong@latin：ASCII 数字/字母也走 FangSong（匹配参考论文 page 2 span 级字体）。
-    %   放弃 \htu@underline（原 value 下划线）—— 单元格边框取代之；\htu@underline 仍由
-    %   \htu@abstractcover 使用（Story 3.14 将删除该封面，届时宏成死代码）。
+    %   放弃 \htu@underline（原 value 下划线）—— 单元格边框取代之。Story 3.14 (2026-06-19)
+    %   删除 \htu@abstractcover 后，\htu@underline 零调用（死代码，留待 Epic 4 cleanup）。
     \draw[thin] ($(current page.north west)+(21.4mm,-20.5mm)$) -- ($(current page.north west)+(74.3mm,-20.5mm)$);% 上边
     \draw[thin] ($(current page.north west)+(21.4mm,-29.5mm)$) -- ($(current page.north west)+(74.3mm,-29.5mm)$);% 行1/2 分隔
     \draw[thin] ($(current page.north west)+(21.4mm,-38.4mm)$) -- ($(current page.north west)+(74.3mm,-38.4mm)$);% 行2/3 分隔
@@ -749,64 +749,10 @@
   \end{tikzpicture}%
   \null% 确保 overlay-only 页正常 shipout
 }
-\newcommand{\htu@abstractcover}{%博士学位论文摘要封面（FR-12，HTU 独有）
-  \thispagestyle{htu@empty}%
-  % [基础] 摘要封面布局：TikZ remember-picture overlay 绝对定位（mm）。
-  %   真值来源（三源三角，CLAUDE.md Decision 4；DECIDED 2026-06-15 采用 .doc 元数据封面结构）：
-  %     1) .doc 空白模板「博士学位论文摘要封面」（官方下载，权威空白形式 — 本页基准）
-  %     2) 参考论文 page 1（创新点页 = 独立提交物，非本模板范围 — Decision 4 透明偏离）
-  %     3) 本 [基础] 注释（实现层映射）
-  %   结构（.doc 摘要封面）：单位代码/学号/分类号(仿宋12pt) + 河南师范大学(宋体26pt 文本，非图像)
-  %   + 博士学位论文摘要(宋体26pt) + 论文题目：题目(黑体18pt) + 五字段(黑体15pt) + 年月(黑体15pt)。
-  \begin{tikzpicture}[remember picture, overlay]
-    % --- 元数据（左上 x≈23mm，仿宋小四≈12pt；ASCII 走 \htu@fangsong@latin 匹配 .doc）---
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (23.3mm, -22.8mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode@title\hspace{1em}%
-       \htu@underline[25mm]{\htu@schoolcode}};
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (23.3mm, -31.9mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@id@title\hspace{1em}%
-       \htu@underline[25mm]{\htu@id}};
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (23.3mm, -40.8mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel@title\hspace{1em}%
-       \htu@underline[25mm]{\htu@secretlevel}};
-    % --- 河南师范大学（宋体26pt，居中，y≈66mm；.doc 为文本，非书法体图像）---
-    \node[anchor=north, inner sep=0pt]
-      at ($(current page.north) + (0mm, -66mm)$)
-      {\fontsize{26bp}{31bp}\selectfont 河南师范大学};
-    % --- 博士学位论文摘要（宋体26pt，居中，y≈76mm）---
-    \node[anchor=north, inner sep=0pt]
-      at ($(current page.north) + (0mm, -76mm)$)
-      {\fontsize{26bp}{31bp}\selectfont 博士学位论文摘要};
-    % --- 论文题目：题目（黑体小二18pt，居中，y≈129mm；label：value）---
-    \node[anchor=north, inner sep=0pt, text width=160mm, align=center]
-      at ($(current page.north) + (0mm, -129mm)$)
-      {\sffamily\xiaoer 论文题目\htu@title@sep\htu@ctitle};
-    % --- 五字段（黑体小三15pt，左 x=60mm，label：value；y 对齐 .doc 摘要封面）---
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (60.3mm, -189mm)$)
-      {\sffamily\xiaosan\htu@subject@title\htu@title@sep\htu@csubject\htu@cmajor};
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (60.3mm, -197mm)$)
-      {\sffamily\xiaosan\htu@researchdirection@title\htu@title@sep\htu@researchdirection};
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (60.3mm, -205mm)$)
-      {\sffamily\xiaosan\htu@degreecategory@title\htu@title@sep\htu@degreecategory};
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (60.3mm, -213mm)$)
-      {\sffamily\xiaosan\htu@author@title\htu@title@sep\htu@cauthor};
-    \node[anchor=north west, inner sep=0pt]
-      at ($(current page.north west) + (60.3mm, -221mm)$)
-      {\sffamily\xiaosan\htu@supervisor@title\htu@title@sep\htu@csupervisor};
-    % --- 年月（黑体小三15pt，居中，y≈245mm；阿拉伯数字+年/月）---
-    \node[anchor=north, inner sep=0pt]
-      at ($(current page.north) + (0mm, -245mm)$)
-      {\sffamily\htu@heiti@latin\xiaosan\htu@cdate};
-  \end{tikzpicture}%
-  \null% 确保 overlay-only 页正常 shipout
-}
+% Story 3.14 (2026-06-19): \htu@abstractcover「摘要封面」DELETED — spec §1.1 line 5 前置部分枚举
+%   （封面、扉页、摘要、ABSTRACT、目录…）无「摘要封面」；参考论文 PDF pp.1-12 亦无（p3 英文扉页 →
+%   p4 中文摘要连续）。原 3.2 误加该 HTU-unique 封面；spec PRIORITY (CLAUDE.md Decision 4 修正) 删除之。
+%   FR-12 (abstract cover) RETIRED。其唯一 \htu@underline 调用归零（见 first@titlepage 注释）。
 % [基础] 声明文本真值源 = 学校统一规定的样式《独创性声明和关于论文使用授权的说明》(.doc)，
 %   spec §1.5.3（研究生本人和导师手写签名）。参考论文 PDF 不含声明页（三源空缺，Decision 4），
 %   故 .doc 为唯一 verbatim 文本源。正文用字面“河南师范大学”（法律文本安全，不用 \htu@schoolname 宏）。
@@ -847,12 +793,12 @@
   \normalsize%
   \begin{titlepage}
     \htu@first@titlepage
-    \cleardoublepage
+    \clearpage
     \htu@engcover
-    \cleardoublepage
-    \htu@abstractcover
     % 声明页在后置部分渲染（main.tex \makedeclaration，spec §1.1 结尾部分末项；FR-14），
     %   不在前置 \makecover（Story 3.2 移除；Story 3.3 在后置恢复）。
+    %   Story 3.14 (2026-06-19)：\htu@abstractcover「摘要封面」从 \makecover 删除（spec §1.1 line 5 无）；
+    %     \clearpage（非 cleardoublepage）— spec §2.4 line 189 仅 2 个起始页须右页（绪论 + 中文摘要）。
   \end{titlepage}
   \normalsize
   \htu@makeabstract
@@ -924,7 +870,7 @@
 %% 主要符号对照表
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newenvironment{denotation}[1][2.5cm]{
-  \cleardoublepage
+  \clearpage
   \htu@chapter*[]{\htu@denotation@name}
   \noindent\begin{list}{}%
     {\vskip-30bp\wuhao[1.524]%宋体五号(10.5磅)，行距16磅
@@ -943,7 +889,7 @@
 %% 致谢
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newenvironment{ack}{%
-    \cleardoublepage
+    \clearpage
     \htu@chapter*{\htu@ackname}
     % [基础] 致谢正文字体 = 小四号宋体（真值来源：spec §2.16 line 445「致谢内容一般用小四号宋体字」）。
     %   原上游模板用 \fangsong（仿宋小四）偏离 spec；参考 PDF 对致谢正文静默 → 按 Decision 4 spec 主导

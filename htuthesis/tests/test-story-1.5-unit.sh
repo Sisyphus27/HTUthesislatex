@@ -151,17 +151,21 @@ echo "=== P1: Mechanism 2 — clearemptydoublepage ==="
 # }
 # run_test "P1" "ATDD-1.5-05" "clearemptydoublepage implementation intact in cls (AC-2)" test_clearemptydoublepage_impl
 
-# ATDD-1.5-06: frontmatter/mainmatter/backmatter call cleardoublepage (AC-2)
+# ATDD-1.5-06: mainmatter retains cleardoublepage (keeper); frontmatter+backmatter converted to clearpage
+# REPPOINTED 2026-06-19 (Story 3.14, Decision 2): was "all 3 matter redefs call cleardoublepage". Story 3.14 converts
+#   frontmatter+backmatter → \clearpage per spec §2.4 line 189 (only 2 start-pages must be right pages; the 2 keepers
+#   are mainmatter=绪论/Arabic + makeabstract=Chinese-abstract/Roman). This guard now asserts the NEW reality:
+#   mainmatter KEEPS cleardoublepage (绪论 keeper); frontmatter+backmatter are clearpage (NOT cleardoublepage).
 test_matter_cleardoublepage() {
   [[ -f "htuthesis.cls" ]] || return 1
   local front main back
   front=$(grep -A2 '\\renewcommand\\frontmatter' htuthesis.cls 2>/dev/null | grep -c 'cleardoublepage' || true)
   main=$(grep -A2 '\\renewcommand\\mainmatter' htuthesis.cls 2>/dev/null | grep -c 'cleardoublepage' || true)
   back=$(grep -A2 '\\renewcommand\\backmatter' htuthesis.cls 2>/dev/null | grep -c 'cleardoublepage' || true)
-  echo "  (frontmatter: $front, mainmatter: $main, backmatter: $back cleardoublepage calls)"
-  [[ "$front" -ge 1 ]] && [[ "$main" -ge 1 ]] && [[ "$back" -ge 1 ]]
+  echo "  (frontmatter: $front, mainmatter: $main, backmatter: $back cleardoublepage calls; expect front=0, main=1, back=0)"
+  [[ "$main" -ge 1 ]] && [[ "$front" -eq 0 ]] && [[ "$back" -eq 0 ]]
 }
-run_test "P1" "ATDD-1.5-06" "frontmatter/mainmatter/backmatter call cleardoublepage (AC-2)" test_matter_cleardoublepage
+run_test "P1" "ATDD-1.5-06" "mainmatter retains cleardoublepage (keeper); frontmatter+backmatter clearpage (REPPOINTED by Story 3.14: §2.4 line 189)" test_matter_cleardoublepage
 
 echo ""
 echo "=== P1: Mechanism 3 — Float/Caption Handling ==="

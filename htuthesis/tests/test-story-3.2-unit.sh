@@ -70,37 +70,30 @@ echo ""
 # ==========================================
 echo "=== P0: abstract-cover macro + makecover order + degree statement + R-6 parbox (RED pre-impl) ==="
 
-# ATDD-3.2-01: \htu@abstractcover macro defined (AC-5, TC-E3-10/13)
-# Truth source: .doc 博士学位论文摘要封面 (FR-12 HTU-unique abstract cover — currently ABSENT from cls).
-# Pre-impl: \htu@abstractcover is not defined anywhere in the cls → RED.
-# Post-impl (Task 2.1): \newcommand{\htu@abstractcover}{...} added → GREEN.
-# Note: structure depends on Task-0.2 decision (default = .doc metadata cover). The MACRO must exist
-# regardless of which structure Zy picks; this guard is decision-agnostic.
-test_abstractcover_macro_defined() {
+# ATDD-3.2-01: \htu@abstractcover macro ABSENT (REPPOINTED by Story 3.14, Decision 2; AC-5 reframe, TC-E3-10/13)
+# REPPOINTED 2026-06-19 (Story 3.14): was "\htu@abstractcover macro defined" (3.2 added it under FR-12 HTU-unique
+#   abstract-cover assumption). Story 3.14 DELETED it — spec §1.1 line 5 前置部分枚举（封面、扉页、摘要、ABSTRACT、
+#   目录…）has NO 摘要封面; reference PDF pp.1-12 has none (p3 English → p4 Chinese contiguous). FR-12 RETIRED.
+#   This guard now asserts the NEW spec-correct reality (ABSENT) — NOT weakened; reversed to match spec-priority.
+#   Mirrors Story 3.14 ATDD-3.14-01 (the authoritative abstractcover-absent guard).
+test_abstractcover_macro_absent() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'newcommand\{?\\?htu@abstractcover\}' htuthesis.cls
+  ! grep -vE '^\s*%' htuthesis.cls | grep -q 'htu@abstractcover'
 }
-run_test "P0" "ATDD-3.2-01" "\\htu@abstractcover macro defined (AC-5; RED — absent pre-impl, FR-12 page missing)" test_abstractcover_macro_defined
+run_test "P0" "ATDD-3.2-01" "\\htu@abstractcover macro ABSENT (REPPOINTED by Story 3.14: was defined; now deleted per spec §1.1 line 5, FR-12 retired)" test_abstractcover_macro_absent
 
-# ATDD-3.2-02: \makecover calls \htu@abstractcover AFTER \htu@engcover (AC-1, TC-E3-10)
-# Truth source: epic AC order doctoral-cover → english-title → abstract-cover → chinese-abstract.
-# Pre-impl \makecover (cls:701-716): calls first@titlepage → engcover → authorization@mk (NO abstractcover) → RED.
-# Post-impl (Task 3.1): abstractcover inserted after engcover → GREEN.
-# Detection: \htu@abstractcover must appear, AND its line number must be > \htu@engcover's within \makecover.
-test_makecover_calls_abstractcover() {
+# ATDD-3.2-02: \makecover does NOT call \htu@abstractcover (REPPOINTED by Story 3.14, Decision 2; AC-1 reframe, TC-E3-10)
+# REPPOINTED 2026-06-19 (Story 3.14): was "\makecover calls \htu@abstractcover after \htu@engcover" (3.2 order
+#   doctoral→english→abstractcover→chinese). Story 3.14 removed the abstractcover call + its dead \cleardoublepage
+#   separator (spec §1.1 line 5). New order: doctoral→english→chinese (contiguous, matches reference PDF pp.1-12).
+#   This guard now asserts engcover is the LAST cover in \makecover AND abstractcover is NOT called.
+test_makecover_no_abstractcover() {
   [[ -f "htuthesis.cls" ]] || return 1
-  # Both calls must exist as bare invocations (not inside newcommand defs).
-  grep -q 'htu@abstractcover' htuthesis.cls || return 1
-  grep -q 'htu@engcover' htuthesis.cls || return 1
-  # Line numbers: abstractcover invocation must come after engcover invocation.
-  local eng_line ac_line
-  eng_line=$(grep -nE '^[[:space:]]*\\htu@engcover[[:space:]]*$|\\htu@engcover[[:space:]]*(\\cleardoublepage|%|$)' htuthesis.cls | head -1 | cut -d: -f1)
-  ac_line=$(grep -nE '^[[:space:]]*\\htu@abstractcover[[:space:]]*$|\\htu@abstractcover[[:space:]]*(\\cleardoublepage|%|$)' htuthesis.cls | head -1 | cut -d: -f1)
-  [[ -n "$eng_line" && -n "$ac_line" ]] || return 1
-  echo "  (engcover call line=$eng_line, abstractcover call line=$ac_line; expect abstractcover AFTER engcover)"
-  [[ "$ac_line" -gt "$eng_line" ]]
+  # engcover still called; abstractcover NOT called (both def + call gone from non-comment lines).
+  grep -vE '^\s*%' htuthesis.cls | grep -q 'htu@engcover' || return 1
+  ! grep -vE '^\s*%' htuthesis.cls | grep -q 'htu@abstractcover'
 }
-run_test "P0" "ATDD-3.2-02" "\\makecover calls \\htu@abstractcover after \\htu@engcover (AC-1, TC-E3-10; RED pre-impl)" test_makecover_calls_abstractcover
+run_test "P0" "ATDD-3.2-02" "\\makecover: engcover last cover, NO \\htu@abstractcover call (REPPOINTED by Story 3.14: spec §1.1 line 5; order doctoral→english→chinese)" test_makecover_no_abstractcover
 
 # ATDD-3.2-03: English title degree-statement text present (AC-2, TC-E3-11/12)
 # Truth source: .doc 扉页 + reference PDF page 3 — "the Graduate School of Henan Normal University",

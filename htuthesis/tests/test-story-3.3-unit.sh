@@ -187,13 +187,15 @@ test_first_titlepage_intact() {
 }
 run_test "P1" "ATDD-3.3-10" "regression: \\htu@first@titlepage intact (Story 3.1 doctoral cover untouched, AC-8)" test_first_titlepage_intact
 
-# ATDD-3.3-11: regression — \htu@abstractcover preserved (Story 3.2, AC-8)
-# Story 3.3 must NOT touch the abstract cover (3.2 scope). The macro must still be defined.
-test_abstractcover_intact() {
+# ATDD-3.3-11: regression — \htu@abstractcover ABSENT (REPPOINTED by Story 3.14, Decision 2)
+# REPPOINTED 2026-06-19 (Story 3.14): was "\htu@abstractcover intact (3.2 scope untouched)". Story 3.14 DELETED
+#   \htu@abstractcover (spec §1.1 line 5 前置部分无摘要封面; FR-12 retired). This guard now asserts ABSENT —
+#   reversed to the new spec-correct reality, NOT weakened. Mirrors Story 3.14 ATDD-3.14-01 / 3.2-01.
+test_abstractcover_absent() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'newcommand\{?\\?htu@abstractcover\}' htuthesis.cls
+  ! grep -vE '^\s*%' htuthesis.cls | grep -q 'htu@abstractcover'
 }
-run_test "P1" "ATDD-3.3-11" "regression: \\htu@abstractcover intact (Story 3.2 abstract cover untouched, AC-8)" test_abstractcover_intact
+run_test "P1" "ATDD-3.3-11" "regression: \\htu@abstractcover ABSENT (REPPOINTED by Story 3.14: was intact; now deleted per spec §1.1 line 5, FR-12 retired)" test_abstractcover_absent
 
 # ATDD-3.3-12: regression — \setmainfont{Times New Roman} preserved (Story 3.9, AC-8)
 # The declaration is pure CJK (no Latin-font impact), but 3.9's font stack must remain intact.
