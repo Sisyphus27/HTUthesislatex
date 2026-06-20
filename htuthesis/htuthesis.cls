@@ -293,6 +293,16 @@
 \typeout{htu@geometry@oddsidemargin=\the\dimexpr\oddsidemargin+1in\relax}
 \typeout{htu@geometry@headheight=\the\headheight}
 \typeout{htu@geometry@footskip=\the\footskip}
+%% --- Story 4.2: self-check baseline capture (WARNING threshold reference, architecture §345-353) ---
+%% Captures cls-load textheight/textwidth so \htucheck detects USER preamble drift at \AtEndDocument
+%%   (e.g. \geometry{textheight=240mm} → drift > 1mm → WARNING). Captured HERE (post-geometry,
+%%   pre-\begin{document}) so a preamble geometry override is caught. baselineskip is captured at
+%%   \AtBeginDocument instead (it is not final until \normalsize is selected at \begin{document};
+%%   cls-load \baselineskip is the base-class default, not the 23.4bp body value -- would false-WARN).
+%%   Self-calibrating: if .def geometry changes, baselines updates -- no false WARNING.
+\edef\htu@base@textheight{\the\textheight}
+\edef\htu@base@textwidth{\the\textwidth}
+\AtBeginDocument{\edef\htu@base@baselineskip{\the\baselineskip}}
 %% --- End dimension output ---
 \ctexset{%
   punct=quanjiao,
@@ -842,6 +852,8 @@
     pdfkeywords={\htu@ckeywords},
     pdfcreator={\htuthesis-v\version}}}
 \newcommand{\makecover}{%制作封面
+  \ifx\htu@ctitle\@empty\PackageError{htuthesis}{htuthesis ERROR: Chinese title (\protect\ctitle) is empty -- cover cannot render without a title (Story 4.2, deferred-work §3.2).}{Set the title via \protect\ctitle{...} in the preamble.}\fi
+  \ifx\htu@etitle\@empty\PackageError{htuthesis}{htuthesis ERROR: English title (\protect\etitle) is empty (Story 4.2, deferred-work §3.2).}{Set the title via \protect\etitle{...} in the preamble.}\fi
   \htu@setup@pdfinfo
   \phantomsection
   \pdfbookmark[-1]{\htu@ctitle}{ctitle}
@@ -1047,6 +1059,8 @@
 \AddToHook{shipout/after}{\stepcounter{htu@totalpages}}
 \newcommand{\htucheck}{%
   \typeout{=== HTU Layout Self-Check ===}%
+  %% --- dimension report (these 8 lines + markers are IMMUTABLE — Epic 2-3 ATDD greps + Story 4.4 ---
+  %%     checklist depend on the 'name = value' prefix; Story 4.2 appends verdict/sections only, AC-8)
   \typeout{textheight = \the\textheight}%
   \typeout{textwidth = \the\textwidth}%
   \typeout{baselineskip = \the\baselineskip}%
@@ -1055,6 +1069,62 @@
   \typeout{oddsidemargin = \the\oddsidemargin}%
   \typeout{total pages = \the\numexpr\c@htu@totalpages+1\relax}%
   \typeout{page counter = \the\c@page}%
+  %% --- WARNING tier (non-fatal, \PackageWarning; architecture §345-353) ---
+  %%     margin deviation >1mm or baselineskip drift >0.5bp → log + continue (exit 0, pdf built).
+  %%     ERROR tier (font missing) handled by cls:71-88 gates + the font-block defense-in-depth below.
+  \ifdim\textheight>\dimexpr\htu@base@textheight+1mm\relax
+    \PackageWarning{htuthesis}{WARNING: textheight = \the\textheight\space (expected \htu@base@textheight, drift > 1mm)}%
+  \else\ifdim\textheight<\dimexpr\htu@base@textheight-1mm\relax
+    \PackageWarning{htuthesis}{WARNING: textheight = \the\textheight\space (expected \htu@base@textheight, drift > 1mm)}%
+  \fi\fi
+  \ifdim\textwidth>\dimexpr\htu@base@textwidth+1mm\relax
+    \PackageWarning{htuthesis}{WARNING: textwidth = \the\textwidth\space (expected \htu@base@textwidth, drift > 1mm)}%
+  \else\ifdim\textwidth<\dimexpr\htu@base@textwidth-1mm\relax
+    \PackageWarning{htuthesis}{WARNING: textwidth = \the\textwidth\space (expected \htu@base@textwidth, drift > 1mm)}%
+  \fi\fi
+  \ifdim\baselineskip>\dimexpr\htu@base@baselineskip+0.5bp\relax
+    \PackageWarning{htuthesis}{WARNING: baselineskip = \the\baselineskip\space (expected ~23.4bp, drift > 0.5bp)}%
+  \else\ifdim\baselineskip<\dimexpr\htu@base@baselineskip-0.5bp\relax
+    \PackageWarning{htuthesis}{WARNING: baselineskip = \the\baselineskip\space (expected ~23.4bp, drift > 0.5bp)}%
+  \fi\fi
+  \ifnum\c@htu@totalpages<1 \PackageWarning{htuthesis}{WARNING: total pages = 0 (no pages shipped -- possible compile anomaly)}\fi
+  %% --- font check (defense-in-depth; cls:71-88 gates already halt on missing font, so all 5 are ---
+  %%     found here on a correct compile. A 'missing' line means the earlier gate failed silently ---
+  %%     = R-24 residual concern caught -> \PackageError halt. NFR-2.)
+  \typeout{--- font check ---}%
+  \IfFontExistsTF{SimSun}{\typeout{SimSun: found [PASS]}}{\typeout{SimSun: missing [ERROR]}\PackageError{htuthesis}{htuthesis ERROR: self-check font SimSun missing (cls:71 gate should have halted earlier -- R-24 residual)}{}}%
+  \IfFontExistsTF{SimHei}{\typeout{SimHei: found [PASS]}}{\typeout{SimHei: missing [ERROR]}\PackageError{htuthesis}{htuthesis ERROR: self-check font SimHei missing}{}}%
+  \IfFontExistsTF{KaiTi}{\typeout{KaiTi: found [PASS]}}{\typeout{KaiTi: missing [ERROR]}\PackageError{htuthesis}{htuthesis ERROR: self-check font KaiTi missing}{}}%
+  \IfFontExistsTF{FangSong}{\typeout{FangSong: found [PASS]}}{\typeout{FangSong: missing [ERROR]}\PackageError{htuthesis}{htuthesis ERROR: self-check font FangSong missing}{}}%
+  \IfFontExistsTF{Times New Roman}{\typeout{Times New Roman: found [PASS]}}{\typeout{Times New Roman: missing [ERROR]}\PackageError{htuthesis}{htuthesis ERROR: self-check font Times New Roman missing}{}}%
+  %% --- 14 silent-failure coverage map (architecture §155-174; NFR-4) ---
+  %%     ASSERTED = compile-time-observable (\the<dim>/.aux/.log). rendered = fitz ATDD owns it ---
+  %%     (wrong-target-AC discipline, Epic 3 retro Lesson 3 / R-25: self-check does NOT assert a ---
+  %%     rendered property via a \the<dim> proxy; it maps it to the fitz ATDD that probes the span).
+  \typeout{--- silent-failure coverage map (14 items) ---}%
+  \typeout{[01] body baselineskip ~23bp (Word 1.5x): ASSERTED (WARNING above if drift > 0.5bp)}%
+  \typeout{[02] EN-abstract baselineskip 23.4bp: PROXIED -- rendered guard ATDD-3.4-I06 / ATDD-3.11-I07}%
+  \typeout{[03] counter separators '-' not '.': ASSERTED via .aux scan (ATDD-2.6 unit)}%
+  \typeout{[04] even-page rightmark/leftmark: rendered -- ATDD-2.3}%
+  \typeout{[05] fancyhdr header-truncation (head-room): ASSERTED via .log overflow-grep (ATDD-2.2)}%
+  \typeout{[06] blank-page header/number residue: rendered -- ATDD-2.4-25 / ATDD-3.14}%
+  \typeout{[07] makecaption CN/EN switch: rendered -- ATDD-3.6}%
+  \typeout{[08] TOC dot-leader width overflow: rendered -- ATDD-3.5-I09}%
+  \typeout{[09] spine page-number position: rendered -- ATDD-2.4}%
+  \typeout{[10] TOC dot-leader + pagenum align: rendered -- ATDD-3.5-I09}%
+  \typeout{[11] references style detail: ASSERTED via .bbl scan (ATDD-3.7 / ATDD-3.12)}%
+  \typeout{[12] PDF bookmark hierarchy: rendered -- manual epic-gate}%
+  \typeout{[13] TOC L1 number-prefix font SimHei (G1): rendered -- ATDD-3.15-G1}%
+  \typeout{[14] heading/TOC Latin TNR not LMSans (G6): rendered -- ATDD-3.15-G6}%
+  %% --- assertion audit (wrong-target-AC, Epic 3 retro action #3, R-25) ---
+  %%     flags which self-check assertions are PROXIED (internal dim for a rendered property) so a ---
+  %%     reviewer knows a green self-check is NOT spec-compliance evidence for those properties.
+  %%     (Avoid the literal '!=' / '!' in \typeout text -- a wrapped log line starting with '!' ---
+  %%     falsely trips the standard '^!' TeX-error grep; Story 4.2 I01 regression-guard.)
+  \typeout{--- assertion audit ---}%
+  \typeout{PROXIED: [01] baselineskip-for-spacing, [02] EN-abstract baselineskip (scope not isolated here)}%
+  \typeout{RENDERED-DIRECT evidence lives in the fitz ATDDs cited above}%
+  \typeout{(a green self-check is NOT spec-compliance evidence for the proxied properties)}%
   \typeout{=== End Self-Check ===}%
 }
 \AtEndDocument{%
