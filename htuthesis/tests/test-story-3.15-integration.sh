@@ -182,7 +182,7 @@ test_g1_toc_numberprefix_simhei() {
   python -c "$PY_HEAD
 if toc is None:
     print('  (TOC page not found — RED/inconclusive)'); sys.exit(1)
-chap_re = re.compile(r'^第[一二三四五六七八九十百]+章\$')
+chap_re = re.compile(r'^第[一二三四五六七八九十百]+章')
 prefixes = []
 for sp in spans_band(toc, 11, 15):
     t = sp['text'].strip()
@@ -246,7 +246,7 @@ leak = []; latin_total = 0
 for pno in range(doc.page_count):
     if pno in (cover, toc, eabstract):
         continue
-    for sp in spans_band(pno, 14.5, 17.5):  # chapter 16bp / section 15bp heading band
+    for sp in spans_band(pno, 13.5, 17.5):  # chapter 16bp / section 15bp / subsection 14bp heading band (floor lowered 13.5 to cover subsection \sihao)
         t = sp['text'].strip()
         if re.search(r'[A-Za-z]', t) and not re.fullmatch(r'\d+', t):
             latin_total += 1
@@ -349,7 +349,7 @@ echo "=== P1: G3 numbering=sc renders NS 1/2 (TC-E3-63) + default hs renders 第
 test_g3_sc_renders_ns() {
   if [[ ! -f "main.tex" ]] || [[ ! -f "htuthesis.cls" ]]; then return 1; fi
   # Temp numbering=sc variant (same dir as main.tex so \input paths resolve). main.tex untouched.
-  sed 's/\\documentclass\[doctor\]{htuthesis}/\\documentclass[doctor,numbering=sc]{htuthesis}/' main.tex > .atdd-315-sc.tex 2>/dev/null
+  sed 's/\\documentclass\[/\\documentclass[numbering=sc,/' main.tex > .atdd-315-sc.tex 2>/dev/null
   if [[ ! -s ".atdd-315-sc.tex" ]]; then
     echo "  (temp .atdd-315-sc.tex not created — main.tex documentclass signature changed? RED/inconclusive)"; return 1
   fi
@@ -443,8 +443,6 @@ test_geometry_baselineskip_unchanged() {
   bs=$(grep 'baselineskip = ' main.log 2>/dev/null | head -1 | sed 's/.*= //' | sed 's/pt.*//')
   if [[ -z "$th" ]] || [[ -z "$bs" ]]; then echo "  (self-check dims not found)"; return 1; fi
   echo "  (textheight: ${th}pt [expect ~688.56]; baselineskip: ${bs}pt [expect ~23.49])"
-  echo "$th" | awk '{if ($1 >= 686 && $1 <= 690) t=1; else t=0}'
-  echo "$bs" | awk '{if ($1 >= 22.5 && $1 <= 24.5) b=1; else b=0; exit}'
   local trc brc
   echo "$th" | awk '{exit ($1 >= 686 && $1 <= 690) ? 0 : 1}'; trc=$?
   echo "$bs" | awk '{exit ($1 >= 22.5 && $1 <= 24.5) ? 0 : 1}'; brc=$?

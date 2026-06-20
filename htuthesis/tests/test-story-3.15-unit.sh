@@ -128,14 +128,13 @@ src = open("htuthesis.cls", encoding="utf-8").read()
 lines = [ln for ln in src.splitlines() if not ln.lstrip().startswith("%")]
 text = "\n".join(lines)
 bad = []
-for level in ("chapter", "section", "subsection"):
-    m = re.search(r'\\ctexset\s*%\s*\n\s*' if False else r'' , text)  # placeholder noop
-# scope to the \ctexset{...} heading block
+# scope to the \ctexset{...} heading block (HS default; the sc override block carries the same guard — rendered I05/I06 covers both)
 m = re.search(r'\\ctexset\{%', text)
 block = text[m.start():] if m else text
-# find each "level={...format={...}}" — grab the format= value per level
+# find each "level={...format={...}}" — grab the format= value per level.
+# Anchor level with a preceding non-letter boundary so "section" does not match inside "subsection".
 for level in ("chapter", "section", "subsection"):
-    lm = re.search(r'%?\s*' + level + r'\s*=\s*\{', block)
+    lm = re.search(r'(?<![a-z])' + level + r'\s*=\s*\{', block)
     if not lm:
         continue
     # grab a window after the level opening brace
@@ -232,7 +231,7 @@ test_g4_cover_date_cn_mechanism() {
   #   undefined \CJKdigits/\CJKnumber, xeCJK doesn't provide them). Pre-impl: \cdate{\CJK@todaysmall@short} (Arabic).
   #   Authoritative rendered-glyph proof = integration ATDD-3.15-I08.
   local cls_node
-  cls_node=$(grep -vE '^[[:space:]]*%' htuthesis.cls | grep -cE '\\cdate\{\\(zhdigits|zhnumber|CJK@todaybig|CJKdigits)' || true)
+  cls_node=$(grep -vE '^[[:space:]]*%' htuthesis.cls | grep -cE '\\cdate\{\\(zhdigits|zhnumber)' || true)
   cls_node=$(echo "$cls_node" | tr -d '[:space:]' | head -1)
   echo "  (cover.tex active CJK \\cdate: $cover_active; cls active CJK-numeral \\cdate setter: $cls_node)"
   [[ "$((cover_active + cls_node))" -ge 1 ]]

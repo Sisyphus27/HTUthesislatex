@@ -27,6 +27,8 @@
 %   false(默认)=人文社科 hs（第一章/第一节/一、/（1）；Story 3.13 实现）；
 %   true=自然科学 sc（opt-in：1/1.1/1.1.1 半角 + 编号名空半格 §2.10 line 237；Story 3.13 曾删此路径，G3 恢复为可选）。
 %   spec §2.10 列 NS 为主路径、HS 为人文备选——模板为对齐参考论文（任子辛，政治与公共管理学院）默认 hs，sc 供理科 opt-in。
+%   ✅ Zy 批准 2026-06-20 code-review：默认 hs（D-22 已批 + review 再确认）。透明偏离 = spec §2.10 列 NS 为主路径，
+%      默认 hs 为参考论文（文科实例）对齐 + 保持当前行为；参考 PDF 按 D-20 仅辅助，此偏离记入此注释 + story Review Findings。
 \newif\ifhtu@numbersc\htu@numberscfalse
 \DeclareOption{numbering=sc}{\htu@numbersctrue}
 \DeclareOption{numbering=hs}{\htu@numberscfalse}
@@ -644,6 +646,8 @@
   %   故用 zhnumber 直接渲染而非 \CJK@todaybig。
   %   设计决策（story Dev Notes §G4）：保留模板既有「编译日期」设计（\the\year/\the\month）；G4 闭合「字形」gap
   %   （阿拉伯→中文数字）。论文实际提交日 ≈ 编译日；若需显式论文年/月，未来增强暴露 \cdateyear/\cdatemonth。
+  %   ✅ Zy 批准 2026-06-20 code-review：选项 (a) 编译日 + 中文数字字形（spec §1.1.1「用中文表示」合规；
+  %      透明偏离 = 日期值用编译日非显式提交日，记入此注释 + story Review Findings）。
   \cdate{\zhdigits{\the\year} 年 \zhnumber{\the\month} 月}%
 \edate{\ifcase \month \or January\or February\or March\or April\or May%
        \or June\or July \or August\or September\or October\or November
