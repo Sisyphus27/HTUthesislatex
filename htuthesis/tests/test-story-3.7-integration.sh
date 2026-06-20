@@ -76,6 +76,23 @@ run_test() {
   fi
 }
 
+# --- Story 3.15 Red-Phase Gate (wrong-target-AC refactor — G1–G6) ---
+# These assertions probe the RENDERED SPAN the spec governs (fitz font/size/position), NOT a code grep or a proxied
+# target — the root-cause discipline of the 2026-06-19 spec→code audit (sprint-change-proposal-2026-06-19, 6 residual
+# gaps G1–G6; D-22). Isolated from the global SKIP so the existing 575-PASS baseline is preserved while Story 3.15 code
+# is pending (sprint-status: backlog). Activate: ATDD_315_SKIP=0 bash tests/test-story-3.7-integration.sh --run
+SKIP_315="${ATDD_315_SKIP:-1}"
+run_test_315() {
+  local priority="$1"; local test_id="$2"; local description="$3"
+  if [[ "$SKIP_315" == "1" ]]; then
+    yellow "[$priority] $test_id: $description  [Story 3.15 RED-phase]"
+    ((SKIP_COUNT++)); return 0
+  fi
+  shift 3; "$@"
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  else red "[$priority] $test_id: $description"; ((FAIL++)); fi
+}
+
 echo "=============================================="
 echo "ATDD Integration Tests: Story 3.7 — Structured back matter (references, appendix)"
 echo "TDD Phase: $([ "$SKIP" == "1" ] && echo "RED (skipped)" || echo "ACTIVE")"
@@ -490,6 +507,36 @@ sys.exit(0)
 "
 }
 run_test "P2" "ATDD-3.7-I16" "DIAGNOSTIC: references layout for reference-overlay (AC visual-sampling #8)" test_refs_layout_diagnostic
+
+echo ""
+
+# ==========================================
+# Story 3.15 Red-Phase — G5a appendix env body explicitly 小四宋体 (§2.15, TC-E3-62)
+# ==========================================
+echo "=== Story 3.15 RED: G5a appendix env body explicit 小四宋体 (§2.15; RED pre-impl — implicit \\normalsize) ==="
+
+# ATDD-3.7-I17 (Story 3.15): SOURCE-LEVEL — appendix env body explicitly 小四宋体 (G5a, TC-E3-62)
+# WRONG-TARGET-AC note: the appendix does NOT render in main.pdf (main.tex has no \appendix; G5b = Story 4.1 wiring).
+#   The RENDERED proof is therefore blocked on 4.1. This is the available SOURCE-LEVEL probe: the appendix env
+#   (cls \renewenvironment{appendix} begin-clause) must explicitly set body font \xiaosi\songti. Spec §2.15 line 439:
+#   "附录内容一般用小四号宋体字". Pre-impl: the env body relies on implicit \normalsize (cls:957-968 has aftername +
+#   centering but NO \xiaosi\songti) → RED. Post-impl (Story 3.15 G5a): explicit \xiaosi\songti → GREEN.
+#   RENDERED appendix-body proof → Epic 4.1 (G5b wires \appendix + data/app0*.tex).
+test_appendix_body_font_source() {
+  [[ -f "htuthesis.cls" ]] || return 1
+  python -c "
+import sys
+src = open('htuthesis.cls', encoding='utf-8').read()
+idx = src.find(r'\renewenvironment{appendix}')
+if idx < 0:
+    print('  (appendix env marker \\\\renewenvironment{appendix} not found — RED)'); sys.exit(1)
+region = src[idx:idx+900]   # the env begin-clause (aftername + centering + font when present)
+has_font = (r'\xiaosi' in region) and ('songti' in region.lower())
+print('  appendix env region has explicit \\\\xiaosi\\\\songti: %s' % has_font)
+sys.exit(0 if has_font else 1)
+"
+}
+run_test_315 "P1" "ATDD-3.7-I17" "SOURCE-LEVEL: appendix env body explicit 小四宋体 (G5a, TC-E3-62, §2.15; RED pre-impl — implicit \\normalsize; rendered → 4.1)" test_appendix_body_font_source
 
 echo ""
 

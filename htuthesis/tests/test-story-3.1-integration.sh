@@ -73,6 +73,23 @@ run_test() {
   fi
 }
 
+# --- Story 3.15 Red-Phase Gate (wrong-target-AC refactor — G1–G6) ---
+# These assertions probe the RENDERED SPAN the spec governs (fitz font/size/position), NOT a code grep or a proxied
+# target — the root-cause discipline of the 2026-06-19 spec→code audit (sprint-change-proposal-2026-06-19, 6 residual
+# gaps G1–G6; D-22). Isolated from the global SKIP so the existing 575-PASS baseline is preserved while Story 3.15 code
+# is pending (sprint-status: backlog). Activate: ATDD_315_SKIP=0 bash tests/test-story-3.1-integration.sh --run
+SKIP_315="${ATDD_315_SKIP:-1}"
+run_test_315() {
+  local priority="$1"; local test_id="$2"; local description="$3"
+  if [[ "$SKIP_315" == "1" ]]; then
+    yellow "[$priority] $test_id: $description  [Story 3.15 RED-phase]"
+    ((SKIP_COUNT++)); return 0
+  fi
+  shift 3; "$@"
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  else red "[$priority] $test_id: $description"; ((FAIL++)); fi
+}
+
 echo "=============================================="
 echo "ATDD Integration Tests: Story 3.1 — Doctoral cover page"
 echo "TDD Phase: $([ "$SKIP" == "1" ] && echo "RED (skipped)" || echo "ACTIVE")"
@@ -401,6 +418,41 @@ sys.exit(0 if (font_ok and size_ok) else 1)
 "
 }
 run_test "P2" "ATDD-3.1-I16" "博士学位论文 label font = SimSun ~45pt (AC-3; RED pre-impl SimHei 36pt)" test_label_simsum
+
+echo ""
+
+# ==========================================
+# Story 3.15 Red-Phase — G4 cover date Chinese numerals (§1.1.1, TC-E3-58)
+# ==========================================
+echo "=== Story 3.15 RED: G4 cover date = Chinese numerals 二〇…年…月 (§1.1.1; RED pre-impl — Arabic) ==="
+
+# ATDD-3.1-I17 (Story 3.15): BEHAVIOR — cover date renders Chinese numerals, NOT Arabic digits (G4, TC-E3-58)
+# WRONG-TARGET-AC root cause: no prior test asserted the cover-date GLYPH form — the 2026-06-19 audit's G4 gap.
+#   REPPOINTED (Story 3.15 G4 impl): actual fix site = cls:602 \cdate setter (NOT cls:601/615-617/697 — the audit's
+#   stale refs). Pre-impl \cdate{\CJK@todaysmall@short} = Arabic; post-impl \cdate{\zhdigits{\the\year} 年
+#   \zhnumber{\the\month} 月} via zhnumber package (cls:186 \CJK@todaybig was dead code — \CJKdigits/\CJKnumber
+#   undefined in xeCJK). Spec §1.1.1 line 33 wants Chinese numerals "二〇二四年五月" (D-20 spec PRIORITY). Probe the
+#   RENDERED date span: must contain a CJK numeral char (〇/零/一二…) AND no 4-consecutive-ASCII-digit year.
+#   ⚠ G4 design decision (story Dev Notes §G4): the date VALUE stays compile-time (template's existing design — a
+#   thesis compiled at submission renders the submission date); G4 closes the GLYPH gap only.
+#   Pre-impl: Arabic year → RED. Post-impl: Chinese numerals → GREEN.
+test_cover_date_chinese_numerals() {
+  if [[ ! -f "main.pdf" ]]; then return 1; fi
+  python -c "$PY_HEAD
+cn_digit = __import__('re').compile(r'[〇零一二三四五六七八九]')
+arabic_year = __import__('re').compile(r'(?:19|20)\d{2}')
+date_blk = next((b for b in blocks() if '年' in b['txt'] and '月' in b['txt']), None)
+if date_blk is None:
+    print('  (no date block (年+月) on cover — RED)'); sys.exit(1)
+has_cn = bool(cn_digit.search(date_blk['txt']))
+has_arabic_year = bool(arabic_year.search(date_blk['txt']))
+print('  cover date block=%r cn_numeral=%s arabic_year=%s (G4 §1.1.1 二〇…年…月)' %
+      (date_blk['txt'][:24], has_cn, has_arabic_year))
+# G4 GREEN: CJK numeral present AND no Arabic 4-digit year. Pre-impl: Arabic year → RED.
+sys.exit(0 if (has_cn and not has_arabic_year) else 1)
+"
+}
+run_test_315 "P2" "ATDD-3.1-I17" "BEHAVIOR: cover date = Chinese numerals 二〇… (G4, TC-E3-58, §1.1.1; RED pre-impl — Arabic)" test_cover_date_chinese_numerals
 
 echo ""
 

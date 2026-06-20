@@ -78,6 +78,22 @@ run_test() {
   fi
 }
 
+# --- Story 3.15 Red-Phase Gate (wrong-target-AC refactor — G1–G6) ---
+# These unit source-greps prove the WIRING the integration fitz tests render (G3 numbering= option declaration).
+# Isolated from the global SKIP so the existing baseline is preserved while Story 3.15 code is pending (backlog).
+# Activate: ATDD_315_SKIP=0 bash tests/test-story-3.13-unit.sh --run
+SKIP_315="${ATDD_315_SKIP:-1}"
+run_test_315() {
+  local priority="$1"; local test_id="$2"; local description="$3"
+  if [[ "$SKIP_315" == "1" ]]; then
+    yellow "[$priority] $test_id: $description  [Story 3.15 RED-phase]"
+    ((SKIP_COUNT++)); return 0
+  fi
+  shift 3; "$@"
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  else red "[$priority] $test_id: $description"; ((FAIL++)); fi
+}
+
 echo "=============================================="
 echo "ATDD Unit Tests: Story 3.13 — spec-priority correction pack (§2.8/2.10/2.11-2.12/2.14/2.15)"
 echo "TDD Phase: $([ "$SKIP" == "1" ] && echo "RED (skipped)" || echo "ACTIVE")"
@@ -209,6 +225,26 @@ test_float_counter_arabic() {
   grep -vE '^\s*%' htuthesis.cls | grep -qE '\\@arabic\\c@figure'
 }
 run_test "P1" "ATDD-3.13-10" "float counter \\thefigure = \\thechapter-\\@arabic (AC-3a; GREEN — mechanism intact; figures stay 图 1-1)" test_float_counter_arabic
+
+echo ""
+
+# ==========================================
+# Story 3.15 Red-Phase — G3 numbering=sc option declaration (§2.10, TC-E3-63 wiring)
+# ==========================================
+echo "=== Story 3.15 RED: G3 numbering=sc option declared (NS-path restore, §2.10; RED pre-impl — 3.13 deleted NS) ==="
+
+# ATDD-3.13-11 (Story 3.15): SOURCE-LEVEL — numbering=sc option declared (G3 NS-path restore, TC-E3-63 wiring)
+# WRONG-TARGET-AC complement: integration I14 proves numbering=sc RENDERS NS chapter 1/2; this unit grep proves the
+#   OPTION IS DECLARED (the wiring). Spec §2.10 line 235 lists natural-science "1、1.1、1.1.1" as the PRIMARY path;
+#   Story 3.13 DELETED it (cls:447-498 "NS deleted"); G3 restores it as a `numbering=sc|hs` cls option (default hs).
+#   Pre-impl: no \DeclareOption{numbering=sc} → RED. Post-impl: option declared → GREEN.
+#   (Canonical form: \DeclareOption{numbering=sc}{...}. Dev may also declare numbering=hs + set a default; the sc
+#   declaration is the G3 NS-restore proof. Repoint if the dev uses a different option mechanism — keyval/\newif.)
+test_numbering_sc_option_declared() {
+  [[ -f "htuthesis.cls" ]] || return 1
+  grep -vE '^\s*%' htuthesis.cls | grep -qE 'DeclareOption\{numbering=sc\}'
+}
+run_test_315 "P1" "ATDD-3.13-11" "SOURCE-LEVEL: numbering=sc option declared (G3 NS-path restore, TC-E3-63 wiring, §2.10; RED pre-impl — 3.13 deleted NS)" test_numbering_sc_option_declared
 
 echo ""
 

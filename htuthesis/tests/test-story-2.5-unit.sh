@@ -105,7 +105,7 @@ run_test "P0" "ATDD-2.5-03" "def chapter spacing = 46.8bp/46.8bp (REPOINTED by S
 test_section_xiaosan_centered() {
   [[ -f "htuthesis.cls" ]] || return 1
   sed -n '/section={/,/^  },/p' htuthesis.cls 2>/dev/null \
-    | grep -q 'format={\\sffamily\\xiaosan.*\\centering}'
+    | grep -q 'format={\\sffamily\\htu@tnr\\xiaosan.*\\centering}'
 }
 run_test "P0" "ATDD-2.5-04" "section format = \\xiaosan + \\centering (AC-3, TC-E2-23)" test_section_xiaosan_centered
 
@@ -126,7 +126,7 @@ test_subsection_sihao_indent() {
   [[ -f "htuthesis.cls" ]] || return 1
   local block
   block=$(sed -n '/subsection={/,/^  },/p' htuthesis.cls 2>/dev/null)
-  echo "$block" | grep -q 'indent=2\\ccwd' && echo "$block" | grep -q 'format={\\sffamily\\sihao'
+  echo "$block" | grep -q 'indent=2\\ccwd' && echo "$block" | grep -q 'format={\\sffamily\\htu@tnr\\sihao'
 }
 run_test "P0" "ATDD-2.5-06" "subsection = \\sihao + indent=2\\ccwd (AC-4, TC-E2-24)" test_subsection_sihao_indent
 
@@ -195,7 +195,7 @@ run_test "P0" "ATDD-2.5-12" "page-number footer unchanged \\fancyfoot[LE,RO] (St
 test_chapter_font_unchanged() {
   [[ -f "htuthesis.cls" ]] || return 1
   sed -n '/chapter={/,/lofskip/p' htuthesis.cls 2>/dev/null \
-    | grep -q 'format={\\sffamily\\sanhao'
+    | grep -q 'format={\\sffamily\\htu@tnr\\sanhao'
 }
 run_test "P0" "ATDD-2.5-13" "chapter font unchanged \\sffamily\\sanhao (三号 16bp Heiti)" test_chapter_font_unchanged
 

@@ -23,6 +23,13 @@
 \DeclareOption{bachelor}{\ClassError{htuthesis}{bachelor option removed: this template now only supports doctoral theses}{}}
 \DeclareOption{master}{\ClassError{htuthesis}{master option removed: this template now only supports doctoral theses}{}}
 \DeclareOption{openright}{\htu@openrighttrue}
+% [基础] 标题编号制 numbering=sc|hs（spec §2.10 line 235；Story 3.15 G3 / D-22）。
+%   false(默认)=人文社科 hs（第一章/第一节/一、/（1）；Story 3.13 实现）；
+%   true=自然科学 sc（opt-in：1/1.1/1.1.1 半角 + 编号名空半格 §2.10 line 237；Story 3.13 曾删此路径，G3 恢复为可选）。
+%   spec §2.10 列 NS 为主路径、HS 为人文备选——模板为对齐参考论文（任子辛，政治与公共管理学院）默认 hs，sc 供理科 opt-in。
+\newif\ifhtu@numbersc\htu@numberscfalse
+\DeclareOption{numbering=sc}{\htu@numbersctrue}
+\DeclareOption{numbering=hs}{\htu@numberscfalse}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{ctexbook}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 选项处理 (Option processing)
@@ -43,6 +50,7 @@
 \fi
 \RequirePackage{environ}
 \RequirePackage{xparse}
+\RequirePackage{zhnumber}% Story 3.15 G4：封面日期中文数字（\zhdigits/\zhnumber；spec §1.1.1 二〇…年…月）。
 \RequirePackage{tikz}
 \usetikzlibrary{calc}% Story 3.1 封面绝对定位（$(current page) + (offset)$ 坐标计算）
 \RequirePackage{etoolbox}
@@ -107,6 +115,10 @@
 %   仅封面 \htu@first@titlepage 使用，不影响正文（正文 Latin 仍走 \rmfamily=TNR）。
 \newfontfamily\htu@fangsong@latin{FangSong}
 \newfontfamily\htu@heiti@latin{SimHei}
+% [基础] Latin Times New Roman 开关（Story 3.15 G6）——\sffamily 实现 CJK 黑体（via \setCJKsansfont{SimHei}
+%   cls:102）但其 Latin 泄漏至 LMSans（章节/目录标题的 Latin「TEX/LaTeX」渲染 LMSans 非 TNR）。\htu@tnr 在
+%   \sffamily 后显式钉 Latin = TNR（\newfontfamily 仅切 Latin，不动 CJK）→ CJK 黑体 + Latin TNR。spec §2.6/§2.10。
+\newfontfamily\htu@tnr{Times New Roman}
 \RequirePackage{geometry}%页边距设置
 \RequirePackage{fancyhdr}%页眉页脚管理
 \RequirePackage{tabularx}%表格宽度控制
@@ -133,19 +145,19 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand\frontmatter{%
   \clearpage
-  \ctexset{chapter/format+=\centering}
+  \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
   \@mainmatterfalse
   \pagenumbering{Roman}
   \pagestyle{htu@plain}}
 \renewcommand\mainmatter{%
   \cleardoublepage
-  \ctexset{chapter/format+=\centering}
+  \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
   \@mainmattertrue
   \pagenumbering{arabic}%
   \pagestyle{htu@headings}}
 \renewcommand\backmatter{%
   \clearpage
-  \ctexset{chapter/format+=\centering}
+  \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
   \@mainmattertrue}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 中文配置
@@ -460,7 +472,7 @@
     beforeskip=\htu@chapter@beforeskip,
     aftername={},%§2.10 人文社科「标题编号和标题名称间不空格」（原 \hskip\ccwd 为自然科学制，删）
     afterskip=\htu@chapter@afterskip,
-    format={\sffamily\sanhao[\htu@chapter@linespread]},
+    format={\sffamily\htu@tnr\sanhao[\htu@chapter@linespread]},
     name={第,章},
     number=\chinese{chapter},
     nameformat=\relax,
@@ -472,7 +484,7 @@
     afterindent=true,
     beforeskip={\htu@section@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@section@afterskip \@plus .2ex},
-    format={\sffamily\xiaosan[\htu@section@linespread]\centering},
+    format={\sffamily\htu@tnr\xiaosan[\htu@section@linespread]\centering},
     name={第,节},
     number=\chinese{section},
   },
@@ -481,7 +493,7 @@
     indent=2\ccwd,
     beforeskip={\htu@subsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsection@afterskip \@plus .2ex},
-    format={\sffamily\sihao[\htu@subsection@linespread]},
+    format={\sffamily\htu@tnr\sihao[\htu@subsection@linespread]},
     name={,、},
     number=\chinese{subsection},
   },
@@ -496,6 +508,32 @@
   },
   paragraph/afterindent=true,
   subparagraph/afterindent=true}
+% [基础] 自然科学制（numbering=sc）ctex 覆盖（spec §2.10 line 235-237；Story 3.15 G3 / D-22）。
+%   默认 hs（上方 \ctexset）。sc 模式覆盖：name={,}（去 第/章 节 包装）+ number=Arabic（章 1，节 1.1，小节 1.1.1 半角）
+%   + aftername=\hspace{0.5\ccwd}（编号名空半格 §2.10 line 237）+ format 不居中（顶格；章/节标题）。
+%   beforeskip/afterskip/indent 沿用 hs 默认。\thechapter Arabic 锁（cls 下方）+ 图表编号 图 1-1 不受影响（§2.11/2.12/2.13）。
+\ifhtu@numbersc
+  \ctexset{%
+    chapter={%一级标题：黑体三号(16bp)，顶格，段前段后2行（NS §2.10「1」）
+      aftername=\hspace{0.5\ccwd},%§2.10 NS 编号名空半格（hs 为不空格）
+      format={\sffamily\htu@tnr\sanhao[\htu@chapter@linespread]},%顶格（sc 不居中；format 无 \centering）
+      name={,},%NS 去包装（hs name={第,章}）
+      number=\arabic{chapter},%NS Arabic（hs \chinese{chapter}）
+    },
+    section={%二级标题：黑体小三号(15bp)，顶格（NS §2.10「1.1」）
+      aftername=\hspace{0.5\ccwd},
+      format={\sffamily\htu@tnr\xiaosan[\htu@section@linespread]},%顶格（hs 含 \centering，NS 去）
+      name={,},
+      number=\arabic{chapter}.\arabic{section},%NS 1.1 半角
+    },
+    subsection={%三级标题：黑体四号(14bp)，顶格（NS §2.10「1.1.1」）
+      aftername=\hspace{0.5\ccwd},
+      format={\sffamily\htu@tnr\sihao[\htu@subsection@linespread]},
+      name={,},
+      number=\arabic{chapter}.\arabic{section}.\arabic{subsection},%NS 1.1.1 半角
+    },
+  }%
+\fi
 % [基础] AC-3a 防御护栏：锁定 \thechapter = Arabic 计数器（Story 3.13 Task 3.2，code review 2026-06-19 注释订正）。
 %   ctex number=\chinese{chapter} 写入 \CTEXthechapter（标题显示 第一章），不写 \thechapter（计数器宏）——ctex 源
 %   ctex-heading-book.def 验证。base book.cls 已定义 \thechapter=\@arabic\c@chapter，故此 \renewcommand 当前为 no-op，
@@ -556,8 +594,8 @@
 \renewcommand\listoftables{%
   \htu@chapter*[]{\listtablename}
   \@starttoc{lot}}
-\titlecontents{chapter}[\z@]{\vspace{6bp}\xiaosi[1]\sffamily}
-  {{\rmfamily\thecontentslabel}\quad}{}
+\titlecontents{chapter}[\z@]{\vspace{6bp}\xiaosi[1]\sffamily\htu@tnr}
+  {\thecontentslabel\quad}{}
   {\rmfamily\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
 \titlecontents{section}[2\ccwd]{\vspace{6bp} \xiaosi[1]}
   {\thecontentslabel\quad}{}
@@ -599,7 +637,14 @@
 \htu@def@term{edepartment}
 \htu@def@term{edate}
 \htu@def@term{edegree}
-  \cdate{\CJK@todaysmall@short}%
+  % [基础] 封面日期 = 中文数字（spec §1.1.1 line 33「封面上的日期…用中文表示，如二〇二四年五月」；Story 3.15 G4）。
+  %   原用 \CJK@todaysmall@short（\the\year 年 \the\month 月 = 阿拉伯数字）—— 2026-06-19 审计 G4 gap。
+  %   改用 zhnumber 宏包（cls 顶部载入）：\zhdigits{2026}=二〇二六（逐位，匹配 spec「二〇二四」 digit 形），
+  %   \zhnumber{6}=六（月）。注：cls:186 \CJK@todaybig@short 依赖未定义的 \CJKdigits/\CJKnumber（xeCJK 不提供），
+  %   故用 zhnumber 直接渲染而非 \CJK@todaybig。
+  %   设计决策（story Dev Notes §G4）：保留模板既有「编译日期」设计（\the\year/\the\month）；G4 闭合「字形」gap
+  %   （阿拉伯→中文数字）。论文实际提交日 ≈ 编译日；若需显式论文年/月，未来增强暴露 \cdateyear/\cdatemonth。
+  \cdate{\zhdigits{\the\year} 年 \zhnumber{\the\month} 月}%
 \edate{\ifcase \month \or January\or February\or March\or April\or May%
        \or June\or July \or August\or September\or October\or November
        \or December\fi\unskip,\ \ \the\year}
@@ -859,6 +904,9 @@
     \rmfamily
     \renewcommand{\baselinestretch}{1}% 先锁系数=1，再设字号（避免首个 \selectfont 以环境 \baselinestretch 瞬态算错；Story 3.4 code-review patch）
     \fontsize{10.5bp}{23.4bp}\selectfont
+    % [基础] 英文摘要首行缩进 = 4 字符（spec §2.8 line 221「每段开头空 4 个字符」；Story 3.15 G2）。
+    %   原继承正文 2\ccwd（≈2 字）；G2 显式设 4\ccwd（4 字，五号 \ccwd≈10.5pt → ≈42pt）。ATDD-3.15-I07 4-字区间 [24,44]。
+    \setlength{\parindent}{4\ccwd}%
     \htu@eabstract
     \vskip\htu@abstract@keywordskip
     % 英文关键词标签加粗（spec §2.8 line 223「加粗」，Story 3.13 翻案 3.4 reference-wins 非加粗）；分隔符为半角逗号。
@@ -963,6 +1011,9 @@
   %   附录当前未渲染（main.tex 无 \appendix；Story 4.1 接入时渲染验证 TC-E3-52）。
   \ctexset{chapter/aftername=\hspace{0.5\ccwd}}%
   \ctexset{chapter/format+=\centering}%
+  % [基础] 附录正文字体 = 小四号宋体（spec §2.15 line 439「附录内容一般用小四号宋体字」；Story 3.15 G5a）。
+  %   原依赖隐式 \normalsize；G5a 显式 \xiaosi\songti。附录当前未渲染（main.tex 无 \appendix；G5b 接入 = Story 4.1）。
+  \xiaosi\songti%
   % 附录编号沿用全局定义：\appendix 令 \thechapter 为字母（A、B…），
   % 故 \thefigure/\thetable/\theequation 自动呈 A-1 形式（HTU §2.11/§2.12/§2.13）。
   }{}

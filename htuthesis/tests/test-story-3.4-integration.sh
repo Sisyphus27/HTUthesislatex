@@ -77,6 +77,23 @@ run_test() {
   fi
 }
 
+# --- Story 3.15 Red-Phase Gate (wrong-target-AC refactor — G1–G6) ---
+# These assertions probe the RENDERED SPAN the spec governs (fitz font/size/position), NOT a code grep or a proxied
+# target — the root-cause discipline of the 2026-06-19 spec→code audit (sprint-change-proposal-2026-06-19, 6 residual
+# gaps G1–G6; D-22). Isolated from the global SKIP so the existing 575-PASS baseline is preserved while Story 3.15 code
+# is pending (sprint-status: backlog). Activate: ATDD_315_SKIP=0 bash tests/test-story-3.4-integration.sh --run
+SKIP_315="${ATDD_315_SKIP:-1}"
+run_test_315() {
+  local priority="$1"; local test_id="$2"; local description="$3"
+  if [[ "$SKIP_315" == "1" ]]; then
+    yellow "[$priority] $test_id: $description  [Story 3.15 RED-phase]"
+    ((SKIP_COUNT++)); return 0
+  fi
+  shift 3; "$@"
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  else red "[$priority] $test_id: $description"; ((FAIL++)); fi
+}
+
 echo "=============================================="
 echo "ATDD Integration Tests: Story 3.4 — Chinese and English abstract formatting"
 echo "TDD Phase: $([ "$SKIP" == "1" ] && echo "RED (skipped)" || echo "ACTIVE")"
@@ -492,6 +509,49 @@ sys.exit(0)
 "
 }
 run_test "P2" "ATDD-3.4-I17" "DIAGNOSTIC: English abstract rendered layout for reference-overlay (AC visual-sampling #5)" test_english_abstract_layout_diagnostic
+
+echo ""
+
+# ==========================================
+# Story 3.15 Red-Phase — G2 English-abstract first-line indent 4 chars (§2.8, TC-E3-59)
+# ==========================================
+echo "=== Story 3.15 RED: G2 EN-abstract first-line indent = 4 chars (§2.8; RED pre-impl — 2\\ccwd body) ==="
+
+# ATDD-3.4-I18 (Story 3.15): BEHAVIOR — English abstract first-line indent = 4 chars (G2, TC-E3-59)
+# WRONG-TARGET-AC root cause: no prior test asserted the eabstract \parindent (the 2026-06-19 audit's G2 gap).
+#   cls:858-862 eabstract scope sets no \parindent → inherits body 2\ccwd (eabstract first-line x0≈92 vs body x0≈71
+#   → indent 21pt ≈ 2 CJK chars). Spec §2.8 line 221: "每段开头空 4 个字符". G2 fix: \setlength{\parindent}{4×TNR}
+#   (empirically ≈ 4\ccwd at 五号). Probe the RENDERED indent: indented first-line x0 − flush body-margin x0 ≈
+#   4\ccwd (~36–48pt), NOT ~2\ccwd (~18–24pt). Pre-impl: ~21pt → RED. Post-impl: ~42pt → GREEN.
+test_eabstract_firstline_indent_4chars() {
+  if [[ ! -f "main.pdf" ]]; then return 1; fi
+  python -c "$PY_HEAD
+if en_abs is None:
+    print('  (English abstract page not found — RED)'); sys.exit(1)
+xs = []
+for b in doc[en_abs].get_text('dict').get('blocks', []):
+    if b.get('type', 0) != 0: continue
+    for ln in b.get('lines', []):
+        sps = ln.get('spans', [])
+        if not sps: continue
+        txt = ''.join(s['text'] for s in sps)
+        ms = max(s['size'] for s in sps)
+        if 9 <= ms <= 13 and re.search(r'[A-Za-z]', txt):
+            xs.append(min(s['bbox'][0] for s in sps))
+if len(xs) < 2:
+    print('  (too few eabstract body lines: %d — RED/inconclusive)' % len(xs)); sys.exit(1)
+margin = min(xs)                       # flush continuation-line left edge
+first_lines = [x for x in xs if x > margin + 5.0]    # indented paragraph first lines
+if not first_lines:
+    print('  (no indented first line detected — eabstract may be 1 line; RED/inconclusive)'); sys.exit(1)
+indents = [x - margin for x in first_lines]; med = median(indents)
+print('  eabstract first-line indents=%d median=%.1fpt (4-char target ~36-48pt = 4\\ccwd; pre-impl ~21pt = 2 chars)' %
+      (len(indents), med))
+# G2 GREEN: ≈4\ccwd (4 chars). Pre-impl: ~21pt (2 chars) → RED.
+sys.exit(0 if 36.0 <= med <= 48.0 else 1)
+"
+}
+run_test_315 "P1" "ATDD-3.4-I18" "BEHAVIOR: EN-abstract first-line indent = 4 chars (G2, TC-E3-59, §2.8; RED pre-impl — 2\\ccwd body)" test_eabstract_firstline_indent_4chars
 
 echo ""
 

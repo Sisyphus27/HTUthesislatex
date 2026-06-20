@@ -72,6 +72,23 @@ run_test() {
   fi
 }
 
+# --- Story 3.15 Red-Phase Gate (wrong-target-AC refactor — G1–G6) ---
+# These assertions probe the RENDERED SPAN the spec governs (fitz font/size/position), NOT a code grep or a proxied
+# target — the root-cause discipline of the 2026-06-19 spec→code audit (sprint-change-proposal-2026-06-19, 6 residual
+# gaps G1–G6; D-22). Isolated from the global SKIP so the existing 575-PASS baseline is preserved while Story 3.15 code
+# is pending (sprint-status: backlog). Activate: ATDD_315_SKIP=0 bash tests/test-story-3.13-integration.sh --run
+SKIP_315="${ATDD_315_SKIP:-1}"
+run_test_315() {
+  local priority="$1"; local test_id="$2"; local description="$3"
+  if [[ "$SKIP_315" == "1" ]]; then
+    yellow "[$priority] $test_id: $description  [Story 3.15 RED-phase]"
+    ((SKIP_COUNT++)); return 0
+  fi
+  shift 3; "$@"
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  else red "[$priority] $test_id: $description"; ((FAIL++)); fi
+}
+
 echo "=============================================="
 echo "ATDD Integration Tests: Story 3.13 — spec-priority correction pack (§2.8/2.10/2.11-2.12/2.14/2.15)"
 echo "TDD Phase: $([ "$SKIP" == "1" ] && echo "RED (skipped)" || echo "ACTIVE")"
@@ -500,6 +517,63 @@ test_total_pages() {
   echo "$total_pages" | awk '{if ($1 >= 40 && $1 <= 62) exit 0; else exit 1}'
 }
 run_test "P1" "ATDD-3.13-I13" "total pages within tolerance (AC-6; humanities/caption may shift ±few)" test_total_pages
+
+echo ""
+
+# ==========================================
+# Story 3.15 Red-Phase — G3 numbering=sc dual-mode (§2.10, TC-E3-63)
+# ==========================================
+echo "=== Story 3.15 RED: G3 numbering=sc renders NS chapter 1/2 (not 第一章) (§2.10; RED pre-impl — no option) ==="
+
+# ATDD-3.13-I14 (Story 3.15): BEHAVIOR — numbering=sc renders natural-science chapter numbering (G3, TC-E3-63)
+# WRONG-TARGET-AC root cause: the AC-3 linchpin (I04/I06/I07) tests ONLY the default hs mode (第一章/第一节/一、). The
+#   2026-06-19 audit's G3 gap: Story 3.13 DELETED the natural-science (NS) path that spec §2.10 line 235 lists as the
+#   PRIMARY numbering ("1、1.1、1.1.1"). G3 restores it as a `numbering=sc|hs` cls option (default hs). This test proves
+#   BOTH modes by compiling a temp numbering=sc variant + asserting NS Arabic chapter headings render (1/2) AND no
+#   humanities 第一章. Pre-impl: cls has no numbering= option → temp compile ERRORS (unknown option) → RED.
+#   Post-impl: option accepted + chapter renders Arabic 1/2 → GREEN.
+# NOTE: temp .atdd-315-sc.tex is a sed-modified copy of main.tex (documentclass [doctor,numbering=sc]); same dir so
+#   \include paths resolve. Isolated jobname; removed after. NOT a SUT edit (cls/def/main/data untouched). \include
+#   aux files (data/chap*.aux) are shared with main — this is an isolated red-phase run; main's next -g rebuild
+#   restores them. Slow (~3 min full compile) — red-phase only (ATDD_315_SKIP=0 ... --run).
+test_numbering_sc_renders_ns() {
+  [[ -f "htuthesis.cls" && -f "main.tex" ]] || return 1
+  sed 's/\\documentclass\[doctor\]{htuthesis}/\\documentclass[doctor,numbering=sc]{htuthesis}/' main.tex > .atdd-315-sc.tex
+  latexmk -xelatex -g -interaction=nonstopmode .atdd-315-sc.tex > /dev/null 2>&1
+  local rc=$?
+  if [[ $rc -ne 0 ]]; then
+    rm -f .atdd-315-sc.* 2>/dev/null
+    echo "  (numbering=sc compile FAILED rc=$rc — option not implemented; RED pre-impl)"
+    return 1
+  fi
+  python -c "
+import fitz, sys, re
+d = fitz.open('.atdd-315-sc.pdf')
+chap_cn = re.compile(r'第[一二三四五六七八九十百]+章')
+ns_arabic = 0; hs_cn = 0
+for i in range(min(d.page_count, 20)):
+    for b in d[i].get_text('dict').get('blocks', []):
+        if b.get('type', 0) != 0: continue
+        for ln in b.get('lines', []):
+            for sp in ln.get('spans', []):
+                t = sp['text'].strip()
+                if sp['size'] > 14:
+                    # REPPOINTED (Story 3.15 G6): NS Arabic chapter digit「1/2…」is LATIN → renders TNR (not SimHei) per G6
+                    #   Latin-TNR fix. Dropped the prior 'Hei' in font gate (it excluded the TNR digit → false 0). Detect by
+                    #   heading-size + leading Arabic digit (lone or followed by non-digit/title). HS = 第N章 (CJK SimHei).
+                    if re.match(r'^[1-9](\D|$)', t):
+                        ns_arabic += 1
+                    if chap_cn.search(t):
+                        hs_cn += 1
+print('  numbering=sc PDF: NS-arabic-chapter=%d HS-cjk-chapter=%d' % (ns_arabic, hs_cn))
+# G3 GREEN: sc mode → ≥1 Arabic chapter AND no 第一章 humanities.
+sys.exit(0 if (ns_arabic >= 1 and hs_cn == 0) else 1)
+" 2>/dev/null
+  local prc=$?
+  rm -f .atdd-315-sc.* 2>/dev/null
+  return $prc
+}
+run_test_315 "P1" "ATDD-3.13-I14" "BEHAVIOR: numbering=sc renders NS chapter 1/2 not 第一章 (G3, TC-E3-63, §2.10; RED pre-impl — no numbering= option)" test_numbering_sc_renders_ns
 
 echo ""
 

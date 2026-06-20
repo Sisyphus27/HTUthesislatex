@@ -78,6 +78,23 @@ run_test() {
   fi
 }
 
+# --- Story 3.15 Red-Phase Gate (wrong-target-AC refactor — G1–G6) ---
+# These assertions probe the RENDERED SPAN the spec governs (fitz font/size/position), NOT a code grep or a proxied
+# target — the root-cause discipline of the 2026-06-19 spec→code audit (sprint-change-proposal-2026-06-19, 6 residual
+# gaps G1–G6; D-22). Isolated from the global SKIP so the existing 575-PASS baseline is preserved while Story 3.15 code
+# is pending (sprint-status: backlog). Activate: ATDD_315_SKIP=0 bash tests/test-story-3.5-integration.sh --run
+SKIP_315="${ATDD_315_SKIP:-1}"
+run_test_315() {
+  local priority="$1"; local test_id="$2"; local description="$3"
+  if [[ "$SKIP_315" == "1" ]]; then
+    yellow "[$priority] $test_id: $description  [Story 3.15 RED-phase]"
+    ((SKIP_COUNT++)); return 0
+  fi
+  shift 3; "$@"
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  else red "[$priority] $test_id: $description"; ((FAIL++)); fi
+}
+
 echo "=============================================="
 echo "ATDD Integration Tests: Story 3.5 — Table of contents formatting"
 echo "TDD Phase: $([ "$SKIP" == "1" ] && echo "RED (skipped)" || echo "ACTIVE")"
@@ -529,6 +546,79 @@ sys.exit(0)
 "
 }
 run_test "P2" "ATDD-3.5-I16" "DIAGNOSTIC: TOC rendered layout for reference-overlay (AC visual-sampling #6)" test_toc_layout_diagnostic
+
+echo ""
+
+# ==========================================
+# Story 3.15 Red-Phase — G1 TOC chapter-number-prefix SimHei (§2.6, TC-E3-60) + G6 TOC Latin TNR (§2.6/§2.10, TC-E3-61)
+# ==========================================
+echo "=== Story 3.15 RED: G1 TOC 第N章 number-prefix SimHei + G6 TOC Latin TNR not LMSans ==="
+
+# ATDD-3.5-I17 (Story 3.15): BEHAVIOR — TOC L1 chapter NUMBER-PREFIX span = SimHei (G1, TC-E3-60)
+# WRONG-TARGET-AC root cause: l1_entries() (PY_HEAD) SKIPS the "第N章" contentslabel span (line ~141), so I05 only
+#   asserts the chapter TITLE (SimHei, passes) — it NEVER asserts the NUMBER PREFIX. The 2026-06-19 audit found the
+#   prefix renders SimSun (cls:560 {{\rmfamily\thecontentslabel}\quad} forces \rmfamily→SimSun on the prefix), while
+#   back-matter "参考文献" is SimHei → inconsistent. Spec §2.6 line 207: "目录中的一级标题用小四号黑体字" (ENTIRE entry).
+#   G1 fix: remove \rmfamily at cls:560. Probe the RENDERED prefix span itself: every "第N章" contentslabel = SimHei.
+#   Pre-impl: SimSun prefix → RED. Post-impl: SimHei → GREEN.
+test_toc_l1_numberprefix_simhei() {
+  if [[ ! -f "main.pdf" ]]; then return 1; fi
+  python -c "$PY_HEAD
+if toc is None:
+    print('  (TOC page not found — RED)'); sys.exit(1)
+chap_label_re = re.compile(r'^第[一二三四五六七八九十百]+章$')
+prefixes = []
+for b in doc[toc].get_text('dict').get('blocks', []):
+    if b.get('type', 0) != 0: continue
+    for ln in b.get('lines', []):
+        for sp in ln.get('spans', []):
+            if chap_label_re.match(sp['text'].strip()) and 11 <= sp['size'] <= 15:
+                prefixes.append((sp['font'], sp['size'], sp['text'].strip()))
+if not prefixes:
+    print('  (no 第N章 contentslabel span on TOC — RED/inconclusive)'); sys.exit(1)
+heiti = all(('SimHei' in f or 'Hei' in f) for f, s, t in prefixes)
+print('  TOC 第N章 number-prefix spans=%d fonts=%s heiti=%s (G1 §2.6 ENTIRE entry 黑体)' %
+      (len(prefixes), set(f for f, s, t in prefixes), heiti))
+for f, s, t in prefixes[:4]:
+    print('    %r %.1fpt | %s' % (f, s, t))
+# G1 GREEN: all chapter-number-prefix spans SimHei. Pre-impl: SimSun → RED.
+sys.exit(0 if heiti else 1)
+"
+}
+run_test_315 "P0" "ATDD-3.5-I17" "BEHAVIOR: TOC 第N章 number-prefix span = SimHei (G1, TC-E3-60, §2.6; RED pre-impl — SimSun via cls:560 \\rmfamily)" test_toc_l1_numberprefix_simhei
+
+# ATDD-3.5-I18 (Story 3.15): BEHAVIOR — TOC Latin spans = TNR not LMSans (G6, TC-E3-61)
+# WRONG-TARGET-AC root cause: I06 asserts only page-number digits are TNR; it never covers Latin text INSIDE TOC
+#   entries. The 2026-06-19 audit found the \sffamily (cls:559) used for CJK-bold TOC L1 leaks Latin → LMSans, so
+#   "TEX/LaTeX" in the chapter title renders LMSans12 not TNR. G6 structural fix: CJK-only \heiti so Latin stays TNR.
+#   Probe: any Latin (non-digit) span in a TOC entry must be TNR; reject LMSans/LMRoman. Pre-impl: LMSans → RED.
+test_toc_latin_tnr_not_lmsans() {
+  if [[ ! -f "main.pdf" ]]; then return 1; fi
+  python -c "$PY_HEAD
+if toc is None:
+    print('  (TOC page not found — RED)'); sys.exit(1)
+latin_re = re.compile(r'[A-Za-z]')
+leak = []
+latin_total = 0
+for b in doc[toc].get_text('dict').get('blocks', []):
+    if b.get('type', 0) != 0: continue
+    for ln in b.get('lines', []):
+        for sp in ln.get('spans', []):
+            t = sp['text'].strip()
+            if latin_re.search(t) and not re.fullmatch(r'\d+', t) and 9 <= sp['size'] <= 14:
+                latin_total += 1
+                if 'LMSans' in sp['font'] or 'LMRoman' in sp['font']:
+                    leak.append((sp['font'], t[:20]))
+print('  TOC Latin spans=%d LM-leak=%d (G6 §2.6/§2.10 Latin must be TNR)' % (latin_total, len(leak)))
+for f, t in leak[:4]:
+    print('    LEAK %r | %s' % (f, t))
+if latin_total == 0:
+    print('  (no Latin span in TOC to verify — sample-dependent; inconclusive)'); sys.exit(1)
+# G6 GREEN: ≥1 Latin span AND zero LM-leak. Pre-impl: LMSans "TEX/L" → RED.
+sys.exit(0 if (latin_total >= 1 and not leak) else 1)
+"
+}
+run_test_315 "P0" "ATDD-3.5-I18" "BEHAVIOR: TOC Latin = TNR not LMSans (G6, TC-E3-61, §2.6/§2.10; RED pre-impl — \\sffamily Latin leak)" test_toc_latin_tnr_not_lmsans
 
 echo ""
 
