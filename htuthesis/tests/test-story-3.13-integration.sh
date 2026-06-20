@@ -227,7 +227,12 @@ def caption_fullwidth_colon_count():
                 sps = ln.get("spans", [])
                 if not sps: continue
                 line_text = "".join(s["text"] for s in sps)
-                if re.search(r"图\s*\d|表\s*\d", line_text) and "：" in line_text:
+                # [Story 4.1 Decision-2 repoint] exclude TOC/LOT dot-leader entries. Appendix \addcontentsline
+                #   entries "附表 N：毕业设计..." (Story 4.1 wired \appendix+app01) legitimately contain ： as
+                #   descriptive TITLE text, not a caption separator — they carry dot-leaders (.{4,} / …) which
+                #   real float captions never do. Traceability: appendix wiring (Story 4.1) surfaced this
+                #   over-broad match; spec §2.11/2.12 caption separator = half-space, unaffected.
+                if re.search(r"图\s*\d|表\s*\d", line_text) and "：" in line_text and not re.search(r"\.{4,}|…", line_text):
                     n += line_text.count("：")
                     if len(samples) < 6: samples.append((i+1, line_text[:24]))
     return n, samples

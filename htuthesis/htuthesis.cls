@@ -1018,14 +1018,21 @@
   % [基础] 附录章节 aftername + 居中本地恢复（Story 3.13 code review 2026-06-19 决策 a，§2.15 line 437）：
   %   全局 chapter aftername={}（cls:458）服从 §2.10 正文「不空格」，但 §2.15 要求附录「序号和标题间空半格」。
   %   \appendix 后（其后无正文章）本地覆盖 aftername=半字距 + 防御性重申居中（不依赖 \backmatter format+= 持久）。
-  %   附录当前未渲染（main.tex 无 \appendix；Story 4.1 接入时渲染验证 TC-E3-52）。
+  %   Story 4.1 接入 main.tex \appendix 渲染验证：TC-E4-02 (G5a 正文小四宋体) + TC-E4-03 (G5b 图A-1 counter)。
   \ctexset{chapter/aftername=\hspace{0.5\ccwd}}%
   \ctexset{chapter/format+=\centering}%
   % [基础] 附录正文字体 = 小四号宋体（spec §2.15 line 439「附录内容一般用小四号宋体字」；Story 3.15 G5a）。
-  %   原依赖隐式 \normalsize；G5a 显式 \xiaosi\songti。附录当前未渲染（main.tex 无 \appendix；G5b 接入 = Story 4.1）。
+  %   原依赖隐式 \normalsize；G5a 显式 \xiaosi\songti。Story 4.1 接入 main.tex \appendix → 首次渲染验证 TC-E4-02。
   \xiaosi\songti%
   % 附录编号沿用全局定义：\appendix 令 \thechapter 为字母（A、B…），
   % 故 \thefigure/\thetable/\theequation 自动呈 A-1 形式（HTU §2.11/§2.12/§2.13）。
+  %
+  % [基础] 字体恢复策略（Story 4.1 R-23 mitigation #1；deferred-work §3.15 字体泄漏）：
+  %   \renewenvironment{appendix} 使 \appendix 命令形（main.tex 用 \appendix，非 \begin{appendix}）——BEGIN 子句
+  %   \xiaosi\songti 生效，END 子句 {} 在命令形下【永不触发】（仅 \end{appendix} 才执行）。故 G5a 字体恢复不能依赖 END。
+  %   下游后置 env 各自 entry 自重置字体：ack (cls \songti\xiaosi[1.524])、resume (\wuhao[1.524])、
+  %   \makedeclaration (\xiaosi[1.6]) ——附录 \xiaosi\songti 不泄漏进致谢/简历/声明（TC-E4-08 fitz 渲染验证）。
+  %   不改用 \begin{appendix}...\end{appendix} env 形：\include 跨文件 + 环境作用域组合脆弱。命令形 + 下游自重置 = 稳健。
   }{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 个人简历、在学期间发表的学术论文及研究成果

@@ -8,6 +8,39 @@
 \chapter{表格附件}
 % 替换相应表格即可
 
+% [Story 4.1] 附录样本浮动体 — 首次编译触发 G5b 附录编号 图A-1 / 表A-1 / （A-1）
+%   （\appendix → \thechapter=Alph → \thefigure/\thetable/\theequation 呈 A-1 形式；HTU §2.11/§2.12/§2.13）。
+%   示例内容（非模板标识，test-design-epic-4「Not in Scope」：样本 verbatim 保真出范围）；验证附录 counter 机制。
+\section*{附录浮动体编号示例}
+\addcontentsline{toc}{section}{附录浮动体编号示例}
+
+附录中的浮动体编号沿用附录章字母前缀。如附录图~\ref{fig:app-demo}、附录表~\ref{tab:app-demo}、
+附录公式~\eqref{eq:app-demo} 所示，编号形式为 A-1。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.5\textwidth]{golfer}
+  \caption{附录示例图}\label{fig:app-demo}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{附录示例表}\label{tab:app-demo}
+  \begin{tabular}{cc}
+    \hline
+    项目 & 数值 \\
+    \hline
+    A & 1 \\
+    B & 2 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{equation}\label{eq:app-demo}
+  E = m c^{2}
+\end{equation}
+
+\clearpage
 \section*{毕业设计（论文）任务书}
 \addcontentsline{toc}{section}{附表~1：毕业设计（论文）任务书}
 
