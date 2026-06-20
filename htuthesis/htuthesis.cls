@@ -427,6 +427,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \renewcommand\theequation{%公式编号分隔符（HTU §2.13 短横线）
   \ifnum \c@chapter>\z@ \thechapter\htu@counter@separator\fi\@arabic\c@equation}
+% [基础] 公式序号外层括号 = 全角（）(HTU §2.13 line 279「（1-1）」；amsmath 默认 ASCII () 不符)。
+%   override amsmath \tagform@ (amsmath.sty:1212「\def\tagform@#1{\maketag@@@{(...)}}」)，同时作用于行间公式
+%   tag (\@eqnnum = \tagform@\theequation) 与 \eqref 交叉引用（amsmath.sty:1143「\eqref = \tagform@{\ref{}}」）。
+%   全角括号走 CJK 字体(SimSun)，编号走 \rmfamily(TNR)，匹配 spec 示例「（1-1）」混排。
+%   Story 3 retro 2026-06-20 规则审计 G-A：原默认 ASCII (4-1)，spec §2.13 要全角（4-1）。
+\renewcommand{\tagform@}[1]{\maketag@@@{（\ignorespaces#1\unskip\@@italiccorr）}}
 \renewcommand\thefigure{%插图编号分隔符（HTU §2.11 短横线）
   \ifnum \c@chapter>\z@ \thechapter\htu@counter@separator\fi\@arabic\c@figure}
 \renewcommand\thetable{%表格编号分隔符（HTU §2.12 短横线）
@@ -695,19 +701,19 @@
     % --- 元数据文本（label 列 x=23.3 / value 列 x=50；仿宋小四 12pt）---
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -22.8mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode@title};
+      {\fangsong\htu@fangsong@latin\xiaosi\makebox[20mm][s]{\htu@schoolcode@title}};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (50mm, -22.8mm)$)
       {\fangsong\htu@fangsong@latin\xiaosi\htu@schoolcode};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -31.9mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@id@title};
+      {\fangsong\htu@fangsong@latin\xiaosi\makebox[20mm][s]{\htu@id@title}};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (50mm, -31.9mm)$)
       {\fangsong\htu@fangsong@latin\xiaosi\htu@id};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (23.3mm, -40.8mm)$)
-      {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel@title};
+      {\fangsong\htu@fangsong@latin\xiaosi\makebox[20mm][s]{\htu@secretlevel@title}};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (50mm, -40.8mm)$)
       {\fangsong\htu@fangsong@latin\xiaosi\htu@secretlevel};
@@ -722,23 +728,23 @@
     % --- 论文题目（黑体小二18pt，居中，y=133.4mm）---
     \node[anchor=north, inner sep=0pt, text width=160mm, align=center]
       at ($(current page.north) + (0mm, -133.4mm)$)
-      {\sffamily\xiaoer[1.5]\htu@ctitle};
+      {\sffamily\htu@tnr\xiaoer[1.5]\htu@ctitle};
     % --- 五字段（黑体小三15pt，左 x=60mm，label：value 格式）---
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (60.3mm, -191.9mm)$)
-      {\sffamily\xiaosan\htu@subject@title\htu@title@sep\htu@csubject\htu@cmajor};
+      {\sffamily\htu@tnr\xiaosan\htu@subject@title\htu@title@sep\htu@csubject\htu@cmajor};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (60.3mm, -200.1mm)$)
-      {\sffamily\xiaosan\htu@researchdirection@title\htu@title@sep\htu@researchdirection};
+      {\sffamily\htu@tnr\xiaosan\htu@researchdirection@title\htu@title@sep\htu@researchdirection};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (60.3mm, -208.2mm)$)
-      {\sffamily\xiaosan\htu@degreecategory@title\htu@title@sep\htu@degreecategory};
+      {\sffamily\htu@tnr\xiaosan\htu@degreecategory@title\htu@title@sep\htu@degreecategory};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (60.3mm, -216.3mm)$)
-      {\sffamily\xiaosan\htu@author@title\htu@title@sep\htu@cauthor};
+      {\sffamily\htu@tnr\xiaosan\htu@author@title\htu@title@sep\htu@cauthor};
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (60.3mm, -224.4mm)$)
-      {\sffamily\xiaosan\htu@supervisor@title\htu@title@sep\htu@csupervisor};
+      {\sffamily\htu@tnr\xiaosan\htu@supervisor@title\htu@title@sep\htu@csupervisor};
     % --- 完成日期（黑体小三15pt，居中，y=247.7mm；阿拉伯数字+年/月）---
     %   \htu@heiti@latin：ASCII 数字也走 SimHei（匹配参考论文 page 2 日期全 SimHei run）
     \node[anchor=north, inner sep=0pt]

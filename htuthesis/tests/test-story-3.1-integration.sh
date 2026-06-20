@@ -204,10 +204,16 @@ test_cover_elements_present() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 t = pg.get_text()
+# Whitespace-normalize before label search: Story 3 retro 2026-06-20 made metadata labels
+# 两边对齐 (justified, \makebox[20mm][s]) to match the reference PDF — this spreads short labels
+# (学号/分类号) into separate glyph spans, so get_text() yields e.g. '分 类 号' not '分类号'.
+# Normalizing all whitespace restores contiguous matching. Repoint of a wrong-target-AC (the old
+# assertion required contiguous text, but the reference-correct justified layout splits the glyphs).
+t_norm = ''.join(t.split())
 required = [\"单位代码\", \"分类号\", \"学科、专业\", \"研究方向\", \"申请学位类别\", \"申请人\", \"指导教师\"]
-missing = [k for k in required if k not in t]
+missing = [k for k in required if k not in t_norm]
 # Sanity anchor: 博士学位论文 must always be present (cover identity).
-if \"博士学位论文\" not in t:
+if \"博士学位论文\" not in t_norm:
     missing.append(\"博士学位论文(sanity)\")
 if missing:
     print(\"  cover=p\" + str(cover+1) + \", MISSING labels: \" + \", \".join(missing))

@@ -175,9 +175,11 @@ test_equation_label_hyphen_behavior() {
   python -c "$PY_HEAD
 eq_hy = eq_per = 0
 for i in range(body_start, doc.page_count):
-    txt = doc[i].get_text()
-    eq_hy += len(re.findall(r'\(4-\d+\)', txt))
-    eq_per += len(re.findall(r'\(4\.\d+\)', txt))
+    txt = ''.join(doc[i].get_text().split())  # whitespace-normalize: Story 3 retro 2026-06-20 made
+    # equation tags fullwidth （4-1） per §2.13 (\tagform@ override); fitz may space the （/4-1/） spans.
+    # Accept both fullwidth （） and ASCII () around the hyphen-number (spec §2.13 = fullwidth).
+    eq_hy += len(re.findall(r'[（(]4-\d+[)）]', txt))
+    eq_per += len(re.findall(r'[（(]4\.\d+[)）]', txt))
 print(f'  eq labels: hyphen={eq_hy}, period={eq_per} (pre-impl period=11)')
 sys.exit(0 if (eq_hy >= 3 and eq_per == 0) else 1)
 "

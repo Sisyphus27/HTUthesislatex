@@ -150,7 +150,12 @@ def captions(kind=None):
                             "img_bottoms": img_bottoms})
     return out
 def equation_numbers():
-    # Equation number spans: "(N-N)" (WITH parens), TNR, flush-right (x1 in [515,532]).
+    # Equation number spans: "N-N" (TNR digits), flush-right. Story 3 retro 2026-06-20: tags now use
+    # fullwidth parens （N-N） per §2.13 (\tagform@ override) — the tag = 3 spans (（ SimSun, N-N TNR,
+    # ） SimSun) right-aligned as a unit to x1≈524. The ） flanks the number on its right, so the number
+    # span's x1 shifted left from ~524 (old inline-ASCII parens) to ~512. Threshold lowered 515→505 to
+    # keep matching the number span (Times + digit-dash-digit is specific; body refs don't sit at the
+    # right margin). The tag's right edge (） at ~524) is implied by the number at ~512.
     out = []
     for i in range(doc.page_count):
         for b in doc[i].get_text("dict").get("blocks", []):
@@ -159,7 +164,7 @@ def equation_numbers():
                 for sp in ln.get("spans", []):
                     tx = sp["text"].strip()
                     x1 = sp["bbox"][2]
-                    if eq_re.match(tx) and x1 > 515 and "Times" in sp["font"]:
+                    if eq_re.match(tx) and x1 > 505 and "Times" in sp["font"]:
                         out.append({"page": i, "text": tx, "x1": x1, "font": sp["font"], "size": sp["size"]})
     return out
 def subfigure_labels():

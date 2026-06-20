@@ -253,8 +253,12 @@ test_metadata_fangsong_preserved() {
   python -c "$PY_HEAD
 # Find the metadata text blocks on the cover: label + value per row.
 t = pg.get_text()
+# Whitespace-normalize: Story 3 retro 2026-06-20 justified metadata labels (\makebox[20mm][s],
+# 两边对齐 per reference PDF) spreads short labels (学号/分类号) into separate glyph spans, so
+# get_text() yields e.g. '学 号' / '分 类 号'. Normalizing restores contiguous matching.
+t_norm = ''.join(t.split())
 for kw in [\"单位代码\", \"学号\", \"分类号\"]:
-    if kw not in t:
+    if kw not in t_norm:
         print(\"  metadata label MISSING: \" + kw); sys.exit(1)
 # Font check on the block containing the schoolcode value 10476 (CJK + ASCII FangSong).
 hit = None
