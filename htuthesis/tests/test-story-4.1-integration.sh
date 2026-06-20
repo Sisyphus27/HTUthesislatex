@@ -107,16 +107,33 @@ for i in range(min(16, doc.page_count)):
 appendix = None
 for i in range(min(doc.page_count, 60)):
     t = doc[i].get_text()
+    # [Review patch 2026-06-20] exclude TOC/LOF/LOT pages — the TOC lists "附录A" WITH dot-leaders,
+    #   so the raw "附录\s*[A-Z]" match grabbed TOC p7 instead of the real appendix body. Anchor on
+    #   the body page (no dot-leaders, not a 目录/清单 title page). Wrong-target-AC fix (Epic 3 retro L3).
+    if re.search(r"\.{4,}|…", t) or "目录" in t[:24] or "插图清单" in t or "表格清单" in t:
+        continue
     if re.search(r"附录\s*[A-Z]", t):
         appendix = i; break
 ack = None
-for i in range(min(doc.page_count, 70)):
+# [Review patch 2026-06-20] order-anchored: ack follows appendix in backmatter (spec §1.1: refs→appendix→ack→
+#   resume→declaration). Content heuristics alone were insufficient — chap03 demo pages mid-body mention
+#   "致谢"/"独创性声明" in verbatim template-usage examples (no dot-leader, no "include{data/"). Anchoring
+#   the scan AFTER the appendix page skips those body demo pages. Fallback: if appendix not found (RED
+#   phase, unwired), scan from 0 — test is in SKIP mode then anyway.
+_ack_start = (appendix + 1) if appendix is not None else 0
+for i in range(_ack_start, min(doc.page_count, 90)):
     t = doc[i].get_text()
+    if "include{data/" in t or re.search(r"\.{4,}|…", t):
+        continue
     if "致谢" in t:
         ack = i; break
 declaration = None
-for i in range(min(doc.page_count, 80)):
+# [Review patch 2026-06-20] order-anchored: declaration follows ack. Scan after ack page.
+_decl_start = (ack + 1) if ack is not None else _ack_start
+for i in range(_decl_start, min(doc.page_count, 100)):
     t = doc[i].get_text()
+    if re.search(r"\.{4,}|…", t) or "目录" in t[:24]:
+        continue
     if "独创性声明" in t or "原创性声明" in t:
         declaration = i; break
 def spans_band(pno, lo, hi):
@@ -221,7 +238,7 @@ echo "=== P0: G5b appendix counter 图A-1/表A-1/（A-1） rendered (TC-E4-03, �
 test_appendix_counter_renders() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
-# scan appendix-region pages (from `appendix` onward) for the A-1 counter glyphs
+# scan appendix-region pages (from 'appendix' onward) for the A-1 counter glyphs
 start = appendix if appendix is not None else max(0, doc.page_count - 20)
 fig = tab = eq = False
 for pno in range(start, doc.page_count):
@@ -372,9 +389,17 @@ test_sc_full_content_renders_ns() {
   if [[ ! -s ".atdd-41-sc.tex" ]]; then
     echo "  (temp .atdd-41-sc.tex not created — main.tex documentclass signature changed? RED/inconclusive)"; return 1
   fi
+  # [Review patch 2026-06-20] assert the sed substitution actually occurred. If main.tex \documentclass ever
+  #   drops the '[' option-list (e.g. \documentclass{htuthesis}), sed produces an UNCHANGED HS copy that
+  #   passes the -s guard, compiles as HS, and I10 would fail with the misleading "appendix-under-sc latent
+  #   bug?" message. Guard: numbering=sc must be present post-sed (and not duplicated).
+  local sc_clean=".atdd-41-sc.tex .atdd-41-sc.pdf .atdd-41-sc.aux .atdd-41-sc.log .atdd-41-sc.toc .atdd-41-sc.lof .atdd-41-sc.lot .atdd-41-sc.out .atdd-41-sc.fls .atdd-41-sc.fdb_latexmk .atdd-41-sc.bbl .atdd-41-sc.bcf .atdd-41-sc.blg .atdd-41-sc.run.xml .atdd-41-sc.xdv"
+  if ! grep -q 'numbering=sc' .atdd-41-sc.tex 2>/dev/null; then
+    rm -f $sc_clean 2>/dev/null
+    echo "  (sed no-match — main.tex \\documentclass has no [option-list]; signature drifted. RED/inconclusive)"; return 1
+  fi
   latexmk -xelatex -g -interaction=nonstopmode .atdd-41-sc.tex > /dev/null 2>&1
   local rc=$?
-  local sc_clean=".atdd-41-sc.tex .atdd-41-sc.pdf .atdd-41-sc.aux .atdd-41-sc.log .atdd-41-sc.toc .atdd-41-sc.lof .atdd-41-sc.lot .atdd-41-sc.out .atdd-41-sc.fls .atdd-41-sc.fdb_latexmk .atdd-41-sc.bbl .atdd-41-sc.bcf .atdd-41-sc.blg .atdd-41-sc.run.xml .atdd-41-sc.xdv"
   if [[ $rc -ne 0 ]]; then
     rm -f $sc_clean 2>/dev/null
     echo "  (numbering=sc full-content compile FAILED rc=$rc — RED; appendix-under-sc latent bug?)"
