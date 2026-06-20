@@ -8,8 +8,10 @@ CJK / font / formatting correctness rests on THREE truth sources. Triangulate ag
 
 ### The three truth sources (priority for visual/formatting decisions)
 
-1. **Reference thesis PDF** — `2107084001-任子辛-政治与公共管理学院.pdf` (completed HTU doctoral dissertation, 262pp). Primary VISUAL truth (what reviewers compare against; what "done" looks like). When spec text and the reference PDF disagree on a visual detail, the **reference PDF wins**. (Stands in for the Word template — the theoretical ideal we do not hold directly.)
-2. **Official format spec** — `河南师范大学研究生学位论文格式要求.md`. TEXTUAL truth (the rules). Authoritative for stated requirements, but self-contradictory in places (header "centered" vs page-number "outer") and silent on rendering realities.
+> **Priority hierarchy (corrected 2026-06-17, Zy ruling — supersedes Epic 2 retro Decision 4):** **spec.md is the PRIORITY truth source.** Where spec has explicit text, follow spec regardless of the reference PDF. The reference PDF is auxiliary — used only where spec is silent/ambiguous (e.g. to interpret "倍数行距" = Word semantics = 23.4pt). The reference PDF is a filled Word instance and itself deviates from spec in places (reverse-hanging refs vs §2.14, left-aligned appendix vs §2.15, non-bold KEY WORDS vs §2.8, colon caption vs §2.11/2.12 "空半格") — it is NOT ground truth. See `sprint-change-proposal-2026-06-17.md`.
+
+1. **Official format spec** — `河南师范大学研究生学位论文格式要求.md`. **PRIORITY truth source** (the rules). Authoritative where it has explicit text, even if the reference PDF renders differently. Self-contradictory in places (header "centered" vs page-number "outer"); resolve those by the spec's own structure, not by the reference PDF.
+2. **Reference thesis PDF** — `2107084001-任子辛-政治与公共管理学院.pdf` (completed HTU doctoral dissertation, 262pp). **Auxiliary** visual truth. Use to interpret ambiguous spec text (e.g. "1.5倍行距" → measure line-gap = Word semantics) and where spec is silent. Do NOT override explicit spec text — the reference is a filled Word instance that deviates from spec in several details.
 3. **Implementation spec / `.def` truth-source comments** — `htuthesis.def` `[基础]` annotations + this repo's epics/PRD. The MAPPING from requirements to LaTeX; the record of how each parameter was calibrated and why.
 
 ### Empirical verification is mandatory for CJK / font / formatting ACs
