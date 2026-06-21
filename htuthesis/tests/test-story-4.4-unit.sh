@@ -142,10 +142,15 @@ required = [
     "1.2.1","1.2.2","1.2.3","1.2.4","1.2.5",
     "1.3","1.4","1.5.1","1.5.2","1.5.3",
     "2.1","2.2","2.3","2.4","2.5","2.6","2.7","2.8","2.9","2.10","2.11","2.12","2.13","2.14","2.15","2.16","2.17",
+    "3",  # §3 学位论文格式说明 (R3-a; code review patch 7 — was missing, §3 coverage un-enforced)
 ]
 missing = [s for s in required if not re.search(r'§?\s*' + re.escape(s), src)]
-# (b) ≥40 rule rows: count markdown table data rows (lines starting with |, excluding separator/header) OR rule-ID markers.
-table_rows = len([ln for ln in src.splitlines() if ln.lstrip().startswith("|") and "---" not in ln and "规则" not in ln[:6]])
+# (b) ≥40 rule rows: count markdown table data rows (lines starting with |, excluding the separator row).
+#     NOTE: this counts pipe-rows including per-section header rows (| ID | 规则 ... |) — an over-count by
+#     ~25 headers, but the ≥40 gate is a lower bound (the checklist has ~95 real rule rows), so the over-count
+#     is conservative (makes the gate easier, never false-FAILs). Header-row exclusion via "规则 not in ln[:6]"
+#     was dead logic (规则 never appears in the first 6 chars of a `|`-line) — removed (code review patch 5).
+table_rows = len([ln for ln in src.splitlines() if ln.lstrip().startswith("|") and "---" not in ln])
 # (c) 自动检查/人工确认 tag occurrences ≥40
 auto = len(re.findall(r'自动检查', src))
 manual = len(re.findall(r'人工确认', src))

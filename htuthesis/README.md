@@ -32,14 +32,14 @@ main.pdf
 ## 2. 环境要求 (Requirements)
 
 - **引擎：XeLaTeX ONLY。** pdflatex / lualatex 不支持（CJK 字体 + spec 排版要求）。NFR-1。
-- **TeX Live 2025 最低**（含 xelatex、latexmk、bibtex、ctex、fancyhdr、geometry、caption、hyperref、biblatex/gbt7714、tikz、zhnumber）。
+- **TeX Live 2025 最低**（含 xelatex、latexmk、biber、ctex、fancyhdr、geometry、caption、hyperref、biblatex/biblatex-gb7714-2015、tikz、zhnumber）。
 - **5 个必需字体：**
   - `SimSun`（宋体，正文）
   - `SimHei`（黑体，标题）
   - `KaiTi`（楷体）
   - `FangSong`（仿宋）
   - `Times New Roman`（Latin 正文/标题 Latin）
-- 缺任一字体会 `\PackageError` 终止编译（cls:71–94 `\IfFontExistsTF` gate；NFR-2）。Windows 自带；Linux 须安装（fontconfig）或置于 `~/fonts`。
+- 缺任一字体会 `\PackageError` 终止编译（cls:78–97 `\IfFontExistsTF` gate；NFR-2）。Windows 自带；Linux 须安装（fontconfig）或置于 `~/fonts`。
 
 ---
 
@@ -49,15 +49,26 @@ main.pdf
 
 | 命令 | 含义 | 示例 |
 |------|------|------|
-| `\ctitle{...}` | 中文题目（≤20 字） | `\ctitle{河南师范大学学位论文 \LaTeX\ 模板使用示例}` |
-| `\etitle{...}` | 英文题目（Title Case） | `\etitle{An Introduction to ... University}` |
-| `\cmajor{...}` | 中文学科专业 | `\cmajor{政治学理论}` |
-| `\emajor{...}` | 英文学科专业 | `\emajor{Materials Science and Engineering}` |
-| `\cauthor{...}` | 中文作者 | `\cauthor{赵钱孙}` |
-| `\eauthor{...}` | 英文作者 | `\eauthor{Zhao Qiansun}` |
+| `\schoolcode{...}` | 单位代码 | `\schoolcode{10476}` |
 | `\id{...}` | 学号（~10 位） | `\id{2024000001}` |
+| `\secretlevel{...}` | 分类号（《中图法》第五版） | `\secretlevel{D669.3}` |
+| `\ctitle{...}` | 中文题目（≤20 字） | `\ctitle{河南师范大学学位论文 \LaTeX\ 模板使用示例}` |
+| `\csubject{...}` | 中文学科门类 | `\csubject{政治学}` |
+| `\cmajor{...}` | 中文学科专业 | `\cmajor{政治学理论}` |
+| `\researchdirection{...}` | 研究方向 | `\researchdirection{社区治理}` |
+| `\degreecategory{...}` | 申请学位类别 | `\degreecategory{法学博士}` |
+| `\cauthor{...}` | 中文作者 | `\cauthor{赵钱孙}` |
+| `\csupervisor{...}` | 中文指导教师 | `\csupervisor{吴郑王}` |
 | `\protitle{...}` | 指导教师职称 | `\protitle{教授}` |
 | `\cdate{...}` | 中文日期（默认 `\CJK@todaybig`「二〇…年…月」） | `\cdate{二〇二五年五月}` |
+| `\etitle{...}` | 英文题目（Title Case） | `\etitle{An Introduction to ... University}` |
+| `\edegree{...}` | 英文学位类别 | `\edegree{Doctor of Law}` |
+| `\emajor{...}` | 英文学科专业 | `\emajor{Materials Science and Engineering}` |
+| `\edepartment{...}` | 英文院系 | `\edepartment{School of Materials Science and Engineering}` |
+| `\eauthor{...}` | 英文作者 | `\eauthor{Zhao Qiansun}` |
+| `\esupervisor{...}` | 英文指导教师 | `\esupervisor{Prof. Wu Zhengwang}` |
+
+> `\stuno`（本科用，博士封面不渲染）与 `\edate`（英文日期自动生成）为可选/自动，通常无需手动设置。完整字段见 [`data/cover.tex`](data/cover.tex) 注释。
 
 ---
 
@@ -101,14 +112,16 @@ htuthesis/
 ### 推荐：latexmk（自动多遍）
 
 ```bash
-latexmk -xelatex main          # 自动 xelatex + bibtex + xelatex×N，生成 main.pdf
+latexmk -xelatex main          # 自动 xelatex + biber + xelatex×N，生成 main.pdf
 ```
 
 ### 原始序列（`refs.bib` 改动后或无 latexmk 时）
 
+> ⚠ 本模板用 **biber**（非 bibtex）处理后端（cls biblatex `backend=biber`）。`bibtex main` 不生效。
+
 ```bash
-xelatex main                   # 第 1 遍（生成 .aux）
-bibtex main                    # 处理参考文献（生成 .bbl）
+xelatex main                   # 第 1 遍（生成 .aux/.bcf）
+biber main                     # 处理参考文献（生成 .bbl；须用 biber 非 bibtex）
 xelatex main                   # 第 2 遍（应用 .bbl）
 xelatex main                   # 第 3 遍（解析交叉引用）
 ```
@@ -156,6 +169,8 @@ spec §2.10 支持两种编号方式，经 `\documentclass` 选项切换：
 - **物理边距：** `make calibrate` 生成标尺 PDF，打印后 overlay 比对 `main.pdf`。
 - **编译健康：** `make compile-check`（rc=0）、`make structure-check`（目录健全）。
 - **基线快照：** [`verify/baseline/`](verify/baseline/)（页数 + 章节起始页，未来格式改动的回归参照）。
+
+> **Windows 无 `make`？** 上述 `make` 目标可用原始命令替代：编译健康 = `latexmk -xelatex main`（rc=0）；物理边距 = `cd tools && xelatex calibrate.tex`；结构检查 = `bash tests/check-structure.sh`。（`latexmk` 自动跑 biber，无需手操。）
 
 ---
 
