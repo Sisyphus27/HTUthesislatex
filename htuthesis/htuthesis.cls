@@ -19,10 +19,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newif\ifhtu@doctor\htu@doctortrue
 \newif\ifhtu@openright\htu@openrightfalse
+\newif\ifhtu@debug\htu@debugfalse
 \DeclareOption{doctor}{\htu@doctortrue}
 \DeclareOption{bachelor}{\ClassError{htuthesis}{bachelor option removed: this template now only supports doctoral theses}{}}
 \DeclareOption{master}{\ClassError{htuthesis}{master option removed: this template now only supports doctoral theses}{}}
 \DeclareOption{openright}{\htu@openrighttrue}
+% [基础] debug 模式选项（architecture §342 decision 4b；Story 4.3；NFR-5 调试标准）。
+%   \documentclass[doctor,debug]{htuthesis} 置 \ifhtu@debug=true，\htucheck 额外输出 --- debug diagnostics --- 段
+%   （基线值对照、headheight head-room 计算、NFR-5 六警告 watch-list）。AC-2：仅 [debug] 时输出；默认编译
+%   self-check 块不变（AC-8 —— 22 个 Epic 2-3 ATDD consumer + Story 4.2 I02/I06/I07 依赖默认输出，4.3 ADD-only）。
+%   关联 Makefile `debug-check` target（[doctor,debug] 编译 + NFR-5 六签名 grep → warnings-as-errors）。
+\DeclareOption{debug}{\htu@debugtrue}
 % [基础] 标题编号制 numbering=sc|hs（spec §2.10 line 235；Story 3.15 G3 / D-22）。
 %   false(默认)=人文社科 hs（第一章/第一节/一、/（1）；Story 3.13 实现）；
 %   true=自然科学 sc（opt-in：1/1.1/1.1.1 半角 + 编号名空半格 §2.10 line 237；Story 3.13 曾删此路径，G3 恢复为可选）。
@@ -1126,6 +1133,34 @@
   \typeout{PROXIED: [01] baselineskip-for-spacing, [02] EN-abstract baselineskip (scope not isolated here)}%
   \typeout{RENDERED-DIRECT evidence lives in the fitz ATDDs cited above}%
   \typeout{(a green self-check is NOT spec-compliance evidence for the proxied properties)}%
+  %% --- debug diagnostics (Story 4.3；\ifhtu@debug gated；AC-1/2；ADD-only — the 4.2 sections above stay always-on, AC-8) ---
+  %%     REPORTS dims (does NOT assert them as spec-compliance evidence — R-25 wrong-target-AC: a green self-check
+  %%     is NOT spec compliance for rendered properties; this section is a diagnostic DUMP for developers, verdict
+  %%     logic stays in the WARNING/ERROR tiers above). Names the NFR-5 watch-list so a developer running [debug]
+  %%     knows what `make debug-check` enforces (6 LaTeX warnings treated as errors during development, NFR-5).
+  %%     (Watch-list phrases use the natural warning text — safe because this block prints ONLY under [doctor,debug],
+  %%     never on the default compile that the Epic 2-3 headheight/overfull greps scan.)
+  \ifhtu@debug
+    \typeout{--- debug diagnostics ---}%
+    \typeout{[debug] htuthesis verbose self-check active (documentclass debug option)}%
+    \typeout{[debug] textheight actual=\the\textheight\space baseline=\htu@base@textheight}%
+    \typeout{[debug] textwidth actual=\the\textwidth\space baseline=\htu@base@textwidth}%
+    \typeout{[debug] baselineskip actual=\the\baselineskip\space baseline=\htu@base@baselineskip}%
+    \typeout{[debug] headheight actual=\the\headheight\space headsep=\the\headsep\space footskip=\the\footskip}%
+    \typeout{[debug] evensidemargin=\the\evensidemargin\space oddsidemargin=\the\oddsidemargin\space (twoside symmetric)}%
+    \typeout{--- NFR-5 warning-as-error watch list (Makefile debug-check enforces these) ---}%
+    %% NFR-5 watch-list literal signatures — source-of-truth (ATDD-4.3-07 source-grep + Makefile debug-check grep
+    %%   both anchor here). Bare \hbox is safe in a comment (not executed); the \typeout lines below use \string\hbox
+    %%   to print the same signature to the debug .log for developer UX, and Makefile debug-check grep -v excludes
+    %%   these watch-list lines so the checker does not self-trip on its own documentation.
+    %%   Signatures: Overfull \hbox | geometry Over-specification | fancyhdr headheight too low | natbib undefined Citation | hyperref Token not allowed in PDF string | caption option reset
+    \typeout{[1] Overfull \string\hbox — content wider than textwidth}%
+    \typeout{[2] geometry Over-specification (Package geometry) — redundant margin dims}%
+    \typeout{[3] fancyhdr headheight too low (Package fancyhdr) — header truncation risk}%
+    \typeout{[4] natbib/biblatex undefined Citation — missing .bbl entry}%
+    \typeout{[5] hyperref Token not allowed in PDF string — bookmark glyph issue}%
+    \typeout{[6] caption option reset (Package caption) — labelsep override lost}%
+  \fi
   \typeout{=== End Self-Check ===}%
 }
 \AtEndDocument{%

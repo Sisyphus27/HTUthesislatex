@@ -1,0 +1,58 @@
+%% tools/calibrate.tex — htuthesis 校准标尺页（Story 4.3；standalone；AC-3/4/5；architecture §343/§618-621）
+%%
+%% 独立编译：\documentclass{article}（NOT htuthesis.cls）。手动 \input 或 `make calibrate`。
+%% 几何镜像 htuthesis.def 的 body-edge 值（cls includeheadfoot：body 顶=30mm，body 底=25mm，左右=25mm），
+%%   使 textwidth=160mm × textheight=242mm 与 \htucheck 的 \the\textwidth(455.24pt)/\the\textheight(688.56pt) 一致
+%%   （TC-E4-23 / ATDD-4.3-I07 fitz-vs-\htucheck ±5mm 精度核验）。
+%% 参考 htuthesis.def 真值源：topmargin 22mm / bottommargin 17.5mm / left+right 25mm / headheight 5.6mm /
+%%   headsep 2.4mm / footskip 7.5mm；header rule 实测 ≈27.5mm（def 注释）。
+%%
+%% AC-5：\InputIfFileExists 路径韧性 —— calibrate-overlay.cfg 缺失时优雅降级（默认蓝色标尺）。
+\documentclass[a4paper]{article}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage[a4paper, top=30mm, bottom=25mm, left=25mm, right=25mm]{geometry}
+\pagestyle{empty}
+
+%% AC-5 path-resilience hook：可选 overlay（自定义标尺颜色等）。缺失 → 默认值（\providecommand 兜底）。
+\providecommand{\calibratebodycolor}{blue}
+\providecommand{\calibrateframecolor}{black}
+\InputIfFileExists{calibrate-overlay.cfg}{}{}% overlay 缺失时静默跳过（false-branch 空），编译照常
+
+\begin{document}
+\noindent
+\begin{tikzpicture}[overlay, remember picture]
+  %% --- A4 页面外框（210 × 297mm）---
+  \draw[color=\calibrateframecolor, thin] (current page.north west) rectangle (current page.south east);
+  %% --- 正文 body 框（160 × 242mm；镜像 \htucheck textwidth × textheight；TC-E4-23 精度目标）---
+  \draw[color=\calibratebodycolor, thick]
+    ($(current page.north west)+(25mm,-30mm)$)
+    rectangle
+    ($(current page.south east)+(-25mm,25mm)$);
+  %% --- 页眉横线（参考论文实测 ≈27.5mm from paper top）---
+  \draw[color=red, thin]
+    ($(current page.north west)+(25mm,-27.5mm)$) --
+    ($(current page.north east)+(-25mm,-27.5mm)$);
+  %% --- 页脚基线（bottommargin 17.5mm from paper bottom）---
+  \draw[color=red, thin]
+    ($(current page.south west)+(25mm,17.5mm)$) --
+    ($(current page.south east)+(-25mm,17.5mm)$);
+  %% --- 上边距标尺（0-30mm，每 10mm 一刻度）---
+  \foreach \mm in {0,10,20,30} {
+    \draw[color=\calibrateframecolor, thin]
+      ($(current page.north west)+(\mm mm,0mm)$) --
+      ($(current page.north west)+(\mm mm,-3mm)$);
+    \node[anchor=north west, font=\tiny] at ($(current page.north west)+(\mm mm,-3mm)$) {\mm};
+  }
+  %% --- 左边距标尺（0-25mm，每 5mm 一刻度）---
+  \foreach \mm in {0,5,15,25} {
+    \draw[color=\calibrateframecolor, thin]
+      ($(current page.north west)+(0mm,-\mm mm)$) --
+      ($(current page.north west)+(3mm,-\mm mm)$);
+    \node[anchor=north west, font=\tiny] at ($(current page.north west)+(3mm,-\mm mm)$) {\mm};
+  }
+  %% --- 尺寸标注（body 框宽 × 高 + 各边距值）---
+  \node[font=\small] at ($(current page.center)+(0mm,0mm)$)
+    {body 160mm × 242mm · top 30 · bottom 25 · left 25 · right 25 · header rule 27.5 · footer 17.5 (mm)};
+\end{tikzpicture}
+\end{document}

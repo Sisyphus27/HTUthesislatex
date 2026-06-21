@@ -57,4 +57,28 @@ lint-check:
 structure-check:
 	@bash tests/check-structure.sh
 
-.PHONY: test compile-check lint-check structure-check
+###### calibration tool (Story 4.3；standalone TikZ ruler page；AC-3/4；opt-in，NOT in all/test)
+
+calibrate: tools/calibrate.pdf
+	@echo "[PASS] calibrate.pdf built (tools/calibrate.tex standalone)"
+
+tools/calibrate.pdf: tools/calibrate.tex
+	cd tools && xelatex -file-line-error -halt-on-error -interaction=nonstopmode calibrate.tex
+
+###### debug-check (Story 4.3；NFR-5 调试标准；6 LaTeX warnings 视为 errors；opt-in)
+#   sed-copy main.tex -> .debug-main.tex with [doctor,debug] (activate \ifhtu@debug verbose self-check),
+#   compile, grep main.log for the 6 NFR-5 warning signatures; any hit -> exit 1 (warnings-as-errors in dev).
+#   Clean default tree (4.2 close-out: 1 xeCJK warning, no NFR-5) -> exit 0. SUT (main.tex) untouched.
+debug-check:
+	@echo "=== NFR-5 debug-check ([doctor,debug] + 6-warning grep) ==="
+	sed 's/\\documentclass\[doctor\]{htuthesis}/\\documentclass[doctor,debug]{htuthesis}/' main.tex > .debug-main.tex
+	latexmk $(LATEXMKOPTS) .debug-main >/dev/null 2>&1 || { rc=$$?; echo "FAIL: [doctor,debug] compile error (rc=$$rc)"; rm -f .debug-main.*; exit 1; }
+	@if grep -E 'Overfull \\hbox|geometry Warning: Over-specification|fancyhdr Warning: \\headheight is too low|natbib Warning: Citation.*undefined|Token not allowed in a PDF string|caption Warning' .debug-main.log | grep -v -E 'watch.list|NFR-5 warning-as-error|^\[[0-9]\]|^\[debug\]'; then \
+		echo "FAIL: NFR-5 warning(s) detected -- treated as errors in debug mode (see Makefile debug-check)"; \
+		rm -f .debug-main.*; exit 1; \
+	else \
+		echo "[PASS] no NFR-5 warnings -- debug-check clean"; \
+		rm -f .debug-main.*; \
+	fi
+
+.PHONY: test compile-check lint-check structure-check calibrate debug-check
