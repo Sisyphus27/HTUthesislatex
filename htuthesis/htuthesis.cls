@@ -1116,6 +1116,7 @@
   \typeout{[12] PDF bookmark hierarchy: rendered -- manual epic-gate}%
   \typeout{[13] TOC L1 number-prefix font SimHei (G1): rendered -- ATDD-3.15-G1}%
   \typeout{[14] heading/TOC Latin TNR not LMSans (G6): rendered -- ATDD-3.15-G6}%
+  \typeout{[15] evensidemargin-twoside configuration (architecture §480 enhanced check): rendered -- ATDD-2.4 (outer-side page-number/margin position); no compile-time proxy (§480 'unset/default' undetectable post-geometry; HTU symmetric margins make even==odd the correct state; a dim-proxy self-check would violate R-25 wrong-target-AC)}%
   %% --- assertion audit (wrong-target-AC, Epic 3 retro action #3, R-25) ---
   %%     flags which self-check assertions are PROXIED (internal dim for a rendered property) so a ---
   %%     reviewer knows a green self-check is NOT spec-compliance evidence for those properties.
