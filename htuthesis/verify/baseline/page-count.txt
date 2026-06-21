@@ -1,0 +1,13 @@
+# verify/baseline/page-count.txt — 示例论文页数快照
+# 来源：\htucheck 自检输出 (main.log `total pages = ` 行)，示例论文 (main.tex sample content)
+# 用途：未来格式改动的回归参照 (architecture §567)。非 spec 值——页数依赖内容，仅作相对参照。
+# 基线 commit：7e0d103 (Story 4.4)
+# 最近更新：2026-06-21
+
+total_pages = 52
+
+# 注：
+# - 52 = 物理总页数 (physical pages, 含前置 Roman 页 + 主体 Arabic 页 + 空白页)。
+# - 前置部分 (封面/扉页/摘要/ABSTRACT/目录/图表清单) 用大写罗马数字 (Ⅰ Ⅱ Ⅲ…)。
+# - 主体部分 (绪论起至声明) 用阿拉伯数字 (1 2 3…)，见 chapter-start-pages.txt。
+# - 本值依赖示例论文 (data/*.tex) 内容长度；改动样本内容会变。仅作相对回归参照。

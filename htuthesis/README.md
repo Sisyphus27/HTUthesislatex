@@ -1,28 +1,166 @@
-# htuthesis
+# htuthesis — 河南师范大学博士学位论文 LaTeX 模板
 
-郑州大学本科毕业设计(论文)和研究生学位论文(含 硕士和博士) LaTeX 模版。 本科毕业设计（论文）和研究生学位论文（含硕士和博士） 分别根据《郑州大学材料科学与工程学院本科毕业设计（论文）基本规范》和《郑州大学学位论文写作规范格式》的规范要求制定。该模板主要完成于 2012 年上半年，在上传至 Github 前进行了部分调整，以保证正常编译运行。
+河南师范大学（HTU）博士学位论文 LaTeX 模板。按《河南师范大学研究生学位论文格式要求》（spec）实现，仅支持博士（doctor）学位、XeLaTeX 引擎、TeX Live 2025。
 
-## 1. 字体配置
+> 格式审查对照清单（#1 交付物）见 [`verify/checklist.md`](verify/checklist.md)——逐条映射 spec 规则到本模板实现，标注「自动检查/人工确认」。
 
-采用 ctex 宏包中的字体配置。
+---
 
-## 2. 模板编译
+## 1. 快速开始 (Quick Start)
 
-该模板分别在 Windows 和 Linux 平台安装的 TeXLive 2019 下测试通过。
+```bash
+# 1. 克隆仓库
+git clone <repo-url> && cd htuthesis
 
-### 2.1 模板文件的生成
+# 2. 确认环境：TeX Live 2025 + 5 字体（SimSun/SimHei/KaiTi/FangSong/Times New Roman）
+xelatex --version    # 须 XeLaTeX
 
-  `latexmk -xelatex main`
+# 3. 编辑封面元数据（论文题目/作者/专业/学号/日期）
+#    打开 data/cover.tex，修改 \ctitle \etitle \cmajor ... 等命令
 
-### 2.2 A3 封面文件的生成
+# 4. 编译
+latexmk -xelatex main
 
-  `xelatex spine`
-  
-  `xelatex a3cover`
+# 5. 打开 PDF
+main.pdf
+```
 
-### 2.3 自动运行脚本(Makefile)
+> Windows 无 `latexmk`？用 TeX Live 自带的 `latexmk`（推荐）或直接见 [§5 编译](#5-编译-compilation) 的原始命令序列。
 
-* `make all`       等于 `make thesis && make a3cover`(默认选项)；
-* `make thesis`    生成论文 main.pdf；
-* `make a3cover`   生成封面 a3cover.pdf；
-* `make clean`     清理中间文件；
+---
+
+## 2. 环境要求 (Requirements)
+
+- **引擎：XeLaTeX ONLY。** pdflatex / lualatex 不支持（CJK 字体 + spec 排版要求）。NFR-1。
+- **TeX Live 2025 最低**（含 xelatex、latexmk、bibtex、ctex、fancyhdr、geometry、caption、hyperref、biblatex/gbt7714、tikz、zhnumber）。
+- **5 个必需字体：**
+  - `SimSun`（宋体，正文）
+  - `SimHei`（黑体，标题）
+  - `KaiTi`（楷体）
+  - `FangSong`（仿宋）
+  - `Times New Roman`（Latin 正文/标题 Latin）
+- 缺任一字体会 `\PackageError` 终止编译（cls:71–94 `\IfFontExistsTF` gate；NFR-2）。Windows 自带；Linux 须安装（fontconfig）或置于 `~/fonts`。
+
+---
+
+## 3. 元数据设置 (Metadata Setup)
+
+封面与扉页的论文信息在 [`data/cover.tex`](data/cover.tex) 中设置：
+
+| 命令 | 含义 | 示例 |
+|------|------|------|
+| `\ctitle{...}` | 中文题目（≤20 字） | `\ctitle{河南师范大学学位论文 \LaTeX\ 模板使用示例}` |
+| `\etitle{...}` | 英文题目（Title Case） | `\etitle{An Introduction to ... University}` |
+| `\cmajor{...}` | 中文学科专业 | `\cmajor{政治学理论}` |
+| `\emajor{...}` | 英文学科专业 | `\emajor{Materials Science and Engineering}` |
+| `\cauthor{...}` | 中文作者 | `\cauthor{赵钱孙}` |
+| `\eauthor{...}` | 英文作者 | `\eauthor{Zhao Qiansun}` |
+| `\id{...}` | 学号（~10 位） | `\id{2024000001}` |
+| `\protitle{...}` | 指导教师职称 | `\protitle{教授}` |
+| `\cdate{...}` | 中文日期（默认 `\CJK@todaybig`「二〇…年…月」） | `\cdate{二〇二五年五月}` |
+
+---
+
+## 4. 文件结构 (File Structure)
+
+```
+htuthesis/
+├── main.tex                    # 论文入口 — 元数据 + 章节引用
+├── htuthesis.cls               # 排版引擎（勿改）
+├── htuthesis.def               # 学校格式参数（用户区/高级区分界注释，可调）
+├── htuthesis.bst               # 参考文献样式（GB/T 7714-2015）
+├── Makefile                    # 编译 + clean + check + calibrate + debug-check 目标
+├── README.md                   # 本文件
+│
+├── data/                       # 论文内容（用户写作区）
+├── figures/                    # 图片 + HTU 校徽 (htu-logo.pdf / htu-text-logo.pdf)
+├── ref/                        # 参考文献 (refs.bib)
+├── tools/                      # 开发辅助（不参与正式编译）
+│   └── calibrate.tex           # TikZ 物理边距标尺
+└── verify/                     # 验证产物
+    ├── checklist.md            # 格式审查对照清单（#1 交付物）
+    └── baseline/               # 结构基线快照（页数、章节起始页）
+```
+
+### `data/` 文件名对照表
+
+| 文件 | 内容 |
+|------|------|
+| `data/cover.tex` | 封面元数据（题目/作者/专业/学号/日期） |
+| `data/abstract.tex` | 中文摘要 + 英文 ABSTRACT（含关键词） |
+| `data/chap01.tex` … `chap04.tex` | 正文第一章 … 第四章 |
+| `data/app01.tex` … `app03.tex` | 附录 A … 附录 C |
+| `data/ack.tex` | 致谢 |
+| `data/resume.tex` | 攻读学位期间发表的学术论文目录 |
+| `data/denotation.tex` | 主要符号表（如使用） |
+
+---
+
+## 5. 编译 (Compilation)
+
+### 推荐：latexmk（自动多遍）
+
+```bash
+latexmk -xelatex main          # 自动 xelatex + bibtex + xelatex×N，生成 main.pdf
+```
+
+### 原始序列（`refs.bib` 改动后或无 latexmk 时）
+
+```bash
+xelatex main                   # 第 1 遍（生成 .aux）
+bibtex main                    # 处理参考文献（生成 .bbl）
+xelatex main                   # 第 2 遍（应用 .bbl）
+xelatex main                   # 第 3 遍（解析交叉引用）
+```
+
+### Make 目标
+
+```bash
+make              # = make thesis && make a3cover（默认）
+make thesis       # 仅 main.pdf
+make a3cover      # A3 封面 a3cover.pdf
+make clean        # 清理中间文件
+make test         # compile-check + lint-check + structure-check
+make calibrate    # 生成 tools/calibrate.pdf（物理边距标尺，overlay 比对）
+make debug-check  # NFR-5：6 类 LaTeX warning 视为 error（干净树 exit 0）
+```
+
+> `make calibrate` / `make debug-check` 为可选开发工具，不在默认 `make`/`make test` 中。
+
+---
+
+## 6. 标题编号惯例 (Heading Numbering)
+
+spec §2.10 支持两种编号方式，经 `\documentclass` 选项切换：
+
+```latex
+\documentclass[doctor]{htuthesis}                 % 默认 hs：人文社科
+\documentclass[doctor,numbering=sc]{htuthesis}    % sc：自然科学
+```
+
+| 模式 | 一级 | 二级 | 三级 | 四级 |
+|------|------|------|------|------|
+| `hs`（默认，人文社科） | 第一章 | 第一节 | 一、 | （1） |
+| `sc`（自然科学） | 1 | 1.1 | 1.1.1 | （1） |
+
+- hs：一二级居中，三级及以下居左空两格。
+- sc：一至三级居左顶格。
+- 标题字号（两模式共用）：一级三号黑体、二级小三号黑体、三级四号黑体、四级小四号宋体加粗。
+
+---
+
+## 7. 验证 (Verification)
+
+- **格式审查清单：** [`verify/checklist.md`](verify/checklist.md)——逐条映射 spec §1.1–§2.17 规则到实现，标注「自动检查/人工确认」。
+- **自检报告：** 每次编译 `main.log` 末尾自动输出 `=== HTU Layout Self-Check ===` … `=== End Self-Check ===` 块（页边距/行距/字体/14 项静默失败断言）。
+- **物理边距：** `make calibrate` 生成标尺 PDF，打印后 overlay 比对 `main.pdf`。
+- **编译健康：** `make compile-check`（rc=0）、`make structure-check`（目录健全）。
+- **基线快照：** [`verify/baseline/`](verify/baseline/)（页数 + 章节起始页，未来格式改动的回归参照）。
+
+---
+
+## 参考
+
+- spec 真值源：`河南师范大学研究生学位论文格式要求.md`（仓库根）
+- 格式校准记录：`htuthesis.def` `[基础]` 注释（每参数标注真值源）
+- 真值源层次：spec 优先；参考论文 PDF 仅 spec 沉默时辅助（见 `CLAUDE.md`）。
