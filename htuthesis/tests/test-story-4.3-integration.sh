@@ -90,10 +90,9 @@ CALIBRATE_XELATEX="xelatex -file-line-error -halt-on-error -interaction=nonstopm
 
 # debug_copy <tmp_base>
 #   Read main.tex, replace \documentclass[doctor]{htuthesis} → \documentclass[doctor,debug]{htuthesis}, write <tmp>.tex.
-#   Scaffolding note: uses sed (the same idiom as the Makefile debug-check target) rather than a python-heredoc regex,
-#   because this shell environment halves '\\' inside <<'PY' heredocs, breaking the python-regex variant. The sed form
-#   is robust + matches the production Makefile debug-check exactly. Returns 0 if the replacement verified, 1 else.
-#   SUT UNTOUCHED — writes only <tmp>.tex. (Permitted test-scaffolding repair; the test CONTRACT is unchanged.)
+#   Scaffolding note: uses sed to exactly mirror the Makefile debug-check recipe (single source of truth) — robust +
+#   keeps the test contract identical to the production target. The python-heredoc regex variant was unreliable in
+#   this dev env; sed avoids that. Returns 0 if the replacement verified (grep guard), 1 else. SUT UNTOUCHED.
 debug_copy() {
   local tmp="$1"
   sed 's/\\documentclass\[doctor\]{htuthesis}/\\documentclass[doctor,debug]{htuthesis}/' main.tex > "$tmp.tex"
@@ -298,12 +297,17 @@ echo "=== P1: calibrate \\InputIfFileExists resilience — overlay absent (AC-5,
 test_calibrate_inputifexists_resilience() {
   [[ -f "tools/calibrate.tex" ]] || { echo "  (tools/calibrate.tex absent — RED)"; return 1; }
   grep -qE '\\InputIfFileExists' tools/calibrate.tex || { echo "  (no \\InputIfFileExists in calibrate.tex — RED, see unit-04)"; return 1; }
-  # ensure the optional overlay is absent (test the false-branch path)
-  rm -f tools/calibrate-overlay.cfg tools/calibrate-overlay.tex
+  # Test the absent-overlay false-branch WITHOUT destroying the shipped deliverable: rename to a temp, restore after.
+  # (Review P1 fix: the prior `rm -f tools/calibrate-overlay.cfg` deleted the tracked SUT file — git status showed `D`
+  # after a --run. Rename+restore keeps the SUT intact regardless of compile outcome.)
+  local bak="tools/.calibrate-overlay.cfg.atdd43bak"
+  if [[ -f "tools/calibrate-overlay.cfg" ]]; then mv -f tools/calibrate-overlay.cfg "$bak"; fi
   ( cd tools && $CALIBRATE_XELATEX calibrate.tex >/dev/null 2>&1 )
   local rc=$?
-  echo "  calibrate compile (overlay absent) rc=$rc (expect rc=0 — graceful \\InputIfFileExists false-branch)"
+  # restore the shipped overlay regardless of compile outcome (never leave the SUT missing a deliverable)
+  if [[ -f "$bak" ]]; then mv -f "$bak" tools/calibrate-overlay.cfg; fi
   rm -f tools/calibrate.aux tools/calibrate.log
+  echo "  calibrate compile (overlay absent) rc=$rc (expect rc=0 — graceful \\InputIfFileExists false-branch)"
   [[ "$rc" -eq 0 ]]
 }
 run_test "P1" "ATDD-4.3-I06" "calibrate \\InputIfFileExists resilience (overlay absent → exit 0) (AC-5, TC-E4-22; *** RED DRIVER *** — absent at 23696b0)" test_calibrate_inputifexists_resilience
@@ -388,6 +392,9 @@ test_debug_check_contract_clean() {
   # run the contract inline (clean tree → expect 0 NFR-5 hits excluding the watch-list self-documentation lines)
   local tmp=".atdd-43-dc"
   sed 's/\\documentclass\[doctor\]{htuthesis}/\\documentclass[doctor,debug]{htuthesis}/' main.tex > "$tmp.tex"
+  # P2 review fix: guard that the sed actually injected [doctor,debug] — a no-op sed (documentclass line changed)
+  # would compile a non-debug main + grep a non-debug log → false-green. Abort if the replacement didn't take.
+  grep -q '\\documentclass\[doctor,debug\]{htuthesis}' "$tmp.tex" || { echo "  (sed no-op — main.tex documentclass changed; [doctor,debug] not injected — RED)"; rm -f "$tmp".*; return 1; }
   $LATEXMK "$tmp.tex" >/dev/null 2>&1
   local rc=$?
   local hits=0

@@ -72,6 +72,7 @@ tools/calibrate.pdf: tools/calibrate.tex
 debug-check:
 	@echo "=== NFR-5 debug-check ([doctor,debug] + 6-warning grep) ==="
 	sed 's/\\documentclass\[doctor\]{htuthesis}/\\documentclass[doctor,debug]{htuthesis}/' main.tex > .debug-main.tex
+	@grep -q '\documentclass\[doctor,debug\]{htuthesis}' .debug-main.tex || { echo "FAIL: sed no-match -- main.tex documentclass line changed; [doctor,debug] not injected"; rm -f .debug-main.*; exit 1; }
 	latexmk $(LATEXMKOPTS) .debug-main >/dev/null 2>&1 || { rc=$$?; echo "FAIL: [doctor,debug] compile error (rc=$$rc)"; rm -f .debug-main.*; exit 1; }
 	@if grep -E 'Overfull \\hbox|geometry Warning: Over-specification|fancyhdr Warning: \\headheight is too low|natbib Warning: Citation.*undefined|Token not allowed in a PDF string|caption Warning' .debug-main.log | grep -v -E 'watch.list|NFR-5 warning-as-error|^\[[0-9]\]|^\[debug\]'; then \
 		echo "FAIL: NFR-5 warning(s) detected -- treated as errors in debug mode (see Makefile debug-check)"; \

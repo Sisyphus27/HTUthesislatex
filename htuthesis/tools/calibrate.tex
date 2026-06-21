@@ -6,6 +6,9 @@
 %%   （TC-E4-23 / ATDD-4.3-I07 fitz-vs-\htucheck ±5mm 精度核验）。
 %% 参考 htuthesis.def 真值源：topmargin 22mm / bottommargin 17.5mm / left+right 25mm / headheight 5.6mm /
 %%   headsep 2.4mm / footskip 7.5mm；header rule 实测 ≈27.5mm（def 注释）。
+%%   注：geometry 的 top=30mm 是纸顶→body 顶（正文起始）；def 的 topmargin=22mm 是纸顶→页眉顶，两者关系为
+%%   body 顶(30) = topmargin(22) + headheight(5.6) + headsep(2.4)（includeheadfoot：head 在 top 区内）。两个参考
+%%   点不同但一致；body 底(25mm from bottom) = bottommargin(17.5) + footskip(7.5) 同理。
 %%
 %% AC-5：\InputIfFileExists 路径韧性 —— calibrate-overlay.cfg 缺失时优雅降级（默认蓝色标尺）。
 \documentclass[a4paper]{article}
@@ -45,7 +48,7 @@
     \node[anchor=north west, font=\tiny] at ($(current page.north west)+(\mm mm,-3mm)$) {\mm};
   }
   %% --- 左边距标尺（0-25mm，每 5mm 一刻度）---
-  \foreach \mm in {0,5,15,25} {
+  \foreach \mm in {0,5,10,15,20,25} {
     \draw[color=\calibrateframecolor, thin]
       ($(current page.north west)+(0mm,-\mm mm)$) --
       ($(current page.north west)+(3mm,-\mm mm)$);
