@@ -161,7 +161,13 @@ text = "\n".join(lines)
 def body_of(marker):
     m = re.search(marker, text)
     if not m: return ""
-    i = text.index("{", m.start()); depth = 0
+    # m matches e.g. '\newcommand{\htucheck}' (ends at the '}' closing the NAME arg). The BODY opener is the
+    # NEXT '{' after m.end() -- m.start() would land on the name-arg '{' and truncate the body (the same bug
+    # htucheck_body fixes). Story 4.2 review patch P3.
+    rest = text[m.end():]
+    ib = rest.find("{")
+    if ib < 0: return ""
+    i = m.end() + ib; depth = 0
     for j in range(i, len(text)):
         if text[j] == "{": depth += 1
         elif text[j] == "}":
@@ -328,28 +334,20 @@ import re, sys
 src = open("htuthesis.cls", encoding="utf-8").read()
 lines = [ln for ln in src.splitlines() if not ln.lstrip().startswith("%")]
 text = "\n".join(lines)
-# find every \PackageError{htuthesis} and check it is not the false-branch of a \If...TF{...}{}{...} with empty true-branch
+# Story 4.2 review patch P1: the original first loop here was DEAD CODE -- both `if re.search` branches ended in
+#   `pass` and never appended to `violations`, AND distinguishing a silent-guard `{}` from the `\PackageError` help
+#   arg `{}` (every \PackageError{htuthesis}{msg}{help} ends with an empty `{}` help arg) is not regex-reliable on
+#   TeX. The HONEST check this test can perform: no `\PackageError{htuthesis}` is wrapped in an UNREACHABLE branch
+#   (\iffalse / \unlessif / \ifvoid) that would swallow it. The authoritative proof that the ERROR path FIRES is the
+#   integration inject-test ATDD-4.2-I04 (forced \PackageError -> rc=12 + no PDF); this unit guard is a narrower
+#   source-level backstop only.
 violations = []
 for m in re.finditer(r'\\PackageError\{htuthesis\}', text):
-    # look 120 chars back for an \If...TF{...}{}{  pattern (empty 2nd arg = silent guard)
-    window = text[max(0, m.start()-160): m.start()]
-    # \IfFontExistsTF{X}{}{\PackageError  ← the {} empty true-branch means: if font EXISTS do nothing; this is the
-    # CORRECT gate (error fires when font missing). The DANGEROUS form is \IfFontExistsTF{X}{\PackageError}{} (empty
-    # false-branch = error never fires). Detect the dangerous form: error preceded by '{' empty-true + '}{'
-    if re.search(r'\}\s*\{\s*\\PackageError\{htuthesis\}\s*\}\s*\{\s*\}\s*$', window):
-        # this is actually the SAFE form (error in true-branch when condition is the failure) — not a violation
-        pass
-    if re.search(r'\}\s*\{\s*\}\s*\{\s*\\PackageError', window):
-        # empty true-branch then error in false-branch — SAFE (fires on failure). Not a violation.
-        pass
-# The real silent-guard: \PackageError wrapped so it NEVER fires — e.g. inside \ifvoid, or after \iffalse.
-# Heuristic violation: \PackageError{htuthesis} on the same logical line as \iffalse / \unlessif ... unreachable.
-for m in re.finditer(r'\\PackageError\{htuthesis\}', text):
     window = text[max(0, m.start()-200): m.start()+80]
-    if re.search(r'\\iffalse\b', window) and window.find('\\iffalse') < window.find('\\PackageError'):
-        # crude: \iffalse ... \PackageError (unreachable) — flag
+    # \PackageError unreachable: preceded by \iffalse / \unlessif ... \fi (never fires)
+    if re.search(r'\\(iffalse|unlessif)\b', window) and window.find('\\iffalse') < window.find('\\PackageError'):
         violations.append(m.start())
-print("  self-check \\PackageError calls: %d | silent-guard violations: %d" % (len(list(re.finditer(r'\\PackageError\{htuthesis\}', text))), len(violations)))
+print("  self-check \\PackageError calls: %d | unreachable-swallow violations: %d" % (len(list(re.finditer(r'\\PackageError\{htuthesis\}', text))), len(violations)))
 sys.exit(0 if not violations else 1)
 PY
 }

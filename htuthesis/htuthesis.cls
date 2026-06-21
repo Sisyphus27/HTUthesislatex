@@ -852,8 +852,8 @@
     pdfkeywords={\htu@ckeywords},
     pdfcreator={\htuthesis-v\version}}}
 \newcommand{\makecover}{%制作封面
-  \ifx\htu@ctitle\@empty\PackageError{htuthesis}{htuthesis ERROR: Chinese title (\protect\ctitle) is empty -- cover cannot render without a title (Story 4.2, deferred-work §3.2).}{Set the title via \protect\ctitle{...} in the preamble.}\fi
-  \ifx\htu@etitle\@empty\PackageError{htuthesis}{htuthesis ERROR: English title (\protect\etitle) is empty (Story 4.2, deferred-work §3.2).}{Set the title via \protect\etitle{...} in the preamble.}\fi
+  \ifx\htu@ctitle\@empty\PackageError{htuthesis}{htuthesis ERROR: Chinese title (\string\ctitle) is empty -- cover cannot render without a title (Story 4.2, deferred-work §3.2).}{Set the title via \string\ctitle{...} in the preamble.}\fi
+  \ifx\htu@etitle\@empty\PackageError{htuthesis}{htuthesis ERROR: English title (\string\etitle) is empty (Story 4.2, deferred-work §3.2).}{Set the title via \string\etitle{...} in the preamble.}\fi
   \htu@setup@pdfinfo
   \phantomsection
   \pdfbookmark[-1]{\htu@ctitle}{ctitle}
@@ -1083,9 +1083,9 @@
     \PackageWarning{htuthesis}{WARNING: textwidth = \the\textwidth\space (expected \htu@base@textwidth, drift > 1mm)}%
   \fi\fi
   \ifdim\baselineskip>\dimexpr\htu@base@baselineskip+0.5bp\relax
-    \PackageWarning{htuthesis}{WARNING: baselineskip = \the\baselineskip\space (expected ~23.4bp, drift > 0.5bp)}%
+    \PackageWarning{htuthesis}{WARNING: baselineskip = \the\baselineskip\space (expected approx \htu@base@baselineskip, drift > 0.5bp)}%
   \else\ifdim\baselineskip<\dimexpr\htu@base@baselineskip-0.5bp\relax
-    \PackageWarning{htuthesis}{WARNING: baselineskip = \the\baselineskip\space (expected ~23.4bp, drift > 0.5bp)}%
+    \PackageWarning{htuthesis}{WARNING: baselineskip = \the\baselineskip\space (expected approx \htu@base@baselineskip, drift > 0.5bp)}%
   \fi\fi
   \ifnum\c@htu@totalpages<1 \PackageWarning{htuthesis}{WARNING: total pages = 0 (no pages shipped -- possible compile anomaly)}\fi
   %% --- font check (defense-in-depth; cls:71-88 gates already halt on missing font, so all 5 are ---
@@ -1101,7 +1101,7 @@
   %%     ASSERTED = compile-time-observable (\the<dim>/.aux/.log). rendered = fitz ATDD owns it ---
   %%     (wrong-target-AC discipline, Epic 3 retro Lesson 3 / R-25: self-check does NOT assert a ---
   %%     rendered property via a \the<dim> proxy; it maps it to the fitz ATDD that probes the span).
-  \typeout{--- silent-failure coverage map (14 items) ---}%
+  \typeout{--- silent-failure coverage map (14 + §480 pointer = 15 lines) ---}%
   \typeout{[01] body baselineskip ~23bp (Word 1.5x): ASSERTED (WARNING above if drift > 0.5bp)}%
   \typeout{[02] EN-abstract baselineskip 23.4bp: PROXIED -- rendered guard ATDD-3.4-I06 / ATDD-3.11-I07}%
   \typeout{[03] counter separators '-' not '.': ASSERTED via .aux scan (ATDD-2.6 unit)}%
