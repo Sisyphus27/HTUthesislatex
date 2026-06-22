@@ -2,9 +2,11 @@
 zzuthesis/
 thuthesis/
 
-# Reference theses (not for distribution)
-2107084001-任子辛-政治与公共管理学院.pdf
-户籍制度改革对就业质量的影响及其作用机理研究_张程皓.pdf
+# Reference theses (local only, not for distribution) — all PDFs at repo root
+/*.pdf
+
+# Project-local conventions (not for distribution)
+CLAUDE.md
 
 # BMAD framework
 _bmad/

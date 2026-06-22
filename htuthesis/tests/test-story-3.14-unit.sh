@@ -31,8 +31,8 @@
 #
 # Truth source: 河南师范大学研究生学位论文格式要求.md §1.1 line 5 (前置部分 enumeration — 封面、扉页、摘要、ABSTRACT、
 #   目录 — NO 摘要封面) + §2.4 line 187 (扉页独立页；摘要/ABSTRACT/目录/章首页另起一页) + §2.4 line 189 (所有起始页码页
-#   共 2 个起始页必须为右页). spec is PRIORITY (CLAUDE.md Decision 4, corrected 2026-06-17). Reference PDF (2107084001-
-#   任子辛-政治与公共管理学院.pdf pp.1-12, direct fitz read 2026-06-19) AGREES — no abstract-cover page (p3 English title
+#   共 2 个起始页必须为右页). spec is PRIORITY (CLAUDE.md Decision 4, corrected 2026-06-17). Reference PDF (参考博士论文-
+#   参考博士论文-政治与公共管理学院.pdf pp.1-12, direct fitz read 2026-06-19) AGREES — no abstract-cover page (p3 English title
 #   → p4 Chinese abstract contiguous), 0 blanks in front matter. See sprint-change-proposal-2026-06-17.md gap rows.
 
 set -uo pipefail

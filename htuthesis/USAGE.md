@@ -120,8 +120,9 @@
 | 命令 | 作用 |
 |------|------|
 | `\chapter{}` / `\section{}` / `\subsection{}` / `\subsubsection{}` | 标准 ctex 标题，按 §2.10 格式化（见 §2 编号模式） |
-| `\footfullcite{key}` | **正文引文**：完整 GB/T 7714 条目作每页脚注（case-2 末注）。小五号宋体 |
-| `\footfullcite[][26]{ding2001}` | 带页号 `26`（可选参数） |
+| `\cite{key}` / `\parencite{key}` | **case-1 正文引文**：渲染 `[N]` 方括号编号（一般学科默认，GB/T 7714 顺序编码制）。上标式用 `\supercite{key}` |
+| `\footfullcite{key}` | **case-2 正文引文**：完整 GB/T 7714 条目作每页脚注（政治学等页下注学科）。小五号宋体 |
+| `\footfullcite[][26]{ding2001}` | case-2 带页号 `26`（可选参数） |
 | `\eqref{label}` | 公式交叉引用，渲染全角括号 `（1-1）`（cls:452 `\tagform@`） |
 | `\ref{label}` | 通用交叉引用。章引用渲染中文（`一/二`）；图表渲染阿拉伯（`图 1-1`）——双轨符合 HS 惯例 |
 | `\includegraphics[opts]{name}` | 插图。搜索路径 `{figures/}`，扩展名 `.pdf,.eps,.png,.jpg,.jpeg` |
@@ -402,13 +403,23 @@ sed-copy main.tex → `.debug-main.tex` 加 `[doctor,debug]`，编译，grep `.l
 
 ### 9.3 biblatex gb7714-2015 + biber + 双模式引文
 
-**双模式（§2.14 case-2，cls:977-1019）：**
-- **正文引文**：`\footfullcite{key}` ——完整 GB/T 7714 条目作**每页脚注**，小五号宋体。每页重置（`footmisc[perpage]` cls:401）。
-- **文末表**：`\makebibliography`——`\nocite{*}`（含全部条目：脚注引用的 + 只读的）+ 6 类过滤 `\printbibliography`（每类 `resetnumbers=true`，从 [1] 重启）：
-  - 一、期刊论文（article）/ 二、著作（book）/ 三、论文集章节（incollection）/ 四、学位论文（thesis，biber 映射 @phdthesis→thesis）/ 五、专利（patent）/ 六、电子资源（online）/ 七、其他（catch-all，`\htu@printbibother` cls:1023-1029）
+本模板支持 **两种引用模式**（同一 `ref/refs.bib`，仅正文命令不同，按学科惯例选）：
 
-- **后端 = biber**（非 bibtex）。**样式 = gb7714-2015**。
-- **sorting=nyt**（文末表按作者姓序）；**defernumbers=true** + 每节 resetnumbers。
+**case-1 顺序编码制（一般学科默认，GB/T 7714 标准）**
+- 正文：`\cite{key}` 或 `\parencite{key}` → `[N]` 方括号编号（读者按 N 查文末表）。
+- 上标式：`\supercite{key}` 或 `\textsuperscript{\cite{key}}` → `^[N]`。
+- 文末表：`\makebibliography`（推荐，按类型分节）或 `\printbibliography`（仅列已引用条目，按 `sorting=nyt` 作者序）。
+
+**case-2 分页脚注（政治学等需页下完整著录的学科，§2.14 + §1.2.4）**
+- 正文：`\footfullcite{key}` → 完整 GB/T 7714 条目作**每页脚注**，小五号宋体，每页重置（`footmisc[perpage]` cls:401）。
+- 带页号：`\footfullcite[][26]{key}`。
+- 文末表：`\makebibliography`（与 case-1 同）。
+
+**两种模式共用**
+- `\makebibliography`（cls:1007-1019）= `\nocite{*}`（含全部条目：引用的 + 只读的）+ 6 类过滤 `\printbibliography`（每类 `resetnumbers=true`，从 [1] 重启）：
+  - 一、期刊论文（article）/ 二、著作（book）/ 三、论文集章节（incollection）/ 四、学位论文（thesis，biber 映射 @phdthesis→thesis）/ 五、专利（patent）/ 六、电子资源（online）/ 七、其他（catch-all，`\htu@printbibother` cls:1023-1029）
+- 后端 = **biber**（非 bibtex）。样式 = **gb7714-2015**。sorting=nyt（文末表作者序）；defernumbers=true + 每节 resetnumbers。
+- **示例论文（`data/*.tex`）默认用 case-2**（对齐参考博士论文，政治与公共管理学院）。改 case-1：把正文 `\footfullcite{...}` 全换 `\cite{...}`，`\makebibliography` 不变；若文末表只想列已引用条目（非 `\nocite{*}` 全量），用 `\printbibliography` 替换 `\makebibliography`。
 
 ### 9.4 `\appendix` 命令式 + 下游字体自重置
 

@@ -24,7 +24,7 @@
 #
 # Truth source: 河南师范大学研究生学位论文格式要求.md §2.14 line 291 (case-2 PRIORITY) + §1.2.4 line 109
 #   (per-page renumber) + §2.4 line 197 (footnote 小五号宋体). spec is PRIORITY (CLAUDE.md Decision 4, corrected
-#   2026-06-17). Reference PDF (2107084001-任子辛-...pdf p20-36 footnotes + p227 type-sectioned end-list) confirms.
+#   2026-06-17). Reference PDF (参考博士论文...pdf p20-36 footnotes + p227 type-sectioned end-list) confirms.
 #   See sprint-change-proposal-2026-06-17.md gap M1.
 
 set -uo pipefail

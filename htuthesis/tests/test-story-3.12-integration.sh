@@ -30,7 +30,7 @@
 # Truth source: 河南师范大学研究生学位论文格式要求.md §2.14 line 291 (case-2 PRIORITY — 引文参考文献已出现在文中的
 #   页下注（脚注），每页重新编号) + §1.2.4 line 109 (每页重新编号) + §2.4 line 197 (脚注用小五号宋体字) + §2.14
 #   line 291 (end-list 先按照文献类型分类…重新编号). spec PRIORITY (CLAUDE.md Decision 4, corrected 2026-06-17).
-#   Reference PDF (2107084001-任子辛-...pdf) p20-36 (citation footnotes: [N] author.title[TYPE].pub,year, SimSun 9pt,
+#   Reference PDF (参考博士论文...pdf) p20-36 (citation footnotes: [N] author.title[TYPE].pub,year, SimSun 9pt,
 #   per-page reset — p22 = [1][2][3][4][5]) + p227 (type-sectioned end-list: 一、党的文献… each re-numbered from [1]).
 #   See sprint-change-proposal-2026-06-17.md gap M1.
 

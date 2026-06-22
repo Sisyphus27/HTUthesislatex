@@ -83,7 +83,7 @@ echo "=============================================="
 echo ""
 
 # Shared Python header: opens main.pdf, finds the cover page, defines the metadata-region helper.
-# Reference baseline (reference thesis 2107084001 page 2) embedded for the geometry cross-check.
+# Reference baseline (reference thesis 参考博士论文 page 2) embedded for the geometry cross-check.
 PY_HEAD='
 import fitz, sys, re
 doc = fitz.open("main.pdf")

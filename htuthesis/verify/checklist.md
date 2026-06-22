@@ -10,7 +10,7 @@
 
 ## 真值源层次 (Truth-Source Hierarchy)
 
-> spec 是 **优先真值源**。参考论文 PDF (`2107084001-任子辛-…pdf`) 仅在 spec 沉默/含糊时作辅助。
+> spec 是 **优先真值源**。参考论文 PDF (`参考博士论文…pdf`) 仅在 spec 沉默/含糊时作辅助。
 > 参考论文是 Word 填充实例，自身在若干细节偏离 spec（故 spec 优先）。见 CLAUDE.md (Decision 4 修正 2026-06-17)。
 
 1. **spec.md** — 格式规则（优先）

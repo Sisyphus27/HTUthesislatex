@@ -97,7 +97,7 @@ echo "=============================================="
 echo ""
 
 # Shared Python header: opens main.pdf + reference PDF, finds the cover page, defines helpers.
-# Reference PDF (reference thesis 2107084001) page 2 = doctoral cover = the R-9 baseline truth source.
+# Reference PDF (reference thesis 参考博士论文) page 2 = doctoral cover = the R-9 baseline truth source.
 PY_HEAD='
 import fitz, sys, re
 doc = fitz.open("main.pdf")
@@ -233,8 +233,8 @@ run_test "P0" "ATDD-3.1-I05" "cover element presence (单位代码/分类号/学
 test_cover_r9_positions() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   # Reference PDF at project root (one level up from htuthesis/).
-  local ref="../2107084001-任子辛-政治与公共管理学院.pdf"
-  [[ -f "$ref" ]] || ref="2107084001-任子辛-政治与公共管理学院.pdf"
+  local ref="../参考博士论文.pdf"
+  [[ -f "$ref" ]] || ref="参考博士论文.pdf"
   [[ -f "$ref" ]] || { echo "  (reference PDF not found)"; return 1; }
   python -c "$PY_HEAD
 # R-9 baseline — reference thesis page 2 (doctoral cover). A4 210x297mm. y_mm from paper top.

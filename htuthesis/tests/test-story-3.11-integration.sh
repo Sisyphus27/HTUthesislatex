@@ -29,7 +29,7 @@
 #   - Body baselineskip = 18bp (htuthesis.def:62, naive ×fontsize). Body line-gap on a body page ≈ 18.07pt.
 #   - Chinese-abstract body inherits \normalsize = 18bp (no local override) → line-gap ≈ 18.07pt.
 #   - English-abstract body = 23.4bp (cls:891, Story 3.4 R-14) → line-gap ≈ 23.4pt (UNCHANGED by 3.11).
-#   - Reference thesis 2107084001 body line-gap = 23.4pt (Word "1.5倍" = 1.5×小四 SimSun natural-line-height).
+#   - Reference thesis 参考博士论文 body line-gap = 23.4pt (Word "1.5倍" = 1.5×小四 SimSun natural-line-height).
 #   - Post-impl: body + Chinese-abstract → ≈23bp; English-abstract → 23.4bp (unchanged).
 #   - The CJK body line-gap helper (cjk_body_lines + line_gap) is NEW for 3.11 (test-design-epic-3 Appendix).
 

@@ -33,7 +33,7 @@
 % [基础] 标题编号制 numbering=sc|hs（spec §2.10 line 235；Story 3.15 G3 / D-22）。
 %   false(默认)=人文社科 hs（第一章/第一节/一、/（1）；Story 3.13 实现）；
 %   true=自然科学 sc（opt-in：1/1.1/1.1.1 半角 + 编号名空半格 §2.10 line 237；Story 3.13 曾删此路径，G3 恢复为可选）。
-%   spec §2.10 列 NS 为主路径、HS 为人文备选——模板为对齐参考论文（任子辛，政治与公共管理学院）默认 hs，sc 供理科 opt-in。
+%   spec §2.10 列 NS 为主路径、HS 为人文备选——模板为对齐参考论文（参考博士论文，政治与公共管理学院）默认 hs，sc 供理科 opt-in。
 %   ✅ Zy 批准 2026-06-20 code-review：默认 hs（D-22 已批 + review 再确认）。透明偏离 = spec §2.10 列 NS 为主路径，
 %      默认 hs 为参考论文（文科实例）对齐 + 保持当前行为；参考 PDF 按 D-20 仅辅助，此偏离记入此注释 + story Review Findings。
 \newif\ifhtu@numbersc\htu@numberscfalse
@@ -106,7 +106,7 @@
 %   缺省渲染为 Latin Modern（如 L4 标题 Latin 数字为 LMRoman12-Bold）。本行将其切换为 TNR。
 %   影响：所有 \rmfamily Latin 文本（英文封面/英文摘要正文/Latin 数字/交叉引用标记）。
 %   不影响：CJK 字体（ctex 独立管理）、数学字体（unicode-math 用 Latin Modern Math，独立于 \setmainfont）。
-%   实测确认（AC-5 三源之一）：参考论文 2107084001-任子辛 page 1-14 Latin 主字体 = TimesNewRomanPSMT。
+%   实测确认（AC-5 三源之一）：参考论文 参考博士论文 page 1-14 Latin 主字体 = TimesNewRomanPSMT。
 \IfFontExistsTF{Times New Roman}{\setmainfont{Times New Roman}}{}
 % [基础] CJK 无衬线（\sffamily）= SimHei（真值来源：HTU 格式要求 §2.10 标题黑体 + 参考论文 PDF 实测）。
 %   ctex scheme=plain 在本系统自动检测 \sffamily CJK 为 Microsoft YaHei（ATDD-3.9-18 实测确认），
@@ -685,7 +685,7 @@
   \thispagestyle{htu@empty}%
   % [基础] 封面布局：TikZ remember-picture overlay 绝对定位（mm 坐标，原点=current page 节点）。
   %   真值来源（三源三角，CLAUDE.md Decision 4）：
-  %     1) 参考论文 2107084001-任子辛-政治与公共管理学院.pdf page 2（已完成 HTU 博士封面，视觉真值）
+  %     1) 参考论文 参考博士论文.pdf page 2（已完成 HTU 博士封面，视觉真值）
   %     2) .doc 空白模板「博士学位论文封面（电子版用）」（官方下载，权威空白形式）
   %     3) 本 [基础] 注释（实现层映射）
   %   字体（双源一致）：元数据=仿宋12pt；校名=书法体图像91mm×27.3mm；「博士学位论文」=宋体45pt；
@@ -698,7 +698,7 @@
     % --- 元数据表格（4H×3V 边框；FR-11，spec §1.1.1）---
     %   真值源（三源三角，CLAUDE.md Decision 4，spec 优先）：
     %     1) spec §1.1.1「封面统一使用学校规定的样式」→ 委托学校 .doc（权威空白形式）
-    %     2) 参考论文 2107084001 page 2（辅助视觉真值）：7 线段表格 =
+    %     2) 参考论文 参考博士论文 page 2（辅助视觉真值）：7 线段表格 =
     %        4 横线 y=20.5/29.5/38.4/47.4mm + 3 竖线 x=21.4/45.7/74.3mm；
     %        label 列 21.4→45.7mm(24.3mm) + value 列 45.7→74.3mm(28.6mm)
     %     3) 本 [基础] 注释（实现层映射）
@@ -774,7 +774,7 @@
   \thispagestyle{htu@empty}%
   % [基础] 英文扉页布局：TikZ remember-picture overlay 绝对定位（mm，原点=current page 节点）。
   %   真值来源（三源三角，CLAUDE.md Decision 4）：
-  %     1) 参考论文 2107084001-任子辛-政治与公共管理学院.pdf page 3（已完成 HTU 博士英文扉页，视觉真值）
+  %     1) 参考论文 参考博士论文.pdf page 3（已完成 HTU 博士英文扉页，视觉真值）
   %     2) .doc 空白模板「博士学位论文扉页」（官方下载，权威空白形式）
   %     3) 本 [基础] 注释（实现层映射）
   %   全页 Times New Roman（Story 3.9 \setmainfont{TNR} → \rmfamily Latin = TNR），居中。
@@ -987,7 +987,7 @@
 %%   +biblatex-gb7714-2015 双模式（case-2）。引文 → \footfullcite 每页脚注（完整 GB/T 7714 条目，
 %%   小五号宋体；per-page reset 复用 \@addtoreset{footnote}{page} cls:369 Story 3.8）；文末表 →
 %%   \makebibliography 按文献类型分节重组（§2.14 line 291 先按照文献类型分类）。
-%%   参考 PDF（2107084001-任子辛-...pdf）p20-36（引文脚注：[N] author.title[TYPE].pub,year，每页
+%%   参考 PDF（参考博士论文...pdf）p20-36（引文脚注：[N] author.title[TYPE].pub,year，每页
 %%   重置，SimSun 9pt）+ p227（类型分节文末表：一、党的文献…每类 [1] 起）印证。
 %%   Option B（natbib + footmisc + 手维护宏表）已拒绝（重复 .bib 漂移、违反成熟库优先规则）。
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
