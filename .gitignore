@@ -13,6 +13,7 @@ _bmad-output/
 # LaTeX generated files
 *.aux
 *.bbl
+*.bcf
 *.blg
 *.fdb_latexmk
 *.fls
@@ -20,12 +21,20 @@ _bmad-output/
 *.log
 *.lot
 *.out
+*.run.xml
 *.toc
 *.xdv
 *.synctex.gz
 *.nav
 *.snm
 *.vrb
+
+# ATDD / debug temp artifacts (inject-test sed-copies)
+.atdd-*
+.debug-main*
+
+# Backup files
+*.bak
 
 # OS files
 Thumbs.db
