@@ -150,7 +150,7 @@ def find_body_page():
     # first body-text page: >=15 CJK SimSun ~12pt lines, no front/back-matter marker.
     # Threshold raised 6→15 (Story 3 retro 2026-06-20): cover metadata labels are now 两边对齐
     # (\makebox[20mm][s]), which makes fitz split 学号/分类号 into separate line-blocks — inflating
-    # the cover's CJK-12pt line count to 6 and causing the old >=6 threshold to grab the sparse cover
+    # the cover CJK-12pt line count to 6 and causing the old >=6 threshold to grab the sparse cover
     # page (25.8pt metadata-row gap) instead of a real body page (~30 lines). A real body page has
     # 25-35 CJK lines; >=15 cleanly separates it from cover/title/abstract pages.
     for i in range(doc.page_count):

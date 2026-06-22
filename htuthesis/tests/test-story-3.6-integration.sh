@@ -94,7 +94,7 @@ doc = fitz.open("main.pdf")
 W = doc[0].rect.width; mid = W / 2.0
 cjk_re = re.compile(r"[一-鿿]")
 num_re = re.compile(r"^\d+-\d+")  # PREFIX match (no $) — tolerates a trailing fullwidth colon if fitz merges "：" into the number span ("4-1："); PATCHED 2026-06-16 (code review)
-eq_re = re.compile(r"^\(\d+-\d+\)$")
+eq_re = re.compile(r"^\d+-\d+$")  # G-A fullwidth-paren tag: number span is bare N-N （　N-N　） split into 3 spans; eq_re dropped ASCII parens (Epic 3 retro G-A residue, R-26, fixed 2026-06-21)
 sub_re = re.compile(r"^\([a-z]\)$")
 def median(xs):
     if not xs: return None
@@ -153,9 +153,9 @@ def equation_numbers():
     # Equation number spans: "N-N" (TNR digits), flush-right. Story 3 retro 2026-06-20: tags now use
     # fullwidth parens （N-N） per §2.13 (\tagform@ override) — the tag = 3 spans (（ SimSun, N-N TNR,
     # ） SimSun) right-aligned as a unit to x1≈524. The ） flanks the number on its right, so the number
-    # span's x1 shifted left from ~524 (old inline-ASCII parens) to ~512. Threshold lowered 515→505 to
-    # keep matching the number span (Times + digit-dash-digit is specific; body refs don't sit at the
-    # right margin). The tag's right edge (） at ~524) is implied by the number at ~512.
+    # span x1 shifted left from ~524 (old inline-ASCII parens) to ~512. Threshold lowered 515→505 to
+    # keep matching the number span (Times + digit-dash-digit is specific; body refs do not sit at the
+    # right margin). The tag right edge (） at ~524) is implied by the number at ~512.
     out = []
     for i in range(doc.page_count):
         for b in doc[i].get_text("dict").get("blocks", []):
@@ -325,25 +325,27 @@ echo ""
 # ==========================================
 echo "=== P1: equation (N-N) right-aligned (AC-5, TC-E3-31) + subfigure (a)(b) (AC-4, TC-E3-32; GREEN) ==="
 
-# ATDD-3.6-I08: BEHAVIOR — equation "(N-N)" right-aligned x1≈524 (AC-5, TC-E3-31)
-# GREEN guard. Equation numbers render "(N-N)" (WITH parens) flush-right at the right text-edge
-#   (595.28 − 70.87 margin ≈ 524.4pt). Assert ≥1 equation-number span "(N-N)" TNR with x1 in [516,532].
+# ATDD-3.6-I08: BEHAVIOR — equation "(N-N)" right-aligned (AC-5, TC-E3-31)
+# GREEN guard. G-A fullwidth-paren tag = 3 spans (（ SimSun, N-N TNR, ） SimSun) right-aligned as a unit
+#   to ）≈524.4pt (595.28 − 70.87 margin). The number span x1≈512 ( ） flanks it on the right). Assert
+#   ≥1 TNR number span N-N with x1 in [505,520] (number x1≈512.4; band lowered from [516,532] which
+#   caught the old ASCII-paren tag — R-26 residue from Epic 3 retro G-A repoint, fixed 2026-06-21).
 #   Reference §2.13 "(1-1) 标注在该公式所在行的最右侧".
 test_equation_right_aligned() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 eqs = equation_numbers()
 if not eqs:
-    print('  (no equation number (N-N) at x1>515 TNR found — RED; sample may lack an equation env)'); sys.exit(1)
+    print('  (no equation number (N-N) at x1>505 TNR found — RED; sample may lack an equation env)'); sys.exit(1)
 x1s = [e['x1'] for e in eqs]
-right = sum(1 for x in x1s if 516.0 <= x <= 532.0)
-print('  equation numbers=%d right-aligned(x1 in [516,532])=%d sample=%s' %
+right = sum(1 for x in x1s if 505.0 <= x <= 520.0)
+print('  equation numbers=%d right-aligned(x1 in [505,520])=%d sample=%s' %
       (len(eqs), right, [(e['text'], round(e['x1'])) for e in eqs[:6]]))
-# AC-5: >=1 equation number right-aligned at the right text-edge (x1 approx 524.4), TNR, format (N-N).
+# AC-5: >=1 equation number right-aligned at the right text-edge (tag ）≈524; number x1≈512), TNR, N-N.
 sys.exit(0 if right >= 1 else 1)
 "
 }
-run_test "P1" "ATDD-3.6-I08" "BEHAVIOR: equation (N-N) right-aligned x1 approx 524 (AC-5, TC-E3-31; GREEN)" test_equation_right_aligned
+run_test "P1" "ATDD-3.6-I08" "BEHAVIOR: equation (N-N) right-aligned, number x1 approx 512, tag at ~524 (AC-5, TC-E3-31; GREEN; G-A R-26 repoint 2026-06-21)" test_equation_right_aligned
 
 # ATDD-3.6-I09: BEHAVIOR — subfigure labels (a)(b) TNR 五号 (AC-4, TC-E3-32)
 # GREEN guard. \thesubfigure=(\alph{subfigure}) renders (a)(b)(c). Assert >=2 distinct subfigure labels (a),(b)

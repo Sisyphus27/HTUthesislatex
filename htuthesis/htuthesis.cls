@@ -461,7 +461,7 @@
   {0.5ex}%Space below
   {\rmfamily}%Body font
   {}%Indent amount 
-  {\sffamily}%Theorem head font
+  {\sffamily\htu@tnr}%Theorem head font (Latin→TNR, G6 structural; Epic 3 retro action #5 2026-06-21)
   {\htu@theorem@separator}%Punctuation after theorem head
   {1em}%Space after theorem head
   {}%Theorem head spec
@@ -470,7 +470,7 @@
   \normalfont \topsep6\p@\@plus6\p@\relax
   \trivlist
   \item[\hskip\labelsep
-  \sffamily
+  \sffamily\htu@tnr
   #1\@addpunct{\quad}]\ignorespaces}
   {\popQED\endtrivlist\@endpefalse}
 \theoremstyle{theorem}
@@ -844,7 +844,7 @@
   \vskip 16pt
   \htu@authorsigtitle\,\underline{\hspace{3cm}}\hfill\htu@datesigtitle\,\underline{\hspace{2cm}}\par
   \vskip 22pt
-  \begin{center}\sffamily\sanhao \htu@authtitle\end{center}
+  \begin{center}\sffamily\htu@tnr\sanhao \htu@authtitle\end{center}
   \vskip 10pt
   \xiaosi[1.6]\htu@authorization
   \vskip 16pt
@@ -995,9 +995,9 @@
 \renewcommand*{\bibfont}{\wuhao[1.524]}%
 % 文末表主标题：参考文献 三号黑体居中、另起一页（Story 3.7 AC-1 §2.14 line 285）+ 首节子标题（[1]=title）。
 %   \htu@chapter* 含 \clearpage（另起一页，无空白 verso — Story 3.14 把 \htu@chapter* 的 \cleardoublepage 转 \clearpage）。首节用 htu-refs（主标题+子标题）；后续节用 htu-refs-sub（仅子标题）。
-\defbibheading{htu-refs}[1]{\htu@chapter*{\bibname}\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\centerline{#1}}\par\vspace{0.3\baselineskip}}%
+\defbibheading{htu-refs}[1]{\htu@chapter*{\bibname}\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\htu@tnr\centerline{#1}}\par\vspace{0.3\baselineskip}}%
 % 文末表类型分节子标题：二、著作 …（§2.14 line 291 按文献类型分类；小四黑体居中）
-\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\centerline{#1}}\par\vspace{0.3\baselineskip}}%
+\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\htu@tnr\centerline{#1}}\par\vspace{0.3\baselineskip}}%
 % 文末表：按文献类型分节重组（引文 + 阅读型，§2.14 case-2 line 291）。
 %   \nocite{*} 收录全部条目（引文已为页下注脚；阅读型仅入文末表）。
 %   每节 \printbibliography[type=...] 按 entrytype 过滤（biber 映射 @phdthesis→thesis、@standard→book）。
@@ -1058,7 +1058,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newenvironment{resume}[1][\htu@resume@title]{%
   \htu@chapter*{#1}\wuhao[1.524]}{}
-\newcommand{\resumeitem}[1]{\vspace{2em}{\sihao\sffamily{#1}}\vspace{.5em}\par}
+\newcommand{\resumeitem}[1]{\vspace{2em}{\sihao\sffamily\htu@tnr{#1}}\vspace{.5em}\par}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Self-Check Infrastructure (Story 2.2)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

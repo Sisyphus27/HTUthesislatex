@@ -268,7 +268,7 @@
 
 | ID | 规则 (spec §ref) | LaTeX 实现 | 检查类型 | 证据 |
 |----|------------------|-----------|----------|------|
-| R2.14-a | 「参考文献」三号黑体居中，另起一页 (§2.14) | cls `\htu@thebibliography` 标题 `\sanhao\heiti` | 自动检查 | ATDD-3.7 |
+| R2.14-a | 「参考文献」三号黑体居中，另起一页 (§2.14) | cls `\defbibheading{htu-refs}` (cls:998) + `\makebibliography` (cls:1007) 标题 `\sanhao\heiti` | 自动检查 | ATDD-3.7 |
 | R2.14-b | 段前段后 2 行 (§2.14) | cls 标题 spacing | 自动检查 | ATDD-3.7 |
 | R2.14-c | 内容五号宋体 (§2.14) | cls `\wuhao\songti` | 自动检查 | ATDD-3.7 |
 | R2.14-d | 编号 [N] 方括号 (§2.14) | `htuthesis.bst` | 自动检查 | ATDD-3.7 |
