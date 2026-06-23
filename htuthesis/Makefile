@@ -41,7 +41,7 @@ clean:
 
 ###### testing
 
-test: compile-check lint-check structure-check
+test: compile-check lint-check structure-check sentinel-check
 	@echo "=== All tests passed ==="
 
 compile-check: $(THESISMAIN).pdf
@@ -56,6 +56,12 @@ lint-check:
 
 structure-check:
 	@bash tests/check-structure.sh
+
+###### sentinel-check (Story 5.2；NFR-4 #15 detection layer；参考文献 chapter-vanish guard；runs every make test)
+#   fitz rendered-span probe on main.pdf for 参考文献 chapter title (SimHei 三号). FAIL (exit≠0) if the chapter vanished.
+#   Reuses compile-check's main.pdf (zero extra compile). Rendered-span-anchored (NOT proxied .bbl/.aux — R-35/TC-E5-14).
+sentinel-check:
+	@bash tests/sentinel-bibliography-chapter.sh
 
 ###### calibration tool (Story 4.3；standalone TikZ ruler page；AC-3/4；opt-in，NOT in all/test)
 
@@ -82,4 +88,4 @@ debug-check:
 		rm -f .debug-main.*; \
 	fi
 
-.PHONY: test compile-check lint-check structure-check calibrate debug-check
+.PHONY: test compile-check lint-check structure-check calibrate debug-check sentinel-check
