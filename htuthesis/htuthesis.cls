@@ -399,6 +399,15 @@
 %   Story 3.8 ATDD-3.8-09/I08 接受 footmisc[perpage]（OR 模式），无需重指向；行为等价（每页重置）。
 %   仅重置 footnote，不影响 page 计数器（页码连续性不受影响，AC-6）。
 \usepackage[perpage]{footmisc}%每页脚注重置（Story 3.12 Option A biblatex 下替换 \@addtoreset；§1.2.4 line 109）
+% [基础] 脚注标记 [N] 方括号化（Story 5.4，2026-06-23；FR-24 refined）. 真值来源：spec §1.2.4 示例1/2 + line 99
+%   （顺序编码制 = 方括号 [N]，EXPLICIT — 行内引用标记）+ §2.14 line 289（文末表 [1],[2]… 与正文一致，EXPLICIT）；
+%   §1.2.4 line 109（每页重新编号）+ §2.5 line 197（脚注小五号宋体）对标记【形状】沉默 → 参考论文 PDF p20-36（行内
+%   上标 + 页下行首均 [N]，实测 57+24 命中 0 裸数）+ GB/T 7714-2015（spec §1.3 / §1.2.4 line 89 引用为著录规则，默认
+%   [N]）辅助 → CLAUDE.md Decision 4 辅助层（assumption 8，spec 沉默非违反）. 原 footmisc 默认
+%   \thefootnote=\arabic{footnote} → 裸数字 1,2,3（行内上标 + 页下行首两路）；\renewcommand 方括号化. 正交性：
+%   footmisc[perpage] 重置计数器（§1.2.4 line 109 每页重置保留），\thefootnote 仅改打印形式 → 两路（\@makefnmark
+%   上标 + \@makefntext 页下行首）共用 \thefootnote，一处改两路修. 不影响文末参考文献表（cls:139 gbt7714-2015 已 [N]）.
+\renewcommand\thefootnote{[\arabic{footnote}]}%脚注标记 [N]（Story 5.4；spec §1.2.4 示例 + 参考 PDF p20-36 + GB/T 7714-2015）
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    浮动对象、图片、表格、公式设置
 %% 1. 若插入的图片未指定扩展名，则在指定文件路径搜索pdf，eps，png，jpg，jpeg文件
