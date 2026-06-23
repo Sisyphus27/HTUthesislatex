@@ -190,6 +190,18 @@ spec §2.10 支持两种编号方式，经 `\documentclass` 选项切换：
 
 ---
 
+## 常见误区（非 bug，详见 USAGE §11/§12）
+
+初次使用易误解为 bug 的 3 个**正常**行为：
+
+1. **页眉每页交错（偶数页论文题目、奇数页章标题）** —— spec §2.5 双面打印装订设计，非 bug。
+2. **case-2 引文须用 `\footfullcite{key}`（非 `\footcite`）** —— `\footcite` 在 numeric 样式只出 `[N]` 上标编号，无页下完整著录；`\footfullcite` 才输出完整 GB/T 7714 页下注（§2.14 + §1.2.4）。
+3. **目录页码滞后正文 = 编译遍数不足** —— 重跑 `latexmk -xelatex main` 或 `make thesis`（自动多遍）；勿单跑 `xelatex main`。
+
+完整说明见 [`USAGE.md`](USAGE.md) §11 故障排查 + §12 FAQ。
+
+---
+
 ## 参考
 
 - spec 真值源：`河南师范大学研究生学位论文格式要求.md`（仓库根）
