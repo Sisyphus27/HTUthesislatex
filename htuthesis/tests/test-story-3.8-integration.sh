@@ -159,7 +159,7 @@ def footnote_pages():
             for ln in b.get("lines", []):
                 for sp in ln.get("spans", []):
                     t = sp["text"].strip(); y0 = sp["bbox"][1]
-                    if 5.0 <= sp["size"] <= 8.0 and H * 0.62 <= y0 <= H * 0.96 and (_m := re.fullmatch(r"\[(\d+)\]", t)) and "Math" not in sp["font"]:  # REPOINTED by Story 5.4 (2026-06-23): bare \d+→[\d+] (\thefootnote{[\arabic{footnote}]} under footmisc[perpage]; spec §1.2.4 示例 + 参考 PDF p20-36 + GB/T 7714-2015; single-span confirmed)
+                    if H * 0.62 <= y0 <= H * 0.96 and 5.0 <= sp["size"] <= 9.5 and (_m := re.match(r"^\[(\d+)\]", t)) and "Math" not in sp["font"]:  # REPOINTED by Story 5.4 (2026-06-23): bare \d+→[\d+] + re.match 起首 + size≤9.5 (post \@makefntext 行内 9pt lead；排除 10.5pt 文末条目)；\thefootnote{[\arabic{footnote}]} under footmisc[perpage]；spec §1.2.4 示例 + 参考 PDF p20-36 + GB/T 7714-2015
                         nums.append(int(_m.group(1)))
         if nums:
             out[i] = sorted(set(nums))

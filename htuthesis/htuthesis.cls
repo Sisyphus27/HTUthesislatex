@@ -408,6 +408,13 @@
 %   footmisc[perpage] 重置计数器（§1.2.4 line 109 每页重置保留），\thefootnote 仅改打印形式 → 两路（\@makefnmark
 %   上标 + \@makefntext 页下行首）共用 \thefootnote，一处改两路修. 不影响文末参考文献表（cls:139 gbt7714-2015 已 [N]）.
 \renewcommand\thefootnote{[\arabic{footnote}]}%脚注标记 [N]（Story 5.4；spec §1.2.4 示例 + 参考 PDF p20-36 + GB/T 7714-2015）
+% [基础] 页下脚注行首标记行内化（Story 5.4 code-review fix，2026-06-23）. 默认 \@makefntext 经 \@makefnmark
+%   （=\@textsuperscript）将行首标记上标化（缩小+抬高，实测 6pt raised），与参考论文 PDF p20-24 不符——参考论文
+%   页下注行首 [N] 与脚注正文同字号（小五 9pt SimSun）同行行内排列（[1] 陈军亚... flush-left 同 span），非上标.
+%   改用 \@thefnmark（原始 [N]，未经 \@textsuperscript 包裹）行内渲染；字号继承脚注正文 \footnotesize（小五 9pt）.
+%   行内引用上标（\@footnotemark → \@makefnmark）不变仍上标——仅改页下行首. 真值源：参考论文 PDF p20-24
+%   （[N] 9pt SimSun 行内）+ spec §2.5 line 197「脚注用小五号宋体字」（标记同字号隐含）. 闭合 AC-2 真实形态.
+\renewcommand\@makefntext[1]{\parindent\z@\noindent\@thefnmark\enspace#1}%页下注行首 [N] 行内（非上标；Story 5.4 code-review fix）
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    浮动对象、图片、表格、公式设置
 %% 1. 若插入的图片未指定扩展名，则在指定文件路径搜索pdf，eps，png，jpg，jpeg文件
