@@ -29,8 +29,9 @@
 % \cdate{\CJKdigits{\the\year}年\CJKnumber{\the\month}月}
 % \cdate{2012年6月}
 
-% 研究生论文：英文封面
-\etitle{An Introduction to \LaTeX{} Thesis Template of Henan Normal University}
+% 研究生论文：英文封面（英文题目由 cls:791 \MakeUppercase 强制 ALL CAPS，per spec §1.1.1 line 35 / D-23；
+%   此处写 Title Case 即可，cls 自动转大写。去 \LaTeX{} 宏用纯文本 "LaTeX"，避免 \MakeUppercase 破坏 logo）
+\etitle{An Introduction to LaTeX Thesis Template of Henan Normal University}
 % 英文学位类别（按学科门类填写；法学→Doctor of Law，理学→Doctor of Science，工学→Doctor of
 %   Engineering Science 等；见「硕士学位论文扉页及学位类别术语英文标准翻译.doc」，博士将 Master 替换为 Doctor）
 \edegree{Doctor of Law}

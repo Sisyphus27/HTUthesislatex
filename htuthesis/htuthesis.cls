@@ -786,9 +786,14 @@
   %   R-6（score 6）：消除英文封面 \parbox 的硬编码纸张宽度（Story 2.1 deferred 债）→ 纸张绝对定位。
   \begin{tikzpicture}[remember picture, overlay]
     % --- 论文题目（TNR 18pt regular，居中，y≈36mm；长标题自然换行）---
+    % [基础] 英文论文题目 = UPPERCASE (ALL CAPS)，真值源 spec §1.1.1 line 35「扉页上的英文论文题目用大写字母」
+    %   (D-20 spec-priority; D-23 2026-06-22 resolves prior Title Case deferral)。机制：cls 端 \MakeUppercase
+    %   强制大写——无论用户 \etitle{} 输入何种 case，输出均 ALL CAPS（architecture §用户分层设计「默认正确」，
+    %   用户无需手记大写规则）。仅作用于 \htu@etitle（论文题目）；学位陈述/作者/导师/日期不在 spec 大写要求内，
+    %   保持 Title Case。参考论文 Title Case 是其自身对 spec 的偏离，非权威（D-20）。
     \node[anchor=north, inner sep=0pt, text width=160mm, align=center]
       at ($(current page.north) + (0mm, -36mm)$)
-      {\rmfamily\fontsize{18bp}{22bp}\selectfont\htu@etitle};
+      {\rmfamily\fontsize{18bp}{22bp}\selectfont\MakeUppercase{\htu@etitle}};
     % --- 学位陈述（TNR 15pt，居中，5 行；y=98/109/120/131/142mm 对齐参考 page 3）---
     \node[anchor=north, inner sep=0pt]
       at ($(current page.north) + (0mm, -98mm)$)
