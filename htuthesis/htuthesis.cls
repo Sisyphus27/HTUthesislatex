@@ -998,29 +998,42 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % biblatex GB/T 7714-2015 文末表正文字体 = 五号宋体（Story 3.7 AC-2 §2.14 line 285）
 \renewcommand*{\bibfont}{\wuhao[1.524]}%
-% 文末表主标题：参考文献 三号黑体居中、另起一页（Story 3.7 AC-1 §2.14 line 285）+ 首节子标题（[1]=title）。
-%   \htu@chapter* 含 \clearpage（另起一页，无空白 verso — Story 3.14 把 \htu@chapter* 的 \cleardoublepage 转 \clearpage）。首节用 htu-refs（主标题+子标题）；后续节用 htu-refs-sub（仅子标题）。
+% [基础] htu-refs（主标题+子标题）——Story 5.1（2026-06-23）后不再挂任何分节：入口 \htu@chapter*{\bibname}
+%   已独立 emit 主标题（见 \makebibliography）。定义保留供溯源；如需清理可删（htu-refs-sub 已覆盖全部分节）。
 \defbibheading{htu-refs}[1]{\htu@chapter*{\bibname}\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\htu@tnr\centerline{#1}}\par\vspace{0.3\baselineskip}}%
-% 文末表类型分节子标题：二、著作 …（§2.14 line 291 按文献类型分类；小四黑体居中）
-\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\htu@tnr\centerline{#1}}\par\vspace{0.3\baselineskip}}%
-% 文末表：按文献类型分节重组（引文 + 阅读型，§2.14 case-2 line 291）。
-%   \nocite{*} 收录全部条目（引文已为页下注脚；阅读型仅入文末表）。
-%   每节 \printbibliography[type=...] 按 entrytype 过滤（biber 映射 @phdthesis→thesis、@standard→book）。
-%   13 条样例全被前 6 节覆盖（article/book/incollection/thesis/patent/online）→ 无需 nottype 兜底
-%   （兜底节空 → "Empty bibliography" 警告）。未来增异型条目（Epic 4.1）可按需补节。
+% [基础] 文末表类型分节子标题：一、期刊论文 … 六、电子资源（§2.14 line 291 按文献类型分类）。
+%   Story 5.1 Change 1（sprint-change-proposal-2026-06-23）：宋体小四【左对齐】——参考论文 p228-249 实测
+%   font=SimSun size=12.0 x0=114/595（非居中）；spec §2.14 对分节标题格式沉默 → 参考 PDF 辅助 → 原
+%   \sffamily(SimHei)+\centerline(居中) 是偏离。改 \songti(SimSun) + 去 \centerline(左对齐)。保留
+%   \htu@tnr Latin 守卫（F2 结构性，Epic 4 retro；分节标题为 CJK 无实时 Latin 泄漏，守卫作结构性保留）。
+\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\xiaosi\songti\htu@tnr #1}\par\vspace{0.3\baselineskip}}%
+% [基础] 文末表：按文献类型分节重组（引文 + 阅读型，§2.14 case-2 line 291）。
+%   Story 5.1（2026-06-23，NFR-6）：入口无条件 emit \htu@chapter*{\bibname}——章标题独立于分节数据分布。
+%   Story 3.12 曾将主标题 heading（htu-refs）只挂 type=article 分节；真实 refs.bib 无 @article 时该节空
+%   → biblatex 跳过空节 heading → "参考文献"章蒸发 + 不入目录（FR-20/NFR-6 违反，Story 3.12 盲点）。
+%   7 个 \printbibliography 全部改用 htu-refs-sub（仅子标题）。见 architecture.md §参考文献章标题与分节数据分布解耦。
+%   R-34（空节警告 gate）：外层 \begingroup 静默 \blx@warn@bibempty——任何分布（含真实稀疏 bib，如仅
+%   @online → 5 个具名分节空）都不超 NFR-1 ≤3 警告门。空节仍不渲染（行为不变，仅去警告）。
 \BiblatexSplitbibDefernumbersWarningOff
 \newcommand{\makebibliography}{%
   \nocite{*}% 收录全部参考文献（引文 + 阅读型，§2.14 line 291）
-  \printbibliography[type=article,heading=htu-refs,title={一、期刊论文},resetnumbers=true]%
-  \printbibliography[type=book,heading=htu-refs-sub,title={二、著作},resetnumbers=true]%
-  \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）},resetnumbers=true]%
-  \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文},resetnumbers=true]%
-  \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利},resetnumbers=true]%
-  \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源},resetnumbers=true]%
-  % 七、其他 catch-all（code review 2026-06-17 决策 a 复加）：未映射到前 6 类的条目（@report/@manual/
-  %   @misc/@unpublished/@software 等，biblatex 别名→@misc）。guarded by \htu@printbibother（仅当存在
-  %   nottype 条目时打印，避免空节 "Empty bibliography" 警告）。
-  \htu@printbibother{七、其他}%
+  % [基础] 参考文献 章标题入口（Story 5.1 解耦，NFR-6）：\htu@chapter*{\bibname} 无条件 emit
+  %   章标题（三号黑体居中 + \clearpage + \addcontentsline{toc}）——独立于下述 7 个分节的空/非空。
+  \htu@chapter*{\bibname}%
+  \begingroup
+    % R-34：静默 biblatex 空节 "Empty bibliography" 警告（\blx@warn@bibempty，biblatex.sty）——真实稀疏
+    %   refs.bib（如仅 @online → 5 具名分节空）不再触发 NFR-1 ≤3 警告门。空节仍不渲染（行为不变）。
+    \def\blx@warn@bibempty{}%
+    \printbibliography[type=article,heading=htu-refs-sub,title={一、期刊论文},resetnumbers=true]%
+    \printbibliography[type=book,heading=htu-refs-sub,title={二、著作},resetnumbers=true]%
+    \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）},resetnumbers=true]%
+    \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文},resetnumbers=true]%
+    \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利},resetnumbers=true]%
+    \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源},resetnumbers=true]%
+    % 七、其他 catch-all（code review 2026-06-17 决策 a）：未映射到前 6 类的条目（@report/@manual/
+    %   @misc/@unpublished/@software 等，biblatex 别名→@misc）。\htu@printbibother 内含自身空节静默。
+    \htu@printbibother{七、其他}%
+  \endgroup
 }%
 % \htu@printbibother{<title>} — guarded catch-all（code review 2026-06-17 F2 决策 a）。本地静默 biblatex 空节
 %   警告 \blx@warn@bibempty（biblatex.sty:1511），再无条件 \printbibliography：空时节头不渲染、无输出、
