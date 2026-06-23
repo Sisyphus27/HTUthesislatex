@@ -33,22 +33,28 @@
 set -uo pipefail
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"   # absolute — $0 breaks after cd (code-review fix)
 cd "$DIR"
 
 # --- mode flags ---
 MODE="probe"      # default = always-on main.pdf probe
 HELP=0
+BAD_FLAG=0        # code-review fix: unknown flag must NOT silently fall through to probe
 for arg in "$@"; do
   case "$arg" in
     --inject)  MODE="inject" ;;
     --fixture) MODE="fixture" ;;
     --help|-h) HELP=1 ;;
-    *) echo "sentinel: unknown flag '$arg' (--help for usage)" >&2 ;;
+    *) echo "sentinel: unknown flag '$arg' (--help for usage)" >&2; BAD_FLAG=1 ;;
   esac
 done
+if [[ "$BAD_FLAG" == "1" ]]; then
+  exit 1   # code-review fix: a typoed mode (e.g. --injectt) must fail, not silently run the default probe
+fi
 
 if [[ "$HELP" == "1" ]]; then
-  sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+  # code-review fix: $0 is relative after cd → use absolute SCRIPT_PATH; range to /^set -uo/ (was hardcoded 2,40).
+  sed -n '2,/^set -uo/p' "$SCRIPT_PATH" | sed 's/^# \{0,1\}//'
   exit 0
 fi
 
@@ -65,21 +71,37 @@ probe_refs_hits() {
   local pdf="$1"
   python - "$pdf" <<'PYEOF'
 import fitz, sys
+# code-review fix: wrap the WHOLE iteration in try/except (was: only fitz.open) — a corrupt PDF or mid-iteration
+#   exception previously left stdout empty → caller's integer-compare errored / false "VANISHED".
 try:
     doc = fitz.open(sys.argv[1])
+    hits = 0
+    for page in doc:
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                for sp in line["spans"]:
+                    t = sp.get("text", ""); f = sp.get("font", ""); s = sp.get("size", 0.0)
+                    # SimHei 三号 (cls \sanhao=16bp → 16.0pt); band [15.5,16.5] excludes 小三=15.0 body section headings.
+                    if "参考文献" in t and "Hei" in f and 15.5 <= s <= 16.5:
+                        hits += 1
+    print(hits)
 except Exception:
-    print(-1); sys.exit(0)   # -1 = could not open (caller treats as "no usable PDF")
-hits = 0
-for page in doc:
-    for block in page.get_text("dict")["blocks"]:
-        for line in block.get("lines", []):
-            for sp in line["spans"]:
-                t = sp.get("text", ""); f = sp.get("font", ""); s = sp.get("size", 0.0)
-                # SimHei 三号 (cls \sanhao=16bp → 16.0pt); band [15.5,16.5] excludes 小三=15.0 body section headings.
-                if "参考文献" in t and "Hei" in f and 15.5 <= s <= 16.5:
-                    hits += 1
-print(hits)
+    print(-1)   # ANY failure (open/iteration/corrupt PDF) → -1 = probe broken (distinct from 0 = vanished)
 PYEOF
+}
+
+# code-review fix: validate hits is numeric — distinguishes "probe broken" (python/PyMuPDF missing, PDF corrupt)
+#   from "chapter vanished" (0). Without this, an empty/non-numeric hits → integer-compare error → false "VANISHED".
+#   Returns: 0 = present (≥1), 1 = vanished (0), 2 = probe broken (non-numeric/-1).
+classify_hits() {
+  local hits="$1"
+  if [[ ! "$hits" =~ ^[0-9]+$ ]]; then
+    return 2
+  elif [[ "$hits" -ge 1 ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 echo "=============================================="
@@ -97,25 +119,19 @@ if [[ "$MODE" == "probe" ]]; then
     exit 0   # graceful SKIP, not FAIL
   fi
   hits="$(probe_refs_hits main.pdf)"
-  if [[ "$hits" == "-1" ]]; then
-    red "main.pdf could not be opened by fitz — sentinel cannot verify (investigate)"
-    exit 1
-  fi
   printf "    (参考文献 SimHei 三号 span count = %s)\n" "$hits" >&2
-  if [[ "$hits" -ge 1 ]]; then
-    green "参考文献 chapter title present (≥1 rendered span) — NFR-6 holds"
-    echo "=============================="
-    printf "Total: \033[32m1 PASS\033[0m  \033[31m0 FAIL\033[0m\n"
-    echo "=============================="
-    exit 0
-  else
-    red "参考文献 chapter title VANISHED (0 rendered spans) — Story 3.12 blind spot RECURRED (FR-20/NFR-6 violation)"
-    echo "  → check htuthesis.cls:1022 entry-point \\htu@chapter*{\\bibname} is present (Story 5.1 decouple)" >&2
-    echo "=============================="
-    printf "Total: \033[32m0 PASS\033[0m  \033[31m1 FAIL\033[0m\n"
-    echo "=============================="
-    exit 1
-  fi
+  classify_hits "$hits"
+  case $? in
+    0) green "参考文献 chapter title present (≥1 rendered span) — NFR-6 holds"
+       echo "=============================="; printf "Total: \033[32m1 PASS\033[0m  \033[31m0 FAIL\033[0m\n"; echo "=============================="; exit 0 ;;
+    1) red "参考文献 chapter title VANISHED (0 rendered spans) — Story 3.12 blind spot RECURRED (FR-20/NFR-6 violation)"
+       echo "  → check htuthesis.cls:1022 entry-point \\htu@chapter*{\\bibname} is present (Story 5.1 decouple)" >&2
+       echo "=============================="; printf "Total: \033[32m0 PASS\033[0m  \033[31m1 FAIL\033[0m\n"; echo "=============================="; exit 1 ;;
+    2) # code-review fix: probe broken (python/PyMuPDF missing or PDF corrupt) → SKIP+warn (NOT a false "VANISHED");
+       #   graceful degradation matching the main.pdf-absent path (make test stays usable on an unfit machine).
+       yellow "probe broken (hits='$hits' — python/PyMuPDF unavailable or main.pdf corrupt) — sentinel cannot verify; skipped (install PyMuPDF: pip install PyMuPDF)"
+       echo "=============================="; printf "Total: \033[32m0 PASS\033[0m  \033[31m0 FAIL\033[0m  \033[33m1 SKIP\033[0m  (probe broken)\n"; echo "=============================="; exit 0 ;;
+  esac
 
 elif [[ "$MODE" == "inject" ]]; then
   # --- TC-E5-11 RED-on-revert proof: temp-tree copy, revert Story 5.1 entry-point, recompile, assert 0 hits ---
@@ -154,19 +170,21 @@ PYEOF
     exit 1
   fi
   ( cd "$tmpbuild" && latexmk -xelatex -file-line-error -halt-on-error -interaction=nonstopmode -g main >/dev/null 2>&1 )
+  lrc=$?   # code-review fix: capture latexmk rc (was discarded → compile failure misreported as "NOT sensitive")
   hits="$(probe_refs_hits "$tmpbuild/main.pdf")"
   rm -rf "$tmpbuild"
   printf "    (reverted-entry-point 参考文献 hits = %s; expect 0 = chapter vanished)\n" "$hits" >&2
-  if [[ "$hits" == "0" ]]; then
-    green "TC-E5-11 RED-on-revert: entry-point removed → 0 参考文献 hits → sentinel WOULD FAIL (detection works)"
-    echo "=============================="
-    printf "Total: \033[32m1 PASS\033[0m  \033[31m0 FAIL\033[0m  (inject proof)\n"
-    echo "=============================="
-    exit 0
-  else
-    red "TC-E5-11 inject: reverted entry-point still yields $hits hits — sentinel NOT sensitive to the entry-point (investigate)"
+  if [[ $lrc -ne 0 ]]; then
+    red "inject: temp-tree compile failed (latexmk rc=$lrc) — cannot prove RED-on-revert (investigate the compile error)"
     exit 1
   fi
+  classify_hits "$hits"
+  case $? in
+    0) red "TC-E5-11 inject: reverted entry-point still yields $hits hits — sentinel NOT sensitive to the entry-point (investigate)"; exit 1 ;;
+    1) green "TC-E5-11 RED-on-revert: entry-point removed → 0 参考文献 hits → sentinel WOULD FAIL (detection works)"
+       echo "=============================="; printf "Total: \033[32m1 PASS\033[0m  \033[31m0 FAIL\033[0m  (inject proof)\n"; echo "=============================="; exit 0 ;;
+    2) red "inject: probe broken (hits='$hits') — proof inconclusive (python/PyMuPDF/PDF issue)"; exit 1 ;;
+  esac
 
 elif [[ "$MODE" == "fixture" ]]; then
   # --- AC-6 option (c): compile the online-only fixture in a temp-tree + probe (degenerate-distribution check) ---
@@ -184,20 +202,17 @@ elif [[ "$MODE" == "fixture" ]]; then
   hits="$(probe_refs_hits "$tmpbuild/main.pdf")"
   rm -rf "$tmpbuild"
   if [[ $rc -ne 0 ]]; then
-    red "fixture compile failed (rc=$rc) — cannot probe"
+    red "fixture: temp-tree compile failed (latexmk rc=$rc) — cannot probe"
     exit 1
   fi
   printf "    (online-only fixture 参考文献 hits = %s; expect ≥1 = chapter renders on degenerate distribution)\n" "$hits" >&2
-  if [[ "$hits" -ge 1 ]]; then
-    green "AC-6 fixture: 参考文献 renders on online-only fixture (≥1 hit) — sentinel passes degenerate distribution"
-    echo "=============================="
-    printf "Total: \033[32m1 PASS\033[0m  \033[31m0 FAIL\033[0m  (fixture mode)\n"
-    echo "=============================="
-    exit 0
-  else
-    red "AC-6 fixture: 参考文献 VANISHED on online-only fixture — Story 5.1 decouple regressed (FR-20/NFR-6)"
-    exit 1
-  fi
+  classify_hits "$hits"
+  case $? in
+    0) green "AC-6 fixture: 参考文献 renders on online-only fixture (≥1 hit) — sentinel passes degenerate distribution"
+       echo "=============================="; printf "Total: \033[32m1 PASS\033[0m  \033[31m0 FAIL\033[0m  (fixture mode)\n"; echo "=============================="; exit 0 ;;
+    1) red "AC-6 fixture: 参考文献 VANISHED on online-only fixture — Story 5.1 decouple regressed (FR-20/NFR-6)"; exit 1 ;;
+    2) red "fixture: probe broken (hits='$hits') — cannot verify (python/PyMuPDF/PDF issue)"; exit 1 ;;
+  esac
 fi
 
 exit 0
