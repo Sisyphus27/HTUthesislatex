@@ -73,8 +73,8 @@ CLS="htuthesis.cls"
 #   Robust to the retain-vs-delete decision for \defbibheading{htu-refs} (both yield entry_point>=1 post-fix).
 test_u01_entry_point_present() {
   local total in_def entry_point
-  total=$(grep -c '\\htu@chapter\*{\\bibname}' "$CLS" 2>/dev/null || echo 0)
-  in_def=$(grep -E '\\defbibheading\{htu-refs\}' "$CLS" | grep -c '\\htu@chapter\*{\\bibname}' 2>/dev/null || echo 0)
+  total=$(grep -c '\\htu@chapter\*{\\bibname}' "$CLS" 2>/dev/null || true)
+  in_def=$(grep -E '\\defbibheading\{htu-refs\}' "$CLS" | grep -c '\\htu@chapter\*{\\bibname}' 2>/dev/null || true)
   entry_point=$((total - in_def))
   [[ "$entry_point" -ge 1 ]]
 }
@@ -90,8 +90,8 @@ test_u02_article_section_subheading() {
 #   The decouple MUST be documented in a cls [基础] comment block (architecture.md:123-127 records it at the
 #   design level; the cls comment is the implementation-level record). Pre-impl: absent → RED.
 test_u03_decouple_comment() {
-  # Accept any of: the entry-point comment marker, a Story 5.1 reference, or NFR-6 reference in the bib block.
-  grep -qE '参考文献.*章标题入口|Story 5\.1.*解耦|NFR-6|entry-point.*decouple' "$CLS"
+  # Match entry-point-specific comment markers (NOT bare 'NFR-6' — too broad, false-green risk; code review 2026-06-23 P6).
+  grep -qE '参考文献 章标题入口|Story 5\.1 解耦|参考文献章标题与分节数据分布解耦' "$CLS"
 }
 
 # ATDD-5.1-U04 (P0, AC-4, R-32): NO \printbibliography section still uses heading=htu-refs (the main-title

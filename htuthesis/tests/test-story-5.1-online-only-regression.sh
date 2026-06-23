@@ -13,10 +13,10 @@
 #   the failing path. A green test here is robustness evidence, not just "works on the sample".
 #
 # *** DETECTION CALIBRATION (the subtle trap that caused an initial false-green) ***
-#   The bibliography chapter title is 三号 SimHei (ctex 三号 = 15.75pt; band [15.5, 16.5]). Body SECTION headings
-#   (e.g. chap03 "第六节 参考文献", "创建参考文献") are 小三 SimHei = 15.0pt. A naive band [15.0, 17.0] catches the
-#   chap03 section headings → FALSE GREEN (test passes pre-fix). The band MUST be [15.5, 16.5] to isolate 三号
-#   (15.75) and exclude 小三 (15.0). Likewise the main.toc check must require a CHAPTER-level entry
+#   The bibliography chapter title is 三号 SimHei (cls `\sanhao`=16bp → renders 16.0pt; band [15.5, 16.5]).
+#   Body SECTION headings (e.g. chap03 "第六节 参考文献", "创建参考文献") are 小三 SimHei = 15.0pt. A naive band
+#   [15.0, 17.0] catches the chap03 section headings → FALSE GREEN (test passes pre-fix). The band MUST be
+#   [15.5, 16.5] to isolate 三号 (16.0) and exclude 小三 (15.0). Likewise the main.toc check must require a CHAPTER-level entry
 #   (\contentsline {chapter}) — chap03's section produces a \contentsline {section} that a naive '参考文献' grep
 #   would match. Do NOT widen the band or loosen the toc grep without re-verifying the RED phase on the pre-fix cls.
 #
@@ -212,7 +212,7 @@ test_i07_warning_gate() {
   [[ "$COMPILE_OK" == "1" ]] || return 1
   [[ -f main.log ]] || return 1
   local w
-  w=$(grep -cE 'Empty bibliography|Warning' main.log 2>/dev/null || echo 0)
+  w=$(grep -cE 'Empty bibliography' main.log 2>/dev/null || true)
   printf "    (main.log warning count = %s)\n" "$w" >&2
   [[ "$w" -le 3 ]]
 }
@@ -236,21 +236,28 @@ if [[ "$INJECT" == "1" ]]; then
   echo "--- TC-E5-05 RED-on-pre-fix proof (--inject; temp-tree copy, SUT untouched) ---"
 
   test_i06_inject_red_on_prefix() {
-    local tmpbuild; tmpbuild="$(mktemp -d 2>/dev/null || echo .atdd-5.1-tmpbuild)"
+    local tmpbuild; tmpbuild="$(mktemp -d)"
     mkdir -p "$tmpbuild"
     cp -r . "$tmpbuild"/ >/dev/null 2>&1
     cp "$FIXTURE" "$tmpbuild/$REFS_BIB"
     # Remove the entry-point from the TEMP cls only (revert the decouple). Python is precise where sed is
     # brittle (R-26): drop the first \htu@chapter*{\bibname} occurrence inside \makebibliography (NOT the def).
     python - "$tmpbuild/htuthesis.cls" <<'PYEOF'
-import sys, re
+import sys
 p = sys.argv[1]
 src = open(p, encoding="utf-8").read().splitlines(keepends=True)
 out = []; in_makebib = False; removed = False
 for ln in src:
-    if re.search(r'\\newcommand\{*\\makebibliography\}*\{', ln):
+    # Plain string `in` checks (NOT regex) — avoids re.error bad-escape on Python 3.12+ (code review 2026-06-23 P1).
+    if '\\newcommand' in ln and '\\makebibliography' in ln:
         in_makebib = True
-    if in_makebib and not removed and re.search(r'\\htu@chapter\*\{\\bibname\}', ln) and '\\defbibheading' not in ln:
+    # Skip % comment lines — the [基础] comment block mentions \htu@chapter*{\bibname} in PROSE; without this
+    # guard the `in` match hits the comment line (which precedes the command) and removes the WRONG line,
+    # leaving the real entry-point intact (code review 2026-06-23 P1-followup).
+    if (in_makebib and not removed
+            and '\\htu@chapter*{\\bibname}' in ln
+            and '\\defbibheading' not in ln
+            and not ln.lstrip().startswith('%')):
         removed = True; continue
     out.append(ln)
 open(p, "w", encoding="utf-8").write("".join(out))
