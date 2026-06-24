@@ -159,6 +159,12 @@
   \pagenumbering{Roman}
   \pagestyle{htu@plain}}
 \renewcommand\mainmatter{%
+  %% [基础] header-mark fix（2026-06-24）：此处【不】清洗前置 marks。fitz 实测发现 \markboth{}{}
+  %%   的空 mark 会浮到正文首章首页（\clearpage 不运走 mark-only 页）成为该页 \firstmark，
+  %%   rightmark="" → 章首页页眉空（与首章自身 \markboth 冲突：p11 实测空、p13 才显章名）。
+  %%   故前置 mark 残留改由各章自身 mark 覆盖：无编号章在 \chapter* 后 \markboth{标题}{标题}
+  %%   （见 v1.0.0 data/chap01.tex 绪论）；编号章由 ctex \@chapter→\chaptermark 自动设。
+  %%   spec §2.5「正文奇数页=一级标题」；三源三角（spec/参考PDF/.cls）。
   \cleardoublepage
   \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
   \@mainmattertrue

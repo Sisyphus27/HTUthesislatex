@@ -1,4 +1,4 @@
-# htuthesis — 河南师范大学博士学位论文 LaTeX 模板（v1.1.0 · 2026-06-24）
+# htuthesis — 河南师范大学博士学位论文 LaTeX 模板（v1.1.1 · 2026-06-24）
 
 河南师范大学（HTU）博士学位论文 LaTeX 模板。按《河南师范大学研究生学位论文格式要求》（spec）实现，仅支持博士（doctor）学位、XeLaTeX 引擎、TeX Live 2025。
 
@@ -194,6 +194,20 @@ spec §2.10 支持两种编号方式，经 `\documentclass` 选项切换：
 - hs：一二级居中，三级及以下居左空两格。
 - sc：一至三级居左顶格。
 - 标题字号（两模式共用）：一级三号黑体、二级小三号黑体、三级四号黑体、四级小四号宋体加粗。
+
+### 无编号章（绪论 / 前言等）——页眉须手动设 mark
+
+正文中的**无编号章**（如绪论、前言，用 `\chapter*{}`）**不会自动设置页眉 running mark**——ctex 星号章（`\@schapter`）不调用 `\chaptermark`。若不处理，其奇数页页眉会**残留前置章节名**（如"主要符号对照表"），违反 spec §2.5「奇数页页眉 = 一级标题」。
+
+**正确写法**（`\chapter*` 后补一行 `\markboth`）：
+
+```latex
+\chapter*{绪论}
+\markboth{绪论}{绪论}        % ← 必需：设 running mark，奇数页页眉才显示"绪论"
+\addcontentsline{toc}{chapter}{绪论}
+```
+
+编号章 `\chapter{}` 由 ctex 自动设 mark，无需手动。机制详见 [USAGE §9.13](USAGE.md)；故障排查见 [USAGE §11](USAGE.md)。
 
 ---
 
