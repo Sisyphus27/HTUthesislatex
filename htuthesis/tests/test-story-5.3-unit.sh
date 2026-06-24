@@ -1,32 +1,37 @@
 #!/usr/bin/env bash
 # test-story-5.3-unit.sh — ATDD Unit (source-grep + doc-grep) Tests for Story 5.3 (Real-data usage documentation)
 #
-# TDD Phase: RED — the PRIMARY RED drivers are U01/U02/U03/U04/U06 (the docs + chap01 source are pre-impl).
+# TDD Phase: RED — the PRIMARY RED drivers are U01/U02/U03/U04/U05 (the docs + chap01 source are pre-impl).
 #   Pre-impl (current tree, empirically probed 2026-06-23):
 #     U01  v1.0.0 chap01.tex:14 = \footcite{XiJinPing} (0 \footfullcite)               → RED
 #     U02  "偶数页" (header-alternation term) in USAGE = 0 (both dirs; the 奇数页 at USAGE:57 is openright)  → RED
 #     U03  bare \footcite (the misuse warning) in USAGE = 0 (both dirs; 8 \footfullcite but 0 bare)          → RED
 #     U04  stale-TOC troubleshooting row (目录.*滞后 / 页码.*滞后) in USAGE = 0 (both dirs)                  → RED
-#     U05  v1.0.0 chap01.tex [] count = 20 (stable inventory target)                                       → GREEN guard
-#     U06  README "常见误区"/non-obvious pointer in BOTH dirs = 0                                           → RED
+#     U05  README "常见误区"/non-obvious pointer in BOTH dirs = 0                                           → RED
 #   Post-impl (Story 5.3 Task 1 + Task 2): the 3 doc additions land on both USAGE + README pointer + chap01
-#   \footcite→\footfullcite → U01/U02/U03/U04/U06 GREEN. U05 stays GREEN (inventory target unchanged).
+#   \footcite→\footfullcite → U01/U02/U03/U04/U05 GREEN.
+#
+#   NOTE: the [] placeholder inventory (AC-5, TC-E5-19) is NOT a unit test here. AC-5 is a DECISION POINT — the
+#   deliverable is the inventory + decision log recorded in the story Completion Notes (Zy's per-site decisions),
+#   NOT an automated count-check. A count == 20 guard would false-fail the moment Zy fills/deletes any [] (the
+#   intended AC-5 follow-up), and the SACROSANCT rule blocks editing the test to match — a trap. The inventory
+#   lives in Completion Notes; this test suite does not encode the transient count. (Code review 2026-06-23 DN1.)
 #
 # Usage: bash tests/test-story-5.3-unit.sh [--run]
 #   --run    Remove SKIP marker (activate; green-phase verification). Default ATDD_SKIP=1 = RED scaffold inert.
 #
-# Priority: P0 (U01 — the B1 source fix) + P1 (U02/U03/U04/U06 — the doc additions; U05 — inventory guard)
+# Priority: P0 (U01 — the B1 source fix) + P1 (U02/U03/U04/U05 — the doc additions)
 # Linked ACs: AC-1 (header alternation → U02), AC-2 (\footfullcite/\footcite → U03), AC-3 (fresh-TOC → U04),
-#             AC-4 (chap01 \footfullcite source → U01), AC-5 ([] inventory → U05), AC-6 (dual-dir → U02/U03/U04/U06)
+#             AC-4 (chap01 \footfullcite source → U01), AC-6 (dual-dir → U02/U03/U04/U05)
 # Linked Risk: R-37 (documentation discoverability — U02/U03/U04 verify the 3 non-obvious behaviors are documented)
-# TC coverage: TC-E5-15 (U02), TC-E5-16 (U03), TC-E5-17 (U04), TC-E5-18 source-gate (U01), TC-E5-19 (U05)
+# TC coverage: TC-E5-15 (U02), TC-E5-16 (U03), TC-E5-17 (U04), TC-E5-18 source-gate (U01)
 #
 # Why doc-grep (not fitz): the 3 documented behaviors are PROSE additions to USAGE.md/README.md. A source-grep
 #   verifies the content EXISTS (the AC is "USAGE documents X"). The BEHAVIOR proof (chap01 \footfullcite renders
 #   the page-bottom entry) is the integration test test-story-5.3-integration.sh I02/I03 (fitz on v1.0.0 main.pdf).
 #   U01 is the SOURCE-gate for that behavior (chap01:14 must have \footfullcite); I02/I03 are the RENDERED proof.
 #
-# Dual-directory (AC-6): U02/U03/U04/U06 each require the pattern in BOTH htuthesis/ + htuthesis-v1.0.0/ USAGE/README.
+# Dual-directory (AC-6): U02/U03/U04/U05 each require the pattern in BOTH htuthesis/ + htuthesis-v1.0.0/ USAGE/README.
 #   The two dirs' docs are NOT byte-identical (minor divergence) but the ADDED blocks must be content-identical.
 #
 # Truth source: FR-33 (README/documentation) + spec §2.5 (header alternation) + §2.14/§1.2.4 (case-2 \footfullcite).
@@ -36,7 +41,7 @@ set -uo pipefail
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$DIR"
 
-# v1.0.0 sibling dir (the real-thesis test instance; never git-add'd). TC-E5-18 source-gate + TC-E5-19 inventory target it.
+# v1.0.0 sibling dir (the real-thesis test instance; never git-add'd). TC-E5-18 source-gate targets it.
 V100="$(cd "$DIR/../htuthesis-v1.0.0" 2>/dev/null && pwd)"
 
 # --- TDD Red Phase Control ---
@@ -121,20 +126,10 @@ test_u04_stale_toc_row_in_both_usage() {
   grep -qE "$pat" "$USAGE_C" && grep -qE "$pat" "$USAGE_V"
 }
 
-# ATDD-5.3-U05 (P1, GREEN guard, TC-E5-19, AC-5): v1.0.0 chap01.tex has exactly 20 [] placeholders (the inventory
-#   target). This is a STABLE fact (the [] are 待补引文标记; the count is 20 pre + post — the AC is the INVENTORY +
-#   decision log, not a count change). The decision log itself is a manual Completion-Notes deliverable (the dev
-#   records Zy's per-site decisions); this test guards the inventory TARGET is correct (20, at the known lines).
-test_u05_v100_chap01_bracket_inventory() {
-  [[ -n "$V100" && -f "$V100/data/chap01.tex" ]] || return 1
-  local n; n=$(grep -c '\[\]' "$V100/data/chap01.tex" || true)
-  [[ "$n" == "20" ]]
-}
-
-# ATDD-5.3-U06 (P1, *** RED DRIVER ***, AC-1/2/3 README pointer, AC-6 dual-dir): BOTH README.md (canonical + v1.0.0)
+# ATDD-5.3-U05 (P1, *** RED DRIVER ***, AC-1/2/3 README pointer, AC-6 dual-dir): BOTH README.md (canonical + v1.0.0)
 #   have a "常见误区"/non-obvious-behaviors pointer (brief subsection pointing to USAGE for the 3 behaviors).
 #   Pre-impl: README has no such subsection → RED. Post-impl (Task 1.4): the pointer added → GREEN.
-test_u06_readme_pointer_in_both() {
+test_u05_readme_pointer_in_both() {
   [[ -f "$README_C" && -f "$README_V" ]] || return 1
   # "常见误区" or "非显然"/"易误" pointer subsection in BOTH dirs' README.
   local pat='常见误区|易误解|非显然|Non-obvious|易错'
@@ -151,8 +146,7 @@ run_test P0 ATDD-5.3-U01 "v1.0.0 chap01.tex:14 = \\footfullcite{XiJinPing} (TC-E
 run_test P1 ATDD-5.3-U02 "BOTH USAGE document header alternation (偶数页; TC-E5-15, AC-1, R-37; *** RED DRIVER ***)" test_u02_header_alternation_in_both_usage
 run_test P1 ATDD-5.3-U03 "BOTH USAGE have \\footcite bare-number warning (TC-E5-16, AC-2, R-37; *** RED DRIVER ***)" test_u03_footcite_warning_in_both_usage
 run_test P1 ATDD-5.3-U04 "BOTH USAGE have stale-TOC troubleshooting row (TC-E5-17, AC-3, R-37; *** RED DRIVER ***)" test_u04_stale_toc_row_in_both_usage
-run_test P1 ATDD-5.3-U05 "v1.0.0 chap01.tex [] inventory = 20 (TC-E5-19, AC-5; GREEN guard — stable target)" test_u05_v100_chap01_bracket_inventory
-run_test P1 ATDD-5.3-U06 "BOTH README have 常见解题/常见误区 pointer (AC-1/2/3 README, AC-6; *** RED DRIVER ***)" test_u06_readme_pointer_in_both
+run_test P1 ATDD-5.3-U05 "BOTH README have 常见误区 pointer (AC-1/2/3 README, AC-6; *** RED DRIVER ***)" test_u05_readme_pointer_in_both
 
 echo ""
 echo "=============================="
@@ -168,12 +162,13 @@ if [[ "$SKIP" == "1" ]]; then
   echo "      U02 header alternation 偶数页 in BOTH USAGE (TC-E5-15, AC-1) — current: 0 (both dirs)"
   echo "      U03 bare \\footcite warning in BOTH USAGE (TC-E5-16, AC-2) — current: 0 (8 \\footfullcite, 0 bare)"
   echo "      U04 stale-TOC row in BOTH USAGE (TC-E5-17, AC-3) — current: 0"
-  echo "      U06 常见误区 pointer in BOTH README (AC-1/2/3, AC-6) — current: 0"
-  echo "   GREEN guards (PASS pre + post — stable facts):"
-  echo "      U05 v1.0.0 chap01 [] = 20 (TC-E5-19 inventory target, AC-5)"
+  echo "      U05 常见误区 pointer in BOTH README (AC-1/2/3, AC-6) — current: 0"
+  echo ""
+  echo "   AC-5 ([] inventory, TC-E5-19) is NOT automated — it is a manual Completion-Notes deliverable"
+  echo "   (DECISION POINT: Zy's per-site decisions; no count-guard that would false-fail on fill/delete)."
   echo ""
   echo "   Truth source: FR-33 + spec §2.5 (header alternation) + §2.14/§1.2.4 (case-2 \\footfullcite)."
-  echo "   Dual-dir (AC-6): U02/U03/U04/U06 require BOTH htuthesis/ + htuthesis-v1.0.0/."
+  echo "   Dual-dir (AC-6): U02/U03/U04/U05 require BOTH htuthesis/ + htuthesis-v1.0.0/."
   echo "   The RENDERED proof (page-bottom 蒋建忠+EB/OL) is test-story-5.3-integration.sh I02/I03."
 fi
 

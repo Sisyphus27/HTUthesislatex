@@ -112,12 +112,30 @@ echo ""
 # ==========================================
 echo "=== P0: v1.0.0 compile gate (AC-4) + page-bottom 蒋建忠/EB/OL (TC-E5-18; *** RED DRIVER ***) ==="
 
+# V100-absent guard (P1, code review 2026-06-23): ACTIVE mode + no v1.0.0 → SKIP (not FAIL) all 3. They target
+#   the test instance; a machine without htuthesis-v1.0.0/ cannot run them. Mirrors check-structure.sh's
+#   main.pdf-absent SKIP idiom + matches the header's "Graceful SKIP+warn if V100 absent" claim. In SKIP mode
+#   (default), the run_test calls below emit yellow SKIP themselves — this guard only changes the ACTIVE-mode fate.
+if [[ "$SKIP" == "0" ]] && ! v100_ready; then
+  printf "\033[33m  [WARN] htuthesis-v1.0.0/ not found — AC-4 fix + probe target the test instance; 3 tests skipped (not failed).\033[0m\n"
+  SKIP_COUNT=$((SKIP_COUNT + 3))
+else
+
 # ATDD-5.3-I01: v1.0.0 latexmk -xelatex -g main.tex exit 0 (AC-4 compile gate). The \footcite→\footfullcite change
 #   must not break the v1.0.0 compile. Runs ONLY when activated (--run) + v1.0.0 present. ~3 min (full rebuild).
+#   (P3, code review 2026-06-23): capture latexmk output to a temp log + tail on failure — a ~3-min compile that
+#   fails with no diagnostic is opaque; the tail gives the last 15 log lines so the operator sees why.)
 test_v100_compile() {
   v100_ready || return 1
-  ( cd "$V100" && latexmk -xelatex -g -interaction=nonstopmode main.tex > /dev/null 2>&1 )
-  return $?
+  local log; log="$(mktemp)"
+  ( cd "$V100" && latexmk -xelatex -g -interaction=nonstopmode main.tex ) > "$log" 2>&1
+  local rc=$?
+  if [[ $rc -ne 0 ]]; then
+    printf "\033[31m  [diag] latexmk failed (rc=%d); last 15 log lines:\033[0m\n" "$rc"
+    tail -15 "$log"
+  fi
+  rm -f "$log"
+  return $rc
 }
 run_test "P0" "ATDD-5.3-I01" "v1.0.0 latexmk -xelatex -g main.tex exit 0 (AC-4 compile gate)" test_v100_compile
 
@@ -151,6 +169,8 @@ sys.exit(0 if len(hs) >= 1 else 1)
 " )
 }
 run_test "P0" "ATDD-5.3-I03" "BEHAVIOR: v1.0.0 page-bottom footnote has EB/OL (AC-4, TC-E5-18; *** RED DRIVER ***)" test_v100_footnote_ebol
+
+fi   # end V100-absent guard
 
 echo ""
 
