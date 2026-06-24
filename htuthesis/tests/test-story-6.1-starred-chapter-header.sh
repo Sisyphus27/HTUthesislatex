@@ -260,7 +260,7 @@ test_i08_no_floating_empty_page() {
   blank=$(probe_headers "$FIXTURE_PDF" | awk -F= '/^blank=/{print $2}')
   first_main=$(probe_headers "$FIXTURE_PDF" | awk -F= '/^first_main=/{print $2}')
   printf "    (blank=%s [≤1 legitimate cleardoublepage]; first_mainmatter_header=%s [non-empty])\n" "$blank" "$first_main" >&2
-  [[ "${blank:-99}" -le 1 && -n "$first_main" && "$first_main" != "" ]]
+  [[ "${blank:-99}" -le 1 && -n "$first_main" ]]
 }
 
 echo "--- green-phase assertions (I02 is the RED driver; I09 --inject is the RED proof; I01/I03/I04/I06/I07/I08 are guards) ---"
