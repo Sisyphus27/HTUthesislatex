@@ -71,7 +71,7 @@ run_test() {
   "$@"
   if [[ $? -eq 0 ]]; then
     green "[$priority] $test_id: $description"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "[$priority] $test_id: $description"
     ((FAIL++))
@@ -91,7 +91,7 @@ run_test_315() {
     ((SKIP_COUNT++)); return 0
   fi
   shift 3; "$@"
-  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++)) || true
   else red "[$priority] $test_id: $description"; ((FAIL++)); fi
 }
 
@@ -234,7 +234,7 @@ run_test "P0" "ATDD-3.5-I01" "latexmk -xelatex -g main.tex exit code 0 (AC-8, R-
 test_no_errors() {
   if [[ -f "main.log" ]]; then
     local error_count
-    error_count=$(grep -c '^!' main.log 2>/dev/null || true)
+    error_count=$(grep -cE '^!|LaTeX Error:|Fatal error' main.log 2>/dev/null || true)
     error_count=$(echo "$error_count" | tr -d '[:space:]' | head -1)
     [[ "$error_count" -eq 0 ]]
   else
@@ -282,7 +282,7 @@ for b in doc[toc].get_text('dict').get('blocks', []):
 if mu is None or lu is None:
     print('  (title 目/录 spans size>14 not found — RED)'); sys.exit(1)
 ms = max(mu['size'], lu['size'])
-heiti = all(('SimHei' in s['font'] or 'Hei' in s['font']) for s in [mu, lu])
+heiti = all('SimHei' in s['font'] for s in [mu, lu])  # R-26 (L198): exact SimHei, drop 'Hei'-substring decoy (YaHei/FandolHei)
 x0 = min(mu['bbox'][0], lu['bbox'][0]); x1 = max(mu['bbox'][2], lu['bbox'][2])
 cx = (x0 + x1) / 2.0; centered = abs(cx - mid) < 18.0
 print('  toc-title 目=%r 录=%r size=%.1f heiti=%s cx=%.1f centered=%s' %
@@ -304,7 +304,7 @@ if len(ents) < 1:
     print('  (no L1 chapter entries found — RED)'); sys.exit(1)
 fonts = [e[0] for e in ents]; sizes = [e[1] for e in ents]
 med = median(sizes)
-heiti = all(('SimHei' in f or 'Hei' in f) for f in fonts)
+heiti = all('SimHei' in f for f in fonts)  # R-26 (L198): exact SimHei, drop 'Hei'-substring decoy
 print('  L1 entries=%d fonts=%s median size=%.2fpt heiti=%s (spec §2.6 黑体小四号; ref p10 SimHei 12.0)' %
       (len(ents), set(fonts), med, heiti))
 for f, s, x, t in ents[:4]:
@@ -356,6 +356,8 @@ sys.exit(0 if (song and 11.3 <= med <= 12.7) else 1)
 }
 run_test "P1" "ATDD-3.5-I07" "BEHAVIOR: L2 section entries SimSun 小四号 ~12pt (AC-3, TC-E3-25; GREEN — already correct)" test_l2_entries_simsun_xiaosi
 
+# R-26 (L202): I12/I13/I14 self-check bands are SAMPLE-calibrated (textheight/baselineskip spec-derived;
+#   page-count content-dependent). A content/geometry change legitimately shifts page-count — not a regression.
 # ATDD-3.5-I12: regression — self-check textheight ~688pt unchanged (AC-8, R-1)
 # TOC formatting must NOT touch geometry.
 test_textheight_unchanged() {
@@ -424,6 +426,7 @@ if toc is None:
     print('  (TOC page not found — RED)'); sys.exit(1)
 # REPOINTED by Story 3.13: humanities labels (spec §2.10). OLD: re.fullmatch(r'\d+\.\d+', tx) (section) /
 #   re.fullmatch(r'\d+\.\d+\.\d+', tx) (subsection) — Arabic label detection that no longer matches.
+# R-26 (L303): the \$ end-anchors below rely on bash double-quote expansion \$->$; refactor to .py/heredoc needs \$->$ adjustment
 sec_lab_re = re.compile(r'^第[一二三四五六七八九十百]+节\$')      # L2 section contentslabel (第一节)
 sub_lab_re = re.compile(r'^[一二三四五六七八九十]+、')             # L3 subsection contentslabel (一、)
 chap_lab_re = re.compile(r'^第[一二三四五六七八九十百]+章\$')      # L1 chapter contentslabel (第一章)
@@ -576,7 +579,7 @@ for b in doc[toc].get_text('dict').get('blocks', []):
                 prefixes.append((sp['font'], sp['size'], sp['text'].strip()))
 if not prefixes:
     print('  (no 第N章 contentslabel span on TOC — RED/inconclusive)'); sys.exit(1)
-heiti = all(('SimHei' in f or 'Hei' in f) for f, s, t in prefixes)
+heiti = all('SimHei' in f for f, s, t in prefixes)  # R-26 (L198): exact SimHei, drop 'Hei'-substring decoy
 print('  TOC 第N章 number-prefix spans=%d fonts=%s heiti=%s (G1 §2.6 ENTIRE entry 黑体)' %
       (len(prefixes), set(f for f, s, t in prefixes), heiti))
 for f, s, t in prefixes[:4]:

@@ -69,7 +69,7 @@ run_test() {
   "$@"
   if [[ $? -eq 0 ]]; then
     green "[$priority] $test_id: $description"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "[$priority] $test_id: $description"
     ((FAIL++))
@@ -89,7 +89,7 @@ run_test_315() {
     ((SKIP_COUNT++)); return 0
   fi
   shift 3; "$@"
-  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++)) || true
   else red "[$priority] $test_id: $description"; ((FAIL++)); fi
 }
 
@@ -114,7 +114,7 @@ num_re = re.compile(r"^\[\d+\]$")
 title_re = re.compile(r"致\s*谢|攻读学位|个人简历|原创性声明|独创性声明")
 def median(xs):
     if not xs: return None
-    ys = sorted(xs); n = len(ys); return ys[n // 2]
+    ys = sorted(xs); n = len(ys); return ys[n // 2] if n % 2 else (ys[n // 2 - 1] + ys[n // 2]) / 2.0
 def refs_title():
     # SimHei ~16pt (三号) centered "参考文献" = the references TITLE page (NOT the TOC row).
     for i in range(doc.page_count):
@@ -192,7 +192,7 @@ run_test "P0" "ATDD-3.7-I01" "latexmk -xelatex -g main.tex exit code 0 (AC-7, R-
 test_no_errors() {
   if [[ -f "main.log" ]]; then
     local error_count
-    error_count=$(grep -c '^!' main.log 2>/dev/null || true)
+    error_count=$(grep -cE '^!|LaTeX Error:|Fatal error' main.log 2>/dev/null || true)
     error_count=$(echo "$error_count" | tr -d '[:space:]' | head -1)
     [[ "$error_count" -eq 0 ]]
   else

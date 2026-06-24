@@ -165,3 +165,6 @@ TSWLatexianTemp*
 # Story 4.3 debug-check temp compile (Makefile debug-check target; .aux/.log/.pdf already ignored above,
 # this catches .debug-main.tex + any other extension)
 .debug-main*
+
+# R-26 sweep / debug one-off temp files (._ prefix convention; e.g. ._compile.log, ._boldtest.*)
+._*

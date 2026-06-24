@@ -71,7 +71,7 @@ run_test() {
   "$@"
   if [[ $? -eq 0 ]]; then
     green "[$priority] $test_id: $description"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "[$priority] $test_id: $description"
     ((FAIL++))
@@ -98,7 +98,7 @@ eq_re = re.compile(r"^\d+-\d+$")  # G-A fullwidth-paren tag: number span is bare
 sub_re = re.compile(r"^\([a-z]\)$")
 def median(xs):
     if not xs: return None
-    ys = sorted(xs); n = len(ys); return ys[n // 2]
+    ys = sorted(xs); n = len(ys); return ys[n // 2] if n % 2 else (ys[n // 2 - 1] + ys[n // 2]) / 2.0
 def list_pages():
     # LOF (插图清单) / LOT (表格清单) list pages — their "图 N-N" / "表 N-N" entries are NOT body captions.
     # Identified by the list TITLE (not dot-leaders): body p37/39 ALSO carry verbatim dot-runs from chap04
@@ -197,7 +197,7 @@ run_test "P0" "ATDD-3.6-I01" "latexmk -xelatex -g main.tex exit code 0 (AC-7, R-
 test_no_errors() {
   if [[ -f "main.log" ]]; then
     local error_count
-    error_count=$(grep -c '^!' main.log 2>/dev/null || true)
+    error_count=$(grep -cE '^!|LaTeX Error:|Fatal error' main.log 2>/dev/null || true)
     error_count=$(echo "$error_count" | tr -d '[:space:]' | head -1)
     [[ "$error_count" -eq 0 ]]
   else

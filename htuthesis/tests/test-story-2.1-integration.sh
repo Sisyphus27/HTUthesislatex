@@ -44,7 +44,7 @@ run_test() {
   "$@"
   if [[ $? -eq 0 ]]; then
     green "[$priority] $test_id: $description"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "[$priority] $test_id: $description"
     ((FAIL++))
@@ -90,7 +90,7 @@ run_test "P0" "ATDD-2.1-20" "latexmk -xelatex main.tex exit code 0" test_full_co
 test_no_errors() {
   if [[ -f "main.log" ]]; then
     local error_count
-    error_count=$(grep -c '^!' main.log 2>/dev/null || true)
+    error_count=$(grep -cE '^!|LaTeX Error:|Fatal error' main.log 2>/dev/null || true)
     error_count=$(echo "$error_count" | tr -d '[:space:]' | head -1)
     [[ "$error_count" -eq 0 ]]
   else

@@ -74,7 +74,7 @@ run_test() {
   "$@"
   if [[ $? -eq 0 ]]; then
     green "[$priority] $test_id: $description"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "[$priority] $test_id: $description"
     ((FAIL++))

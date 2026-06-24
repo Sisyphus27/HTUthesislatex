@@ -71,7 +71,7 @@ run_test() {
   "$@"
   if [[ $? -eq 0 ]]; then
     green "[$priority] $test_id: $description"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "[$priority] $test_id: $description"
     ((FAIL++))
@@ -90,7 +90,7 @@ run_test_315() {
     ((SKIP_COUNT++)); return 0
   fi
   shift 3; "$@"
-  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++))
+  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++)) || true
   else red "[$priority] $test_id: $description"; ((FAIL++)); fi
 }
 

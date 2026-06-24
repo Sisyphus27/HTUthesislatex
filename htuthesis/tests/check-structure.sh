@@ -34,7 +34,7 @@ required_files=(
 for f in "${required_files[@]}"; do
   if [ -f "$f" ]; then
     green "$f exists"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "$f MISSING"
     ((FAIL++))
@@ -47,7 +47,7 @@ echo "=== Chapter Count ==="
 chap_count=$(ls data/chap*.tex 2>/dev/null | wc -l)
 if [ "$chap_count" -ge 4 ]; then
   green "Found $chap_count chapter files (>= 4)"
-  ((PASS++))
+  ((PASS++)) || true
 else
   red "Only $chap_count chapter files (need >= 4)"
   ((FAIL++))
@@ -105,7 +105,7 @@ if [ -f "ref/refs.bib" ]; then
 
   if [ "$missing_cites" -eq 0 ]; then
     green "All cite keys found in refs.bib"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "$missing_cites cite key(s) missing from refs.bib"
     ((FAIL++))
@@ -122,7 +122,7 @@ if [ -f "main.pdf" ]; then
   size=$(stat --printf="%s" "main.pdf" 2>/dev/null || stat -f%z "main.pdf" 2>/dev/null)
   if [ "$size" -gt 0 ]; then
     green "main.pdf exists ($(echo "scale=1; $size/1024" | bc 2>/dev/null || echo "$size") bytes)"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "main.pdf is empty"
     ((FAIL++))
@@ -149,7 +149,7 @@ for f in main.tex data/*.tex; do
 done
 if [ "$bad_encoding" = false ]; then
   green "All .tex files are UTF-8 / ASCII"
-  ((PASS++))
+  ((PASS++)) || true
 fi
 
 # --- Summary ---

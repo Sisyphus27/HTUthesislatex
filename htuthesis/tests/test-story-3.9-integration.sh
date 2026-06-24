@@ -64,7 +64,7 @@ run_test() {
   "$@"
   if [[ $? -eq 0 ]]; then
     green "[$priority] $test_id: $description"
-    ((PASS++))
+    ((PASS++)) || true
   else
     red "[$priority] $test_id: $description"
     ((FAIL++))
@@ -82,7 +82,7 @@ PY_HEAD='
 import fitz, sys, re
 doc = fitz.open("main.pdf")
 W = doc[0].rect.width; mid = W / 2.0
-roman_re = re.compile(r"^[IVXLC]+$"); arabic_re = re.compile(r"^\d+$")
+roman_re = re.compile(r"^[IVXLCDM]+$"); arabic_re = re.compile(r"^\d+$")
 ascii_re = re.compile(r"[a-zA-Z0-9]")
 def footer_num(i):
     page = doc[i]; H = page.rect.height
@@ -128,7 +128,7 @@ run_test "P0" "ATDD-3.9-08" "latexmk -xelatex main.tex exit code 0 (AC-6, R-13 f
 test_no_errors() {
   if [[ -f "main.log" ]]; then
     local error_count
-    error_count=$(grep -c '^!' main.log 2>/dev/null || true)
+    error_count=$(grep -cE '^!|LaTeX Error:|Fatal error' main.log 2>/dev/null || true)
     error_count=$(echo "$error_count" | tr -d '[:space:]' | head -1)
     [[ "$error_count" -eq 0 ]]
   else

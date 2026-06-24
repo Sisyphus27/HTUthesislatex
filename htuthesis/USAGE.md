@@ -264,6 +264,30 @@ xelatex main      # 第 3 遍：解析交叉引用
 - 标尺：`cd tools && xelatex calibrate.tex`
 - 结构检查：`bash tests/check-structure.sh`
 
+### 编译产物与中间文件
+
+**主产物**（交付物）：`main.pdf`（论文正文）、`a3cover.pdf`（A3 封面，`make a3cover`）。
+
+**中间产物**（可删，再编译自动重建；已全部在 `.gitignore`，不入版本库）：
+
+| 后缀 | 说明 | 生成阶段 |
+|---|---|---|
+| `.aux` | 辅助引用/计数信息 | xelatex 第 1 遍 |
+| `.bbl` | biber 生成的文献列表 | biber |
+| `.bcf` / `.run.xml` | biblatex 控制文件 / 运行记录 | xelatex 第 1 遍 / biber |
+| `.fls` / `.fdb_latexmk` | latexmk 构建状态缓存 | latexmk |
+| `.log` | 编译日志（排错用） | xelatex |
+| `.toc` / `.out` | 目录缓存 / hyperref 书签 | xelatex |
+| `.xdv` | XeLaTeX 中间文档（→ PDF 前身） | xelatex |
+| `.synctex.gz` | SyncTeX 正反向搜索 | xelatex |
+
+**清理**：
+- `make clean`（= `latexmk -c main`）— 清中间文件，**保留** `main.pdf`。
+- `latexmk -C main` — 连 `main.pdf` 一起清（强制全部重建）。
+- 手动：`rm -f main.aux main.bbl main.bcf main.run.xml main.fls main.fdb_latexmk main.log main.toc main.out main.xdv main.synctex.gz`。
+
+> 所有中间产物均在根 `.gitignore` + `htuthesis/.gitignore` 双重覆盖，`git status` 不显示、不入版本库。`main.pdf` 默认也忽略（每次重建）；若要入库可用 `git add -f htuthesis/main.pdf`。
+
 ---
 
 ## 7. 可调参数（htuthesis.def）
