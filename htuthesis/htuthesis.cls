@@ -1022,7 +1022,15 @@
 %   font=SimSun size=12.0 x0=114/595（非居中）；spec §2.14 对分节标题格式沉默 → 参考 PDF 辅助 → 原
 %   \sffamily(SimHei)+\centerline(居中) 是偏离。改 \songti(SimSun) + 去 \centerline(左对齐)。保留
 %   \htu@tnr Latin 守卫（F2 结构性，Epic 4 retro；分节标题为 CJK 无实时 Latin 泄漏，守卫作结构性保留）。
-\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\xiaosi\songti\htu@tnr #1}\par\vspace{0.3\baselineskip}}%
+%   Epic 5 复盘修复（2026-06-24，Zy 裁决；spec §2.14 对分节标题格式沉默→允许）：
+%   (a) 加粗：\songti→\htu@songtibold\bfseries（cls:98-101 SimSun+AutoFakeBold=2.5 算法粗宋；字体名仍
+%       SimSun，不退化成 SimHei，区别于 ctex 默认 CJK 粗体映射；复用四级标题 cls:546 已验机制）。原因：
+%       宋体 12pt 标题 vs 宋体 10.5pt 条目同族仅差字号、无层级区分度（Zy 目视）；加粗增区分度且保留宋体字面。
+%   (b) \noindent 顶格：原继承正文 \parindent 2 字缩进（实测 x0=94.9）偏离参考 flush-left（x0=114≈条目 111）。
+%   (c) 标题后 \vspace{0.3\baselineskip}→-0.2：标题→首条目实测 37→25.2pt 对齐参考 24.1pt
+%       （Story 5.1 Change 1 原 AC 漏检间距维度——"渲染存在≠正确形态"）。
+%   fitz 实证（4 维）：font=SimSun(非 SimHei) + 粗体墨度比 1.59-1.77(同文 regular 对照,>1.3,L4=1.48) + x0=70.9(原 94.9) + 标题→首条目 25.2pt(原 37,参考 24.1)。
+\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\noindent\xiaosi\htu@songtibold\bfseries\htu@tnr #1}\par\vspace{-0.2\baselineskip}}%
 % [基础] 文末表：按文献类型分节重组（引文 + 阅读型，§2.14 case-2 line 291）。
 %   Story 5.1（2026-06-23，NFR-6）：入口无条件 emit \htu@chapter*{\bibname}——章标题独立于分节数据分布。
 %   Story 3.12 曾将主标题 heading（htu-refs）只挂 type=article 分节；真实 refs.bib 无 @article 时该节空
