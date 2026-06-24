@@ -1,0 +1,78 @@
+% chapter-star-fixture.tex — ATDD fixture for Story 6.1 (Native \chapter* header-mark fallback, M6)
+%
+% PURPOSE: a standalone minimal doc that reproduces the Bug 1 path (native \chapter* in mainmatter does
+%   not set the running mark → odd-page header freezes at the last front-matter mark). Compiled INDEPENDENTLY
+%   (NOT a swap into main.tex; NOT a modification of canonical data/chap01.tex which uses \chapter{}).
+%   This fixture IS the #16 coverage-hole closure — the path Epic 2/3 header ATDDs (numbered \chapter{}
+%   only) never tested.
+%
+% STRUCTURE:
+%   \frontmatter \tableofcontents  — sets a stale \rightmark ("目录") via \htu@chapter* (which DOES \@mkboth)
+%   \mainmatter \chapter*{绪论}     — THE BUG TARGET: native starred, ctex \@schapter, no \@mkboth pre-M6
+%   <body spanning ≥2 pages>        — exercises odd (CO=\rightmark) + even (CE=\ctitle) headers
+%   \chapter{示例章}                — numbered: verify M6 numbered-path delegation (header+numbering+toc)
+%   <body spanning ≥2 pages>        — so the numbered chapter also has an odd page (CO header = chapter mark)
+%   \appendix \chapter{示例附录}    — appendix: verify A/B/C numbered delegation unaffected
+%
+% PRE-M6 (current canonical cls): 绪论 odd-page header = "目录" (stale front-matter mark) — Bug 1.
+% POST-M6 (Story 6.1 wrapper): 绪论 odd-page header = "绪论" (wrapper appends \@mkboth{绪论}{绪论}).
+%
+% CALIBRATION (verified 2026-06-24 on the pre-fix cls, 5pp → extended to ~7pp for 2-page chapters):
+%   - Header band = y0 < 70 + 五号 size [9.5, 11.5]. Header renders at y0≈63.1, size 10.5 (SimSun for CJK
+%     mark, TNR for Alph letter). Body/title start at y0≈146+ (well below the gate).
+%   - CJK header text FRAGMENTS per-character into separate fitz spans ("目"+"录", "绪"+"论"). The ATDD
+%     probes MUST concat all header-band spans on a page before substring-matching (G-A fragmentation
+%     pattern; per-span matching false-REDs post-fix). See test-story-6.1-starred-chapter-header.sh.
+%   - Each body section is sized to span ≥2 pages so BOTH odd (CO=\rightmark) + even (CE=\ctitle) headers
+%     are exercised for 绪论 AND the numbered chapter (the latter needs an odd page for its CO header).
+%
+% Truth source: spec §2.5 line 193 (正文奇数页 = 一级标题) + brainstorming-session-2026-06-24-154931.md
+%   fitz table (p10-39 stale / p40 refresh). See atdd-checklist-6-1-*.md Step 3 (fixture design).
+%
+% COMPILE: the ATDD copies this file to the htuthesis/ root (for htuthesis.cls resolution), runs
+%   `latexmk -xelatex -g chapter-star-fixture.tex`, probes chapter-star-fixture.pdf, removes build artifacts
+%   via trap. This file itself is NOT compiled in place under tests/fixtures/ (cls would not resolve).
+
+\documentclass[doctor]{htuthesis}
+
+\ctitle{测试论文标题}        % CE even-page header (ATDD-6.1-I03); sets \htu@ctitle via cls \htu@def@term{ctitle} (cls:670)
+
+\begin{document}
+\frontmatter
+\tableofcontents            % \htu@chapter*[]{\contentsname} → sets \@mkboth{目录}{目录} (the stale mark pre-M6)
+
+\mainmatter
+
+% === THE BUG TARGET (ATDD-6.1-I02 RED driver, TC-E6-01, AC-1) ===
+% Native \chapter* — pre-M6 ctex \@schapter does NOT call \@mkboth/\chaptermark → \rightmark freezes at
+% "目录". Post-M6 the wrapper appends \@mkboth{绪论}{绪论} → \rightmark = "绪论".
+\chapter*{绪论}
+% --- body: \loop filler guarantees ≥2 pages so both odd (CO=\rightmark) + even (CE=\ctitle) headers fire ---
+\newcounter{filler@xulun}\setcounter{filler@xulun}{0}
+\loop
+\stepcounter{filler@xulun}
+这是绪论正文填充段落编号 \arabic{filler@xulun}。模板页眉奇数页显示当前一级标题、偶数页显示论文
+题目；为同时考察两类页眉，绪论正文须稳定跨越两个页面。本段内容无学术意义，仅为保证篇幅。
+\ifnum\value{filler@xulun}<25 \repeat
+
+% === numbered chapter (ATDD-6.1-I04 delegation regression, TC-E6-03, AC-3) ===
+% Numbered \chapter{} — M6 numbered branch delegates to \htu@orig@chapter UNCHANGED. Verify: header +
+% \thechapter numbering (Arabic 1) + .toc entry all flow through ctex original logic. Body spans ≥2 pages
+% so the numbered chapter has an odd page (CO header = "示例章" chapter mark).
+\chapter{示例章}
+% --- body: \loop filler guarantees ≥2 pages so the numbered chapter has an odd page (CO header = 示例章) ---
+\newcounter{filler@shili}\setcounter{filler@shili}{0}
+\loop
+\stepcounter{filler@shili}
+这是编号章正文填充段落编号 \arabic{filler@shili}。编号章由模板底层自动设置页眉标记，M6 编号分支
+完全委托原命令零修改，故页眉、编号与目录条目修复前后应完全一致。本段仅用于保证本章跨越两个页面。
+\ifnum\value{filler@shili}<25 \repeat
+
+% === appendix (ATDD-6.1-I06 appendix delegation, TC-E6-05, AC-5) ===
+% \chapter{附录} under \appendix — numbered branch (no star) → delegated → \thechapter=\@Alph (A) unaffected.
+\appendix
+\chapter{示例附录}
+这是附录章的正文。\texttt{\textbackslash appendix} 下的 \texttt{\textbackslash chapter} 走编号路径，
+经 M6 委托原命令，编号为字母 A，不受 M6 包装影响。本段用于保证附录章至少占据一个页面。
+
+\end{document}

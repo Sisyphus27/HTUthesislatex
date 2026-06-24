@@ -152,6 +152,24 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 文前，正文，文后格式
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% [基础] header-mark 兜底（2026-06-24 复发根因修复，Story 6.1 M6）：原生 \chapter* 不设 running mark，
+%   致前置最后一项 mark 残留入正文（fitz 实测：绪论奇数页 p12-p39 页眉="主要符号对照表"，
+%   直至 p40 第一章 \chapter{} 才刷新）。编号章 \chapter{} 由 ctex \@chapter→\chaptermark 自动设；
+%   模板原语 \htu@chapter* 由 cls \@mkboth 自设（前置摘要/目录/符号表 + 后置致谢/参考文献/声明）。
+%   唯原生 \chapter* 无兜底——绪论是全文唯一踩中处（中文博士绪论约定俗成无编号）。
+%   修复：包装 \chapter，星号形追加 \@mkboth{title}{title}（等同 \chaptermark 对无编号章的行为，
+%   即 problem-solution-2026-06-24 已验证的 S3b \markboth 机制）；编号路径完全委托原命令，零修改。
+%   真值源：spec §2.5 line 193「正文奇数页=一级标题」+ fitz 实测 p10-39 残留/p40 刷新 +
+%   problem-solution-2026-06-24.md（S3b 在 v1.0.0 验证 p11="绪论" ✅；S2 mainmatter 清洗被 fitz 否决）。
+%   安全：\htu@chapter* 是独立 \def，不触发此包装 → 无双重 \@mkboth；
+%   附录 \chapter{附录}（\appendix 下编号 A/B/C）走编号路径委托，不受影响。\NewCommandCopy 为
+%   LaTeX2e 2020-10+ 内建（等同 letltxmacro），无需额外包。
+\NewCommandCopy{\htu@orig@chapter}{\chapter}
+\RenewDocumentCommand{\chapter}{s o m}{%
+  \IfBooleanTF{#1}%
+    {\htu@orig@chapter*{#3}\@mkboth{#3}{#3}}%
+    {\IfNoValueTF{#2}{\htu@orig@chapter{#3}}{\htu@orig@chapter[#2]{#3}}}%
+}
 \renewcommand\frontmatter{%
   \clearpage
   \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
