@@ -2,6 +2,12 @@
 zzuthesis/
 thuthesis/
 
+# HTU thesis test instances (real-thesis experimental dirs — NEVER git-add; memory htuthesis-v1-0-0-test-instance)
+# Machine-enforces the "never git-add the test instance" policy (convention alone is insufficient).
+htuthesis-v1.0.0/
+htuthesis-v1.1.1/
+htuthesis-v1.*/
+
 # Reference theses (local only, not for distribution) — all PDFs at repo root
 /*.pdf
 

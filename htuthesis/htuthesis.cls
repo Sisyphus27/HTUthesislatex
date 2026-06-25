@@ -148,6 +148,11 @@
     plainpages=false,
     hidelinks}
   \urlstyle{same}%相同字体
+% [基础] URL/DOI 行内换行美化（2026-06-24，Bug 2 M3）：\interfootnotelinepenalty 消除跨页泄漏后，
+%   残留 DOI 在页内行-wrap 断在数字中间（fitz 实测 "10.108"|"6/432166"、"10.1257/0002"|"82806776157704"）。
+%   gb7714-2015 经 \nolinkurl 渲染 DOI（bbx:2479），xurl 扩展 \url/\nolinkurl 断行点至字母+标点
+%   → DOI 在 "/" "." 处优雅断行而非数字中间。置 hyperref 后（xurl 依赖 url，hyperref 已加载 url）。
+\RequirePackage{xurl}%URL/DOI 多断点换行（Bug 2 M3 残留美化；非跨页泄漏修复——彼已由 interfootnotelinepenalty 解）
 \input{htuthesis.def}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 文前，正文，文后格式
@@ -423,6 +428,13 @@
 %   Story 3.8 ATDD-3.8-09/I08 接受 footmisc[perpage]（OR 模式），无需重指向；行为等价（每页重置）。
 %   仅重置 footnote，不影响 page 计数器（页码连续性不受影响，AC-6）。
 \usepackage[perpage]{footmisc}%每页脚注重置（Story 3.12 Option A biblatex 下替换 \@addtoreset；§1.2.4 line 109）
+% [基础] 脚注禁止跨页拆分（2026-06-24）：默认 \interfootnotelinepenalty 允许脚注行间断开跨页，
+%   fitz 实测 p20/p27 脚注 DOI 从中间断裂（"DOI: 10.108"|"6/432166."、"…000282"|"806776157704."），
+%   孤儿尾泄漏到下页顶部脚注区。设 10000 禁止脚注内行间分页 → 脚注原子化，放不下整体推下页。
+%   spec §2.5 line 197「脚注小五号宋体」对跨页沉默；此为 LaTeX 排版机制修复（TeX 原生插入物原子化旋钮）。
+%   置 footmisc（上行）之后，防被其重设覆盖。本论文脚注≤5 行远低页高，无溢出风险
+%   （极端超高脚注 TeX 会强制拆+警告，优雅降级）。M1 = 唯一治根方案（box 包裹 M5 会破 footmisc/biblatex/hyperref）。
+\interfootnotelinepenalty=10000
 % [基础] 脚注标记 [N] 方括号化（Story 5.4，2026-06-23；FR-24 refined）. 真值来源：spec §1.2.4 示例1/2 + line 99
 %   （顺序编码制 = 方括号 [N]，EXPLICIT — 行内引用标记）+ §2.14 line 289（文末表 [1],[2]… 与正文一致，EXPLICIT）；
 %   §1.2.4 line 109（每页重新编号）+ §2.5 line 197（脚注小五号宋体）对标记【形状】沉默 → 参考论文 PDF p20-36（行内

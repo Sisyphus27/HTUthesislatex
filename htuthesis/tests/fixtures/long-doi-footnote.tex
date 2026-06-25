@@ -1,0 +1,110 @@
+% long-doi-footnote.tex — ATDD fixture for Story 6.2 (Footnote atomicity M1 + URL/DOI line-break xurl)
+%
+% PURPOSE: a standalone minimal doc that exercises the Bug 2 mechanism (\interfootnotelinepenalty). It does
+%   TWO things:
+%   (1) PRIMARY (reliable): prints the RUNTIME value of \interfootnotelinepenalty via a fitz-extractable
+%       marker (PENALTYVALUE=NNN). Pre-M1 the cls leaves the penalty at the LaTeX/footmisc default (100);
+%       post-M1 (Story 6.2) the cls sets it to 10000. This is the PRIMARY RED driver (ATDD-6.2-I02) — it
+%       reliably distinguishes pre/post-fix REGARDLESS of page content (decoupled from the hard-to-reproduce
+%       split condition; see R-43 below). It also confirms M1's placement is AFTER footmisc (footmisc would
+%       otherwise reset the penalty — a wrong placement yields 100 even post-fix).
+%   (2) SECONDARY (post-fix guard, R-43 calibration-dependent): emits several long footnotes (incl. a long
+%       DOI 10.1086/432166) under split pressure, so an orphan continuation page would appear IF M1 regressed.
+%       NOTE: this is a POST-FIX REGRESSION GUARD (ATDD-6.2-I06 asserts orphan=0), NOT a RED driver. The
+%       fixture's early short footnote (required for I03 perpage ≥2 reset) shifts pagination so the 3 clustered
+%       long footnotes no longer split even pre-fix — minimal-fixture split reproduction is incompatible with
+%       the I03≥2 perpage-spread requirement (R-43). The PRIMARY reliable RED is (1) the penalty-value probe
+%       (I02, content-independent). At penalty=100 LaTeX's page builder strongly prefers whole-footnote
+%       placement; the split manifests only in DENSE real-thesis content. If a future change makes M1
+%       regressed-atomicity detectable here (orphan>0 post-fix), I06 catches it.
+%
+% WHY \footnote{} (NOT \footfullcite{}): canonical ref/refs.bib has NO DOI fields (grep doi= → 0), so a
+%   \footfullcite{existingkey} cannot reproduce a long-DOI split. The cross-page-split bug is a TeX
+%   \interfootnotelinepenalty mechanism — applies to ANY footnote (citation \footfullcite OR explanatory
+%   \footnote) identically. An inline \footnote{...long body + long DOI...} reproduces the EXACT mechanism
+%   the brainstorming proved on \footfullcite (Bug 2), without the biber chain. story Task 5.2 sanctions
+%   "\footnote with a long DOI/URL string". ref/refs.bib still resolves from htuthesis/ root via the cls
+%   \addbibresource — no missing-file warning.
+%
+% CALIBRATION (R-43 — the split reproduction is content-density-dependent):
+%   The v1.1.1 split (p19 [2] ACEMOGLU DOI 10.1086/432166 → orphan "6/432166" on p20) occurred in a dense
+%   81-page real thesis. A minimal fixture cannot reliably reproduce it (penalty=100 + sparse content →
+%   LaTeX places footnotes whole). The PRIMARY proof of M1 is the penalty-value probe (I02): 100 pre-fix →
+%   10000 post-fix. If the dev wants a genuine orphan-split RED during green-phase, options: (a) add DENSE
+%   accumulating content (many footnotes + full pages) to push LaTeX past its whole-placement preference;
+%   (b) run the I07 --inject against the real v1.1.1-style content. The penalty-value probe is reliable
+%   regardless. See atdd-checklist-6-2 Step 4C.
+%
+% Truth source: spec §2.5 line 197「脚注小五号宋体」(silent on cross-page → mechanism fix) +
+%   brainstorming-session-2026-06-24-154931.md Bug 2 (penalty default allows split; M1=10000 forbids it;
+%   v1.1.1 fitz: p20 [1] ACEMOGLU complete post-M1). See atdd-checklist-6-2-*.md Step 3.
+%
+% COMPILE: the ATDD copies this file to the htuthesis/ root (for htuthesis.cls + ref/refs.bib resolution),
+%   runs `latexmk -xelatex -g long-doi-footnote.tex`, probes long-doi-footnote.pdf, removes build artifacts
+%   via trap. This file itself is NOT compiled in place under tests/fixtures/ (cls would not resolve).
+
+\documentclass[doctor]{htuthesis}
+
+\ctitle{测试论文标题}        % minimal metadata so the cls cover/header macros don't choke (cls \htu@def@term{ctitle})
+
+\begin{document}
+\frontmatter
+\tableofcontents            % front matter (header-less; Roman page numbering)
+
+\mainmatter
+
+% === host chapter (M6 from Story 6.1 — \chapter* now sets its header mark; footnote test is chapter-agnostic) ===
+\chapter*{脚注原子性测试}
+\addcontentsline{toc}{chapter}{脚注原子性测试}
+
+% === PRIMARY probe (ATDD-6.2-I02 RED driver, reliable) — runtime \interfootnotelinepenalty value ===
+% The marker is fitz-extracted: text between "PENALTYVALUE=" and "ENDVALUE" is the runtime penalty integer.
+% Pre-M1: 100 (LaTeX/footmisc default). Post-M1: 10000. footmisc loads at cls:425; M1 must place the
+% \interfootnotelinepenalty=10000 AFTER it (else footmisc resets it → 100 even post-fix — the placement proof).
+脚注行间惩罚值运行时探测：PENALTYVALUE=\the\interfootnotelinepenalty ENDVALUE。（数值 100 = 默认允许跨页
+拆分；10000 = M1 禁止拆分。）
+
+% === early short footnote on the chapter's first content page — perpage-reset probe (ATDD-6.2-I03) ===
+% Places a [1] marker on THIS page (the chapter first page). The 3 clustered long footnotes below (after the
+% 22-filler) land on a LATER page → footmisc [perpage] resets → another [1] there. Two distinct pages each
+% carry [1] → I03 reset>=2 (AC#2/TC-E6-10 "≥2 body pages"). Without this early footnote all 3 clustered
+% footnotes share one page (markers [1][2][3]) → only 1 page with [1] → I03 floor loosened (the review fix).
+这是一段带早期脚注的正文。\footnote{早期短脚注：置于本章首页，标记 [1]，用于验证 footmisc perpage
+每页重新编号在本页生效；后续聚类长脚注落在另一页，其首条亦为 [1]（每页重置），故共 ≥2 页含 [1]。}
+
+% --- body filler: fill page 1-2 body so the accumulating footnotes below are under split pressure ---
+\newcounter{filler@a}\setcounter{filler@a}{0}
+\loop
+\stepcounter{filler@a}
+正文填充段落编号 \arabic{filler@a}，用于填满页面正文区，使后续累积长脚注处于空间压力下（模拟 v1.1.1
+致密真实论文的多脚注满页条件）。本段无学术意义，仅为提供脚注拆分的触发压力。
+\ifnum\value{filler@a}<30 \repeat
+
+% === SECONDARY probe (ATDD-6.2-I06 orphan-atomicity guard, R-43 calibration-dependent) — long footnotes ===
+% Three consecutive long footnotes (incl. the long DOI 10.1086/432166) under maximum split pressure. IF the
+% geometry reproduces the v1.1.1 condition, the last overflows → orphan continuation page (split, pre-fix).
+% At penalty=100 minimal-fixture content typically fits all whole (R-43) — this is a best-effort guard, not
+% the primary RED (the penalty-value probe above is). Marker [1]/[2]/[3] via footmisc perpage (same page).
+正文引用第一条。\footnote{参见 Smith, \emph{Long Reference One}, Journal A, vol.~1, 2023, pp.~1--30,
+DOI: \texttt{10.1000/alpha001}. 该文献研究主题一，此处构造约十二行长脚注以累积填满页面脚注区。完整
+著录见 https://example.org/ref/alpha/001。}
+正文引用第二条。\footnote{参见 Jones, \emph{Long Reference Two}, Journal B, vol.~2, 2024, pp.~5--35,
+DOI: \texttt{10.1000/beta002}. 该文献研究主题二，继续累积填满脚注区，使后续脚注空间紧张。完整著录见
+https://example.org/ref/beta/002 与 https://example.org/ref/beta/002b。}
+正文引用第三条（长 DOI 目标脚注）。\footnote{参见 Daron Acemoglu, \emph{The Rise of Cities: Trade and the
+Spatial Concentration of Economic Activity}, Journal of Urban Economics, vol.~XX, 2024, pp.~1--45,
+DOI: \texttt{10.1086/432166}. 该文献研究城市兴起、贸易与经济活动空间集聚，构建含区位选择、集聚外部性
+与运输成本的一般均衡框架。前两条长脚注已占满本页脚注区，此第三条超长脚注（约十四行）空间紧张，未设
+\texttt{\textbackslash interfootnotelinepenalty} 时可能拆分跨页，DOI 尾段 "6/432166" 作为孤儿泄漏至下一页。
+完整著录见 https://www.journals.uchicago.edu/doi/10.1086/432166 与
+https://example.org/long/url/with/slashes/dots/1234567890abcdef。}
+
+% --- trailing filler: ensure the document spans enough pages for orphan/atomicity observation ---
+\newcounter{filler@c}\setcounter{filler@c}{0}
+\loop
+\stepcounter{filler@c}
+长脚注后的正文填充段落编号 \arabic{filler@c}，用于保证文档跨越足够页面以便观察脚注是否拆分（修复前：
+可能的孤儿尾泄漏；修复后：整条脚注原子停留于同一页面）。
+\ifnum\value{filler@c}<8 \repeat
+
+\end{document}
