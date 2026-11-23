@@ -1,0 +1,30 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{htuthesis-meta}[Shared cover and spine metadata]
+
+\def\htu@def@term#1{%
+  \expandafter\gdef\csname #1\endcsname##1{%
+    \expandafter\gdef\csname htu@#1\endcsname{##1}}
+  \csname #1\endcsname{}}
+\htu@def@term{schoolcode}
+\htu@def@term{id}
+\htu@def@term{secretlevel}
+\htu@def@term{protitle}
+\htu@def@term{ctitle}
+\htu@def@term{cauthor}
+\htu@def@term{stuno}
+\htu@def@term{csupervisor}
+\htu@def@term{csubject}
+\htu@def@term{cmajor}
+\htu@def@term{researchdirection}
+\htu@def@term{degreecategory}
+\htu@def@term{cdepartment}
+\htu@def@term{cdate}
+\htu@def@term{etitle}
+\htu@def@term{eauthor}
+\htu@def@term{esupervisor}
+\htu@def@term{emajor}
+\htu@def@term{edepartment}
+\htu@def@term{edate}
+\htu@def@term{edegree}
+
+\endinput

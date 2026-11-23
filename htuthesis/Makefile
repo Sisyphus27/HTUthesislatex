@@ -2,10 +2,7 @@
 
 LATEXMKOPTS = -xelatex -file-line-error -halt-on-error -interaction=nonstopmode
 THESISMAIN = main
-PACKAGE = htuthesis
-
-THESISCONTENTS=$(THESISMAIN).tex data/*.tex
-CLSFILES=$(PACKAGE).cls
+CHKTEX ?= chktex
 
 # make deletion work on Windows
 ifdef SystemRoot
@@ -20,8 +17,12 @@ all: thesis a3cover
 
 thesis: $(THESISMAIN).pdf
 
-$(THESISMAIN).pdf: $(CLSFILES) $(THESISCONTENTS)
+# latexmk tracks the actual inputs (.tex, .def, .sty, .bib, figures, etc.).
+# Do not make a second, incomplete dependency list here.
+$(THESISMAIN).pdf: FORCE
 	latexmk $(LATEXMKOPTS) $(THESISMAIN)
+
+FORCE:
 
 ###### for a3cover
 
@@ -30,7 +31,7 @@ a3cover:a3cover.pdf
 a3cover.pdf: spine.pdf $(THESISMAIN).pdf a3cover.tex
 	xelatex a3cover.tex
 
-spine.pdf: spine.tex
+spine.pdf: spine.tex htuthesis-meta.sty data/cover.tex
 	xelatex spine.tex
 
 ##### clean
@@ -42,17 +43,25 @@ clean:
 ###### testing
 
 test: compile-check lint-check structure-check sentinel-check
-	@echo "=== All tests passed ==="
+	@echo "=== Required checks completed ==="
 
 compile-check: $(THESISMAIN).pdf
 	@echo "[PASS] Compilation successful"
 
 lint-check:
 	@echo "=== ChkTeX Lint ==="
-	@for f in $(THESISMAIN).tex data/*.tex; do \
-		chktex -q -l .chktexrc "$$f" || true; \
-	done
-	@echo "[PASS] Lint check complete"
+	@command -v "$(CHKTEX)" >/dev/null 2>&1 || { echo "[FAIL] ChkTeX executable not found: $(CHKTEX)" >&2; exit 127; }
+	@warnings=0; \
+	for f in $(THESISMAIN).tex data/*.tex; do \
+		rc=0; "$(CHKTEX)" -q -l .chktexrc "$$f" || rc=$$?; \
+		case $$rc in \
+			0) ;; \
+			2) warnings=1 ;; \
+			*) echo "[FAIL] ChkTeX failed on $$f (exit $$rc)" >&2; exit $$rc ;; \
+		esac; \
+	done; \
+	if [ "$$warnings" -eq 0 ]; then echo "[PASS] ChkTeX found no warnings"; \
+	else echo "[WARN] ChkTeX reported advisory warnings"; fi
 
 structure-check:
 	@bash tests/check-structure.sh
@@ -88,4 +97,4 @@ debug-check:
 		rm -f .debug-main.*; \
 	fi
 
-.PHONY: test compile-check lint-check structure-check calibrate debug-check sentinel-check
+.PHONY: all thesis a3cover clean FORCE test compile-check lint-check structure-check calibrate debug-check sentinel-check

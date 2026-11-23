@@ -52,7 +52,8 @@
 | `doctor` | **开** | 博士模式（唯一支持的学位） | — |
 | `bachelor` / `master` | — | **硬报错**——已移除，模板仅支持博士 | — |
 | `numbering=hs` | **默认** | 人文社科编号：`第一章/第一节/一、/（1）`，L1-L2 居中、L3+ 左缩进 2\ccwd，编号名后不空格 | §2.10 HS |
-| `numbering=sc` | 关 | 自然科学编号：`1/1.1/1.1.1/（1）`，全部顶格，编号名后空半格 | §2.10 NS |
+| `numbering=sc` | 关 | 自然科学编号：`1/1.1/1.1.1/（1）`；一至三级顶格，四级保留两字缩进 | §2.10 NS |
+| `bibliography=numeric` | 关 | 顺序编码制；默认不加此选项，用分页脚注和分类文献表 | §2.14 |
 | `openany` | **默认** | 章节可在任意页起始 | — |
 | `openright` | 关 | 章节起始右页（奇数页） | §2.4 仅 2 起始页须右页 |
 | `debug` | 关 | 激活 `\ifhtu@debug` → `\htucheck` 追加 `--- debug diagnostics ---` 段（baseline 对比 + NFR-5 监视列表）。**ADD-only**：默认自检输出不变 | NFR-5 |
@@ -68,7 +69,7 @@
 
 ### 3.1 封面元数据命令（在 `data/cover.tex` 设置）
 
-全部由 `\htu@def@term` 生成器定义（cls:640-681），存入内部 `\htu@foo`。
+`htuthesis-meta.sty` 定义这些命令。论文封面与书脊共用 `data/cover.tex`；`\ctitle`、`\cauthor` 和 `\id` 只需填一次。
 
 | 命令 | 含义 | 必需？ | 默认/示例 |
 |------|------|--------|-----------|
@@ -120,8 +121,8 @@
 | 命令 | 作用 |
 |------|------|
 | `\chapter{}` / `\section{}` / `\subsection{}` / `\subsubsection{}` | 标准 ctex 标题，按 §2.10 格式化（见 §2 编号模式） |
-| `\cite{key}` / `\parencite{key}` | **case-1 正文引文**：渲染 `[N]` 方括号编号（一般学科默认，GB/T 7714 顺序编码制）。上标式用 `\supercite{key}` |
-| `\footfullcite{key}` | **case-2 正文引文**：完整 GB/T 7714 条目作每页脚注（政治学等页下注学科）。小五号宋体 |
+| `\cite{key}` / `\parencite{key}` | **case-1 正文引文**（需 `bibliography=numeric`）：上标编号 / 行内编号 |
+| `\footfullcite{key}` | **case-2 正文引文（默认）**：完整 GB/T 7714 条目作每页脚注。小五号宋体 |
 | `\footfullcite[][26]{ding2001}` | case-2 带页号 `26`（可选参数） |
 | `\eqref{label}` | 公式交叉引用，渲染全角括号 `（1-1）`（cls:452 `\tagform@`） |
 | `\ref{label}` | 通用交叉引用。章引用渲染中文（`一/二`）；图表渲染阿拉伯（`图 1-1`）——双轨符合 HS 惯例 |
@@ -216,7 +217,7 @@
 | `verify/baseline/page-count.txt` | 快照：`total_pages = 52` | 否（回归参考） |
 | `verify/baseline/chapter-start-pages.txt` | 各章起始页快照 | 否 |
 | `tests/` | ATDD 测试套件（73 个 .sh，Epic 1-4）。命名 `test-story-{E}.{S}-{unit\|integration}.sh` | 否 |
-| `spine.tex` / `a3cover.tex` | 书脊 / A3 封面生成器 | 否 |
+| `spine.tex` / `a3cover.tex` | 书脊 / A3 封面生成器；题目、作者、学号来自 `data/cover.tex` | 否 |
 
 ---
 
@@ -248,12 +249,12 @@ xelatex main      # 第 3 遍：解析交叉引用
 | 目标 | 作用 |
 |------|------|
 | `make` / `make all` | `thesis` + `a3cover` |
-| `make thesis` | `latexmk main` → main.pdf |
+| `make thesis` | `latexmk -xelatex main` 检查实际输入依赖，按需更新 main.pdf |
 | `make a3cover` | 构建 spine.pdf → a3cover.pdf |
 | `make clean` | `latexmk -c` + 删 `*.bbl *.exa *.xdv data/*.aux` |
-| `make test` | compile-check + lint-check + structure-check |
+| `make test` | compile-check + lint-check + structure-check + sentinel-check |
 | `make compile-check` | 构建 main.pdf，rc=0 |
-| `make lint-check` | `chktex -q -l .chktexrc` |
+| `make lint-check` | 需要 ChkTeX；普通警告（退出码 2）仅提示。工具缺失、出错或检查发现错误时失败 |
 | `make structure-check` | `bash tests/check-structure.sh`（必需文件/章数/图引用/bib key/编码） |
 | `make calibrate` | `cd tools && xelatex calibrate.tex` → calibrate.pdf（**可选**，不在 all/test） |
 | `make debug-check` | sed-copy main.tex → `.debug-main.tex` 加 `[doctor,debug]`，编译，grep 6 类 NFR-5 warning 签名，命中即 exit 1（**可选**） |
@@ -427,23 +428,19 @@ sed-copy main.tex → `.debug-main.tex` 加 `[doctor,debug]`，编译，grep `.l
 
 ### 9.3 biblatex gb7714-2015 + biber + 双模式引文
 
-本模板支持 **两种引用模式**（同一 `ref/refs.bib`，仅正文命令不同，按学科惯例选）：
+按学校 §2.14 选择一种模式。两种模式共用 `ref/refs.bib` 和文末的 `\makebibliography`，后端都用 Biber。
 
-**case-1 顺序编码制（一般学科默认，GB/T 7714 标准）**
-- 正文：`\cite{key}` 或 `\parencite{key}` → `[N]` 方括号编号（读者按 N 查文末表）。
-- 上标式：`\supercite{key}` 或 `\textsuperscript{\cite{key}}` → `^[N]`。
-- 文末表：`\makebibliography`（推荐，按类型分节）或 `\printbibliography`（仅列已引用条目，按 `sorting=nyt` 作者序）。
+**case-1 顺序编码制（显式启用）**
+- 加入类选项：`\documentclass[doctor,bibliography=numeric]{htuthesis}`。需要自然科学标题编号时，可同时加 `numbering=sc`；两项独立。
+- 正文用 `\parencite{key}`（行内）或 `\cite{key}`（上标）；需要具体页码时，例如 `\parencite[36]{key}`。
+- 文末表仅列引文，按首次引用顺序编一套连续编号。同一条目再次引用仍用原编号。不要额外调用 `\nocite{*}`。
 
-**case-2 分页脚注（政治学等需页下完整著录的学科，§2.14 + §1.2.4）**
+**case-2 分页脚注（模板默认）**
 - 正文：`\footfullcite{key}` → 完整 GB/T 7714 条目作**每页脚注**，小五号宋体，每页重置（`footmisc[perpage]` cls:401）。
 - 带页号：`\footfullcite[][26]{key}`。
-- 文末表：`\makebibliography`（与 case-1 同）。
+- 文末收录 `.bib` 中的引文和阅读文献，分为期刊论文、著作、论文集章节、学位论文、专利、电子资源、其他。各组内按作者排序，每组从 [1] 开始。
 
-**两种模式共用**
-- `\makebibliography`（cls:1007-1019）= `\nocite{*}`（含全部条目：引用的 + 只读的）+ 6 类过滤 `\printbibliography`（每类 `resetnumbers=true`，从 [1] 重启）：
-  - 一、期刊论文（article）/ 二、著作（book）/ 三、论文集章节（incollection）/ 四、学位论文（thesis，biber 映射 @phdthesis→thesis）/ 五、专利（patent）/ 六、电子资源（online）/ 七、其他（catch-all，`\htu@printbibother` cls:1023-1029）
-- 后端 = **biber**（非 bibtex）。样式 = **gb7714-2015**。sorting=nyt（文末表作者序）；defernumbers=true + 每节 resetnumbers。
-- **示例论文（`data/*.tex`）默认用 case-2**（对齐参考博士论文，政治与公共管理学院）。改 case-1：把正文 `\footfullcite{...}` 全换 `\cite{...}`，`\makebibliography` 不变；若文末表只想列已引用条目（非 `\nocite{*}` 全量），用 `\printbibliography` 替换 `\makebibliography`。
+切换模式时同时改类选项和正文引文命令，再运行 `latexmk -xelatex main`。仅替换引文命令不会改变文末编号。
 
 ### 9.4 `\appendix` 命令式 + 下游字体自重置
 
@@ -693,6 +690,16 @@ bash tests/check-structure.sh                      # 结构检查
 - **Unit**：源码 grep / `.aux`/`.log`/`.bbl` 扫描 / Makefile grep
 - **Integration**：编译 + fitz/PyMuPDF 行为测试（span 级字体/字号/位置 + `get_drawings` 规则线）
 - **Visual**：overlay 比对参考 PDF（人工 epic gate）
+
+### 引文与标题最小样例
+
+在具备完整 TeX 环境的电脑上，从 `htuthesis/` 目录运行：
+
+```bash
+latexmk -xelatex tests/fixtures/numeric-sc.tex
+```
+
+打开 `numeric-sc.pdf`。正文三次引用依次应为 [1]、[2]、[1]；文末依次列出先引的著作和后引的期刊论文，不列未引条目，也不按类型分组。检查一至三级标题是否都顶格。默认脚注模式用 `make all` 检查：确认各页脚注从 [1] 开始，文末含未引用的阅读文献，“七、其他”非空时从 [1] 开始。封面、书脊和字体的人工抽查见 README。
 
 ---
 

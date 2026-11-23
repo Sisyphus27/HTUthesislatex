@@ -1,0 +1,16 @@
+% From the htuthesis directory: latexmk -xelatex tests/fixtures/numeric-sc.tex
+\documentclass[doctor,numbering=sc,bibliography=numeric]{htuthesis}
+
+\begin{document}
+\mainmatter
+\chapter{章标题}
+\section{节标题}
+\subsection{小节标题}
+
+首次引用著作\parencite{timoshenko1959}。
+然后引用期刊论文\parencite{chen2001}。
+再次引用同一本著作\parencite[18]{timoshenko1959}。
+
+\backmatter
+\makebibliography
+\end{document}

@@ -39,6 +39,9 @@
 \newif\ifhtu@numbersc\htu@numberscfalse
 \DeclareOption{numbering=sc}{\htu@numbersctrue}
 \DeclareOption{numbering=hs}{\htu@numberscfalse}
+% The default is page footnotes with a grouped bibliography (school spec §2.14).
+\newif\ifhtu@numericbib
+\DeclareOption{bibliography=numeric}{\htu@numericbibtrue}
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{ctexbook}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 选项处理 (Option processing)
@@ -48,9 +51,9 @@
 %% 装载类与宏包 (Loading classes & packages)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \ifhtu@openright
-  \LoadClass[zihao=-4,a4paper,twoside,openright,UTF8,scheme=plain]{ctexbook}
+  \LoadClass[zihao=-4,a4paper,twoside,openright,UTF8,scheme=plain,fontset=none]{ctexbook}
 \else
-  \LoadClass[zihao=-4,a4paper,twoside,openany,UTF8,scheme=plain]{ctexbook}
+  \LoadClass[zihao=-4,a4paper,twoside,openany,UTF8,scheme=plain,fontset=none]{ctexbook}
 \fi
 \RequirePackage{ifxetex}
 \ifxetex\else
@@ -95,6 +98,18 @@
   \PackageError{htuthesis}{Font 'Times New Roman' not found. Please install 'Times New Roman'.\\
    Required fonts: SimSun (宋体), SimHei (黑体), KaiTi (楷体), FangSong (仿宋), Times New Roman.%
   }{Verify your TeX Live installation and system fonts.}}
+% Use the required fonts directly instead of inheriting CTeX's OS font set.
+% Keep the regular/bold/italic mapping of the Windows SimSun setup.
+\setCJKmainfont{SimSun}[BoldFont=SimHei,ItalicFont=KaiTi]
+\setCJKmonofont{FangSong}
+\setCJKfamilyfont{zhsong}{SimSun}
+\setCJKfamilyfont{zhhei}{SimHei}
+\setCJKfamilyfont{zhkai}{KaiTi}
+\setCJKfamilyfont{zhfs}{FangSong}
+\providecommand*{\songti}{\CJKfamily{zhsong}}
+\providecommand*{\heiti}{\CJKfamily{zhhei}}
+\providecommand*{\kaishu}{\CJKfamily{zhkai}}
+\providecommand*{\fangsong}{\CJKfamily{zhfs}}
 % 宋体加粗族（HTU §2.10 四级标题用）：SimSun 无原生粗体，启用 AutoFakeBold 算法加粗。
 % 用法：\htu@songtibold\bfseries —— \htu@songtibold 切换到带 AutoFakeBold 的 SimSun 族，
 % \bfseries 触发算法加粗（字体名仍为 SimSun，区别于 ctex 默认把 CJK 粗体映射到 SimHei）。
@@ -114,8 +129,7 @@
 %   显式 \setCJKsansfont{SimHei} 强制传统黑体字面，与参考论文 + spec 对齐（AC-4 决策：SimHei）。
 %   影响所有 \sffamily CJK 文本：章/节/小节标题（cls \ctexset chapter/section/subsection）、
 %   定理头、原创性声明标题等。
-%   不影响：\htu@songtibold（上方 \newCJKfontfamily，L4 加粗宋体，独立显式族）、
-%   CJK 主字体（SimSun 经 ctex 默认，\setCJKsansfont 只改 sans 族）。
+%   不影响：\htu@songtibold（四级标题加粗宋体）和上面显式设置的 CJK 主字体。
 \setCJKsansfont{SimHei}
 % [基础] 封面专用 Latin 字体开关（Story 3.1）——Word 把 ASCII 打包进中文字体 run（参考论文 PDF page 2
 %   实测：元数据 10476/D669.3 = FangSong，日期 2025 = SimHei）。xelatex 默认 \fangsong/\sffamily 只切
@@ -136,7 +150,13 @@
 \RequirePackage{booktabs}%三线表格
 \RequirePackage[labelformat=simple]{subcaption}% subcaption with labelformat=simple
 \RequirePackage{graphicx}%图形支持
-\RequirePackage[backend=biber,style=gb7714-2015,sorting=nyt,defernumbers=true]{biblatex}% biblatex GB/T 7714-2015 (Story 3.12 Option A, §2.14 case-2 双模式). 替换 natbib [numbers,super] 末端 case-1。sorting=nyt = 文末表按作者姓名序（§2.14 line 291 每一类再按照作者姓氏字母顺序编号；CJK 为 Unicode 码点序≈拼音需 .bib sortkeys 精化，4.1）；defernumbers=true + 每节 resetnumbers=true = 每类 [1] 重启（§2.14 line 291 重新编号）。
+\ifhtu@numericbib
+  % 顺序编码：按首次引用顺序全篇编号，不分节重置。
+  \RequirePackage[backend=biber,style=gb7714-2015,sorting=none,defernumbers=false]{biblatex}
+\else
+  % 默认脚注模式：文末按文献类型分节，各节内按作者排序并独立编号。
+  \RequirePackage[backend=biber,style=gb7714-2015,sorting=nyt,defernumbers=true]{biblatex}
+\fi
 \addbibresource{ref/refs.bib}% 参考文献（GB/T 7714-2015；Zy 决策 2026-06-17 Option A）
 \RequirePackage{hyperref}%超链接、书签
   \hypersetup{%
@@ -588,7 +608,7 @@
 % [基础] 自然科学制（numbering=sc）ctex 覆盖（spec §2.10 line 235-237；Story 3.15 G3 / D-22）。
 %   默认 hs（上方 \ctexset）。sc 模式覆盖：name={,}（去 第/章 节 包装）+ number=Arabic（章 1，节 1.1，小节 1.1.1 半角）
 %   + aftername=\hspace{0.5\ccwd}（编号名空半格 §2.10 line 237）+ format 不居中（顶格；章/节标题）。
-%   beforeskip/afterskip/indent 沿用 hs 默认。\thechapter Arabic 锁（cls 下方）+ 图表编号 图 1-1 不受影响（§2.11/2.12/2.13）。
+%   段前后间距沿用 hs 默认，三级标题清除 hs 缩进。\thechapter Arabic 锁和图表编号不受影响。
 \ifhtu@numbersc
   \ctexset{%
     chapter={%一级标题：黑体三号(16bp)，顶格，段前段后2行（NS §2.10「1」）
@@ -604,6 +624,7 @@
       number=\arabic{chapter}.\arabic{section},%NS 1.1 半角
     },
     subsection={%三级标题：黑体四号(14bp)，顶格（NS §2.10「1.1.1」）
+      indent=0pt,
       aftername=\hspace{0.5\ccwd},
       format={\sffamily\htu@tnr\sihao[\htu@subsection@linespread]},
       name={,},
@@ -689,31 +710,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 封面
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\def\htu@def@term#1{%定义封面的一些替换命令
-  \expandafter\gdef\csname #1\endcsname##1{%
-    \expandafter\gdef\csname htu@#1\endcsname{##1}}
-  \csname #1\endcsname{}}
-\htu@def@term{schoolcode}
-\htu@def@term{id}
-\htu@def@term{secretlevel}
-\htu@def@term{protitle}
-\htu@def@term{ctitle}
-\htu@def@term{cauthor}
-\htu@def@term{stuno}
-\htu@def@term{csupervisor}
-\htu@def@term{csubject}
-\htu@def@term{cmajor}
-\htu@def@term{researchdirection}
-\htu@def@term{degreecategory}
-\htu@def@term{cdepartment}
-\htu@def@term{cdate}
-\htu@def@term{etitle}
-\htu@def@term{eauthor}
-\htu@def@term{esupervisor}
-\htu@def@term{emajor}
-\htu@def@term{edepartment}
-\htu@def@term{edate}
-\htu@def@term{edegree}
+\RequirePackage{htuthesis-meta}
   % [基础] 封面日期 = 中文数字（spec §1.1.1 line 33「封面上的日期…用中文表示，如二〇二四年五月」；Story 3.15 G4）。
   %   原用 \CJK@todaysmall@short（\the\year 年 \the\month 月 = 阿拉伯数字）—— 2026-06-19 审计 G4 gap。
   %   改用 zhnumber 宏包（cls 顶部载入）：\zhdigits{2026}=二〇二六（逐位，匹配 spec「二〇二四」 digit 形），
@@ -1076,24 +1073,27 @@
 %   @online → 5 个具名分节空）都不超 NFR-1 ≤3 警告门。空节仍不渲染（行为不变，仅去警告）。
 \BiblatexSplitbibDefernumbersWarningOff
 \newcommand{\makebibliography}{%
-  \nocite{*}% 收录全部参考文献（引文 + 阅读型，§2.14 line 291）
+  \ifhtu@numericbib\else
+    \nocite{*}% 仅默认脚注模式收录引文和阅读型文献（§2.14）。
+  \fi
   % [基础] 参考文献 章标题入口（Story 5.1 解耦，NFR-6）：\htu@chapter*{\bibname} 无条件 emit
   %   章标题（三号黑体居中 + \clearpage + \addcontentsline{toc}）——独立于下述 7 个分节的空/非空。
   \htu@chapter*{\bibname}%
-  \begingroup
-    % R-34：静默 biblatex 空节 "Empty bibliography" 警告（\blx@warn@bibempty，biblatex.sty）——真实稀疏
-    %   refs.bib（如仅 @online → 5 具名分节空）不再触发 NFR-1 ≤3 警告门。空节仍不渲染（行为不变）。
-    \def\blx@warn@bibempty{}%
-    \printbibliography[type=article,heading=htu-refs-sub,title={一、期刊论文},resetnumbers=true]%
-    \printbibliography[type=book,heading=htu-refs-sub,title={二、著作},resetnumbers=true]%
-    \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）},resetnumbers=true]%
-    \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文},resetnumbers=true]%
-    \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利},resetnumbers=true]%
-    \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源},resetnumbers=true]%
-    % 七、其他 catch-all（code review 2026-06-17 决策 a）：未映射到前 6 类的条目（@report/@manual/
-    %   @misc/@unpublished/@software 等，biblatex 别名→@misc）。\htu@printbibother 内含自身空节静默。
-    \htu@printbibother{七、其他}%
-  \endgroup
+  \ifhtu@numericbib
+    \printbibliography[heading=none]%
+  \else
+    \begingroup
+      % 不为分类表中没有条目的分组打印标题或警告。
+      \def\blx@warn@bibempty{}%
+      \printbibliography[type=article,heading=htu-refs-sub,title={一、期刊论文},resetnumbers=true]%
+      \printbibliography[type=book,heading=htu-refs-sub,title={二、著作},resetnumbers=true]%
+      \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）},resetnumbers=true]%
+      \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文},resetnumbers=true]%
+      \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利},resetnumbers=true]%
+      \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源},resetnumbers=true]%
+      \htu@printbibother{七、其他}%
+    \endgroup
+  \fi
 }%
 % \htu@printbibother{<title>} — guarded catch-all（code review 2026-06-17 F2 决策 a）。本地静默 biblatex 空节
 %   警告 \blx@warn@bibempty（biblatex.sty:1511），再无条件 \printbibliography：空时节头不渲染、无输出、
@@ -1102,7 +1102,7 @@
   \begingroup
     % 静默 biblatex 空节 "Empty bibliography" 警告（仅此组，仅当七、其他 实际为空时触发）
     \def\blx@warn@bibempty{}%
-    \printbibliography[nottype=article,nottype=book,nottype=incollection,nottype=thesis,nottype=patent,nottype=online,heading=htu-refs-sub,title={#1}]%
+    \printbibliography[nottype=article,nottype=book,nottype=incollection,nottype=thesis,nottype=patent,nottype=online,heading=htu-refs-sub,title={#1},resetnumbers=true]%
   \endgroup
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

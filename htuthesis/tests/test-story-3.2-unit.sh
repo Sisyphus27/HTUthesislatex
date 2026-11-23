@@ -137,8 +137,8 @@ echo "=== P1: \\edegree macro + old-text removal + regression guards ==="
 # Pre-impl: \edegree not defined (cls:550-555 block has etitle/eauthor/.../edate but no edegree) → RED.
 # Post-impl (Task 4.1): \htu@def@term{edegree} added → GREEN.
 test_edegree_macro_defined() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  grep -q 'def@term{edegree}' htuthesis.cls
+  grep -Fq '\RequirePackage{htuthesis-meta}' htuthesis.cls &&
+  grep -Fq '\htu@def@term{edegree}' htuthesis-meta.sty
 }
 run_test "P1" "ATDD-3.2-05" "\\edegree macro defined via \\htu@def@term (AC-3; RED — absent pre-impl)" test_edegree_macro_defined
 

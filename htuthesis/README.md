@@ -10,7 +10,8 @@
 
 ```bash
 # 1. 克隆仓库
-git clone <repo-url> && cd htuthesis
+git clone https://github.com/Sisyphus27/HTUthesislatex.git
+cd HTUthesislatex/htuthesis
 
 # 2. 确认环境：TeX Live 2025 + 5 字体（SimSun/SimHei/KaiTi/FangSong/Times New Roman）
 xelatex --version    # 须 XeLaTeX
@@ -39,7 +40,7 @@ main.pdf
   - `KaiTi`（楷体）
   - `FangSong`（仿宋）
   - `Times New Roman`（Latin 正文/标题 Latin）
-- 缺任一字体会 `\PackageError` 终止编译（cls:78–97 `\IfFontExistsTF` gate；NFR-2）。Windows 自带；Linux 须安装（fontconfig）或置于 `~/fonts`。
+- 模板直接选用上述字体，不使用操作系统默认的中文字体集。请安装缺少的字体，并确保 XeLaTeX 能按名称找到它们。
 
 ---
 
@@ -79,7 +80,8 @@ htuthesis/
 ├── main.tex                    # 论文入口 — 元数据 + 章节引用
 ├── htuthesis.cls               # 排版引擎（勿改）
 ├── htuthesis.def               # 学校格式参数（用户区/高级区分界注释，可调）
-├── htuthesis.bst               # 参考文献样式（GB/T 7714-2015）
+├── htuthesis-meta.sty          # 论文封面与书脊共用的元数据命令
+├── htuthesis.bst               # 旧 BibTeX 样式（当前构建不使用）
 ├── Makefile                    # 编译 + clean + check + calibrate + debug-check 目标
 ├── README.md                   # 本文件
 │
@@ -133,12 +135,14 @@ make              # = make thesis && make a3cover（默认）
 make thesis       # 仅 main.pdf
 make a3cover      # A3 封面 a3cover.pdf
 make clean        # 清理中间文件
-make test         # compile-check + lint-check + structure-check
+make test         # 编译、ChkTeX、结构和参考文献章节检测
 make calibrate    # 生成 tools/calibrate.pdf（物理边距标尺，overlay 比对）
 make debug-check  # NFR-5：6 类 LaTeX warning 视为 error（干净树 exit 0）
 ```
 
 > `make calibrate` / `make debug-check` 为可选开发工具，不在默认 `make`/`make test` 中。
+
+`make thesis` 由 latexmk 判断哪些输入改动需要重编译。`make a3cover` 从 `data/cover.tex` 读取书脊的题目、作者和学号，不用在 `spine.tex` 重填。`make test` 需要 ChkTeX；普通警告不阻断，缺少工具或检查出错会失败。
 
 ### 编译产物与中间文件
 
@@ -166,10 +170,10 @@ make debug-check  # NFR-5：6 类 LaTeX warning 视为 error（干净树 exit 0�
 1. **Zotero 导出**：选 *Better BibLaTeX* 格式（或 *Better BibTeX* 亦可——前者用 biblatex 原生 `date` 字段更优）→ 导出为 `ref/refs.bib`（覆盖现有示例）。Better BibTeX 额外字段（`file`/`abstract`/`keywords`）biber 默认忽略，无害；可在导出选项取消以瘦身。
 2. **自动同步**：Better BibTeX 的 *auto-export* / *keep updated* 可在 Zotero 库变动时自动重写 `ref/refs.bib`。
 3. **引用键**：Better BibTeX 自动生成的 citekey（如 `chen2001`、`nadkarni1992`）直接用于正文。
-4. **正文引用——两种模式（按学科选，同一 `.bib`，仅命令不同）**：
-   - **case-1 顺序编码制**（一般学科默认，GB/T 7714 标准）：正文 `\cite{citekey}`（或 `\parencite`）→ 渲染 `[N]` 方括号编号，读者按 N 查文末表。
-   - **case-2 分页脚注**（政治学等需页下完整著录的学科，§2.14 + §1.2.4 每页脚注）：正文 `\footfullcite{citekey}` → 完整 GB/T 7714 条目作每页脚注（每页重置编号）。本模板示例论文（`data/chap01.tex` 等）默认用此模式（对齐参考博士论文，政治与公共管理学院）。
-   - 切换：把 `\footfullcite{...}` 换成 `\cite{...}`（或反向）即可，`ref/refs.bib` 与文末表 `\makebibliography`（按类型分节：一、期刊论文 / 二、专著 / …）两种模式通用。
+4. **正文引用——按学校 §2.14 选一种模式**：
+   - **case-2 分页脚注（模板默认）**：正文用 `\footfullcite{citekey}`。脚注逐页重新编号，文末收录 `ref/refs.bib` 中的引文和阅读文献，按类型分组编号。
+   - **case-1 顺序编码制**：在 `main.tex` 开头加入类选项 `\documentclass[doctor,bibliography=numeric]{htuthesis}`，并将正文引文改为 `\parencite{citekey}`（行内）或 `\cite{citekey}`（上标）。文末只列引用的文献，按首次引用顺序统一编号。不要使用 `\nocite{*}`。
+   - 两种模式都用原来的 `ref/refs.bib` 和 `\makebibliography`。**仅更换引用命令不会切换模式。** 切换后完整运行 latexmk；如仍显示旧编号，先清理中间文件再重编译。
 5. **中文条目**：`陈建军 and 车建文` 形式直接支持；gb7714-2015 正确处理中英混排 + `langid={chinese}`。
 6. **页码连字符**：`pages = {223--234}` 用 en-dash `--`（GB/T 7714），不要用 `$\sim$`。
 
@@ -220,6 +224,10 @@ spec §2.10 支持两种编号方式，经 `\documentclass` 选项切换：
 - **基线快照：** [`verify/baseline/`](verify/baseline/)（页数 + 章节起始页，未来格式改动的回归参照）。
 
 > **Windows 无 `make`？** 上述 `make` 目标可用原始命令替代：编译健康 = `latexmk -xelatex main`（rc=0）；物理边距 = `cd tools && xelatex calibrate.tex`；结构检查 = `bash tests/check-structure.sh`。（`latexmk` 自动跑 biber，无需手操。）
+
+### 交稿前抽查 PDF
+
+在装有 XeLaTeX、Biber 和上述五种字体的电脑上，用默认选项运行 `make all`。对照仓库中的学校格式要求，确认 `main.pdf` 与 `a3cover.pdf` 上的题目、作者、学号一致。用 `pdffonts main.pdf` 检查是否嵌入预期字体，并目视抽查正文、摘要、页眉和脚注。启用 `numbering=sc` 时，另查一至三级标题的编号左端是否对齐正文左边界。文献两种模式的最小样例见 [USAGE §14](USAGE.md#14-测试套件)。编译成功不等于通过学校版式验收。
 
 ---
 

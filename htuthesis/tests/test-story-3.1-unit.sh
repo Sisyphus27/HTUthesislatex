@@ -179,9 +179,9 @@ echo "=== P2: new metadata macros (RED pre-impl) ==="
 # The 5 reference fields require two NEW user metadata macros (\researchdirection, \degreecategory)
 # wired via \htu@def@term (Task 4.2). Pre-impl: neither defined → RED. Post-impl: both defined → GREEN.
 test_new_metadata_macros() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  grep -q 'def@term{researchdirection}' htuthesis.cls && \
-  grep -q 'def@term{degreecategory}' htuthesis.cls
+  grep -Fq '\RequirePackage{htuthesis-meta}' htuthesis.cls &&
+  grep -Fq '\htu@def@term{researchdirection}' htuthesis-meta.sty &&
+  grep -Fq '\htu@def@term{degreecategory}' htuthesis-meta.sty
 }
 run_test "P2" "ATDD-3.1-09" "new metadata macros (researchdirection/degreecategory) defined (AC-5; RED pre-impl)" test_new_metadata_macros
 
