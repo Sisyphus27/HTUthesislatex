@@ -276,24 +276,29 @@ test_g2_eabstract_indent_4chars() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 if eabstract is None:
-    print('  (eabstract page not found — RED/inconclusive)'); sys.exit(1)
-body = [sp for sp in spans_band(eabstract, 9, 13) if re.search(r'[A-Za-z]', sp['text'])]
-if len(body) < 4:
-    print('  (too few eabstract body spans: %d — RED/inconclusive)' % len(body)); sys.exit(1)
-xs = sorted(set(round(sp['bbox'][0], 1) for sp in body))
-minx = min(xs)
-# first-line indent = the x0 of the indented first line; wrap lines flush at the body left margin (minx).
-indents = [x for x in xs if x > minx + 3]
-if not indents:
-    print('  (no indented first line detected — eabstract may be 1 line; RED/inconclusive)'); sys.exit(1)
-first_indent = min(indents) - minx
-print('  eabstract body x0 set=%s' % xs[:6])
-print('  first-line indent = %.1fpt (4-char target ~28-40pt; pre-impl ~21pt = 2 chars body-inherit)' % first_indent)
-# 4 TNR chars ≈ 4 × ~7pt ≈ 28pt; allow 24-44pt band (4 chars); reject the ~21pt 2-char body-inherit.
-sys.exit(0 if 24 <= first_indent <= 44 else 1)
+    sys.exit(1)
+page = doc[eabstract]
+rows = {}
+keyword_y = None
+for block in page.get_text('dict')['blocks']:
+    for line in block.get('lines', []):
+        for span in line['spans']:
+            text = span['text'].strip()
+            y = round(span['origin'][1], 1)
+            if text.startswith('KEY WORDS'):
+                keyword_y = y
+            if y >= 772:
+                continue
+            if 'Times' in span['font'] and abs(span['size'] - 10.5) <= 0.25 and re.search(r'[A-Za-z]', text):
+                x = span['origin'][0]
+                rows[y] = min(rows.get(y, x), x)
+margin = 72.0 * 25.0 / 25.4
+indents = [x - margin for y, x in rows.items() if keyword_y is not None and y < keyword_y and x > margin + 2]
+print('English abstract first-line indents (bp):', [round(x, 2) for x in indents])
+sys.exit(0 if len(indents) >= 2 and all(abs(x - 21.0) <= 0.5 for x in indents) else 1)
 "
 }
-run_test "P1" "ATDD-3.15-I07" "BEHAVIOR: EN-abstract first-line indent = 4 chars (G2, TC-E3-59, §2.8; *** RED DRIVER *** — 2\\ccwd body inherit)" test_g2_eabstract_indent_4chars
+run_test "P1" "ATDD-3.15-I07" "English abstract first lines are indented 21 ± 0.5bp (§2.8, G2)" test_g2_eabstract_indent_4chars
 
 # ==========================================
 # P1 — G4 cover date = Chinese numerals (TC-E3-58)

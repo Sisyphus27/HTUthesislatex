@@ -166,8 +166,7 @@ echo "=== P1: Critical Path Tests ==="
 # ATDD-2.6-09: cls \htu@ekeywords@title macro = "KEY WORDS" uppercase (AC-8, TC-E2-30, §2.8 "KEY WORDS：")
 # RED pre-impl: cls:171 is {Key words:\enskip} (lowercase w).
 test_ekw_title_uppercase() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  grep -q '\\newcommand{\\htu@ekeywords@title}{KEY WORDS:' htuthesis.cls 2>/dev/null
+  grep -qE '\\newcommand\{\\htu@ekeywords@title\}\{KEY WORDS.*：\}\}' htuthesis.cls
 }
 run_test "P1" "ATDD-2.6-09" "\\htu@ekeywords@title = KEY WORDS (uppercase) (AC-8, TC-E2-30, §2.8)" test_ekw_title_uppercase
 

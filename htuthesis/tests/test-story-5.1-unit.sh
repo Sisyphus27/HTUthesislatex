@@ -83,7 +83,8 @@ test_u01_entry_point_present() {
 #   First type=article \printbibliography section uses heading=htu-refs-sub (NOT htu-refs).
 #   Pre-impl: cls:1014 is heading=htu-refs → RED. Post-impl: heading=htu-refs-sub → GREEN.
 test_u02_article_section_subheading() {
-  grep -qE '\\printbibliography\[type=article,heading=htu-refs-sub' "$CLS"
+  grep -qF '\htu@printbibgroup{htu-journal}{期刊论文}' "$CLS" &&
+    grep -qF '\printbibliography[category=#1,heading=htu-refs-sub,title={#2},resetnumbers=true]' "$CLS"
 }
 
 # ATDD-5.1-U03 (P0, AC-9): [基础] decouple comment recorded in cls (Story 5.1 / NFR-6).
@@ -112,7 +113,7 @@ echo "=============================================="
 echo ""
 
 run_test P0 ATDD-5.1-U01 "entry-point \htu@chapter*{\bibname} in \makebibliography (TC-E5-04, RED driver)" test_u01_entry_point_present
-run_test P0 ATDD-5.1-U02 "first type=article section uses heading=htu-refs-sub (TC-E5-04, RED driver)" test_u02_article_section_subheading
+run_test "P0" "ATDD-5.1-U02" "journal category uses the common subgroup heading (TC-E5-04)" test_u02_article_section_subheading
 run_test P0 ATDD-5.1-U03 "[基础] decouple comment recorded in cls (Story 5.1 / NFR-6, AC-9)" test_u03_decouple_comment
 run_test P0 ATDD-5.1-U04 "no \printbibliography section still on heading=htu-refs (AC-4, R-32)" test_u04_no_section_on_main_heading
 

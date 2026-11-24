@@ -1,4 +1,4 @@
-# htuthesis — 河南师范大学博士学位论文 LaTeX 模板（v1.1.1 · 2026-06-24）
+# htuthesis — 河南师范大学博士学位论文 LaTeX 模板（v1.3.0）
 
 河南师范大学（HTU）博士学位论文 LaTeX 模板。按《河南师范大学研究生学位论文格式要求》（spec）实现，仅支持博士（doctor）学位、XeLaTeX 引擎、TeX Live 2025。
 
@@ -61,7 +61,7 @@ main.pdf
 | `\csupervisor{...}` | 中文指导教师 | `\csupervisor{吴郑王}` |
 | `\protitle{...}` | 指导教师职称 | `\protitle{教授}` |
 | `\cdate{...}` | 中文日期（默认 `\CJK@todaybig`「二〇…年…月」） | `\cdate{二〇二五年五月}` |
-| `\etitle{...}` | 英文题目（Title Case） | `\etitle{An Introduction to ... University}` |
+| `\etitle{...}` | 英文题目（扉页自动排为全大写） | `\etitle{An Introduction to ... University}` |
 | `\edegree{...}` | 英文学位类别 | `\edegree{Doctor of Law}` |
 | `\emajor{...}` | 英文学科专业 | `\emajor{Materials Science and Engineering}` |
 | `\edepartment{...}` | 英文院系 | `\edepartment{School of Materials Science and Engineering}` |
@@ -79,7 +79,7 @@ htuthesis/
 ├── main.tex                    # 论文入口 — 元数据 + 章节引用
 ├── htuthesis.cls               # 排版引擎（勿改）
 ├── htuthesis.def               # 学校格式参数（用户区/高级区分界注释，可调）
-├── htuthesis.bst               # 参考文献样式（GB/T 7714-2015）
+├── htuthesis.bst               # 历史 BibTeX 样式
 ├── Makefile                    # 编译 + clean + check + calibrate + debug-check 目标
 ├── README.md                   # 本文件
 │
@@ -161,17 +161,14 @@ make debug-check  # NFR-5：6 类 LaTeX warning 视为 error（干净树 exit 0�
 
 ### 文献管理（Zotero + Better BibTeX）
 
-本模板后端 = **biblatex + biber + gb7714-2015**（cls:139），读取标准 `.bib` 文件。推荐用 Zotero + [Better BibTeX](https://retorque.re/zotero-better-bibtex/) 插件管理文献：
+模板由 **biblatex** 和 `gb7714-2015` 样式生成引文和文末表，**Biber** 负责读取 `.bib` 文件与排序。可以用 Zotero 的 [Better BibTeX](https://retorque.re/zotero-better-bibtex/) 插件导出文献。
 
-1. **Zotero 导出**：选 *Better BibLaTeX* 格式（或 *Better BibTeX* 亦可——前者用 biblatex 原生 `date` 字段更优）→ 导出为 `ref/refs.bib`（覆盖现有示例）。Better BibTeX 额外字段（`file`/`abstract`/`keywords`）biber 默认忽略，无害；可在导出选项取消以瘦身。
+1. **Zotero 导出**。选 *Better BibLaTeX* 格式导出为 `ref/refs.bib`，覆盖示例文献。导出的 `keywords` 字段可用于标记电子资源。
 2. **自动同步**：Better BibTeX 的 *auto-export* / *keep updated* 可在 Zotero 库变动时自动重写 `ref/refs.bib`。
 3. **引用键**：Better BibTeX 自动生成的 citekey（如 `chen2001`、`nadkarni1992`）直接用于正文。
-4. **正文引用——两种模式（按学科选，同一 `.bib`，仅命令不同）**：
-   - **case-1 顺序编码制**（一般学科默认，GB/T 7714 标准）：正文 `\cite{citekey}`（或 `\parencite`）→ 渲染 `[N]` 方括号编号，读者按 N 查文末表。
-   - **case-2 分页脚注**（政治学等需页下完整著录的学科，§2.14 + §1.2.4 每页脚注）：正文 `\footfullcite{citekey}` → 完整 GB/T 7714 条目作每页脚注（每页重置编号）。本模板示例论文（`data/chap01.tex` 等）默认用此模式（对齐参考博士论文，政治与公共管理学院）。
-   - 切换：把 `\footfullcite{...}` 换成 `\cite{...}`（或反向）即可，`ref/refs.bib` 与文末表 `\makebibliography`（按类型分节：一、期刊论文 / 二、专著 / …）两种模式通用。
-5. **中文条目**：`陈建军 and 车建文` 形式直接支持；gb7714-2015 正确处理中英混排 + `langid={chinese}`。
-6. **页码连字符**：`pages = {223--234}` 用 en-dash `--`（GB/T 7714），不要用 `$\sim$`。
+4. **列出引文和阅读文献（模板默认）**。正文用 `\footfullcite{key}`，脚注逐页编号。文末用 `\makebibliography`，按文献类型分组，各组从 `[1]` 起按作者姓氏排序。期刊保留起止页码，著作、论文集、学位论文和报告省略页段。脚注可用 `\footfullcite[][105]{key}` 标明引用页。
+5. **文末单表只列引文**。在导言区加入 `\ExecuteBibliographyOptions{sorting=none}`，正文用 `\cite{key}`，在文末用 `\printbibliography[heading=bibintoc]` 生成引用顺序表。正文与文末表使用同一套编号。见 [使用指南 §9.3](USAGE.md#93-biblatex-gb7714-2015--biber--两种文后表)。
+6. **中文条目**。`author` 使用原姓名，例如 `陈建军 and 车建文`。与西文条目按拼音混排时可另填 `sortname = {Chen, Jianjun and Che, Jianwen}`。期刊页段写作 `pages = {223--234}`。
 
 改完 `.bib` 后必须重跑 biber（`latexmk -xelatex main` 自动多遍；或手跑上面的 *原始序列*）。
 

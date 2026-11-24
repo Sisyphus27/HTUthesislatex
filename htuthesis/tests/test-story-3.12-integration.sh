@@ -100,8 +100,7 @@ import fitz, sys, re
 doc = fitz.open("main.pdf")
 W = doc[0].rect.width; H = doc[0].rect.height; mid = W / 2.0
 num_re = re.compile(r"\[(\d+)\]")
-type_re = re.compile(r"\[(M|J|D|C|R|N|P|S|EB)(/OL)?\]")
-title_re = re.compile(r"致\s*谢|攻读学位|个人简历|原创性声明|独创性声明")
+type_re = re.compile(r"\[(M|J|D|C|G|R|N|P|S|EB)(/OL)?\]")
 def median(xs):
     if not xs: return None
     ys = sorted(xs); n = len(ys); return ys[n // 2]
@@ -119,14 +118,12 @@ def refs_title():
                             return {"page": i, "font": sp["font"], "size": sp["size"], "cx": cx, "y0": sp["bbox"][1]}
     return None
 def refs_pages():
-    rt = refs_title()
-    if not rt: return []
-    start = rt["page"]
-    end = doc.page_count
-    for i in range(start + 1, doc.page_count):
-        if title_re.search(doc[i].get_text()):
-            end = i; break
-    return list(range(start, end))
+    title = refs_title()
+    if not title:
+        return []
+    start = title["page"]
+    following = [p - 1 for _, name, p in doc.get_toc() if p - 1 > start and name.startswith("附录")]
+    return range(start, min(following, default=doc.page_count))
 def citation_footnote_pages():
     # {body_page: [sorted marker numbers]} — citation footnotes (full GB/T 7714 entry) on BODY pages.
     # PRESENCE: a GB/T 7714 type designator ([M]/[J]/[D]/...) in the size 8-10.5 entry text (the footnote body).
@@ -188,21 +185,6 @@ def footnote_pages():
         if nums:
             out[i] = sorted(set(nums))
     return out
-def endlist_type_sections():
-    # Chinese-numeral type-section headers (一、二、三、… 十、) within the end-list pages (AC-3 §2.14 case-2
-    #   先按照文献类型分类). Pre-impl: thebibliography is continuous (no sections) → 0. Post-impl: biblatex
-    #   type-sectioned → ≥1.
-    cn_num = re.compile(r"^[一二三四五六七八九十]+、")
-    found = []
-    for i in refs_pages():
-        for b in doc[i].get_text("dict").get("blocks", []):
-            if b.get("type", 0) != 0: continue
-            for ln in b.get("lines", []):
-                for sp in ln.get("spans", []):
-                    t = sp["text"].strip()
-                    if cn_num.match(t) and sp["size"] >= 10.0:
-                        found.append({"page": i, "text": t, "size": sp["size"]})
-    return found
 def footer_num(pno):
     out = []
     for b in doc[pno].get_text("dict").get("blocks", []):
@@ -368,46 +350,71 @@ sys.exit(0 if (hei and centered and size_ok and len(rp) >= 1) else 1)
 }
 run_test "P1" "ATDD-3.12-I07" "BEHAVIOR: end-of-doc supplementary list present (AC-3, TC-E3-49; GREEN — survives mechanism change)" test_endlist_present
 
-# ATDD-3.12-I08: BEHAVIOR — end-list TYPE-SECTIONED + PER-SECTION [1] RESTART (AC-3 §2.14 line 291) — RED driver
-# AC-3 has TWO §2.14 line 291 requirements: (a) 先按照文献类型分类 (type-sectioning) + (b) 重新编号 (each section
-#   re-numbered from [1]). Pre-impl (natbib continuous [1]..[N]): 0 type-section headers + [1] appears once → RED.
-#   Post-impl (biblatex \printbibliography[type=...,resetnumbers=true] + defernumbers): ≥1 type-section header +
-#   [1] appears ≥2 times (once per section = per-section restart signature). STRENGTHENED 2026-06-17 (code review F2):
-#   the original I08 only checked "≥1 header exists" → could not detect a missing resetnumbers (Decision-1 lesson,
-#   Acceptance Auditor finding). Now also asserts the [1] recurrence (per-section restart).
-#   (Within-section author-surname sort via sorting=nyt is verified by inspection; CJK=pinyin precision needs .bib
-#   sortkeys, Epic 4.1 — not asserted here.) Reference PDF p227: each section restarts at [1].
+# ATDD-3.12-I08: verify the sample groups, their numbers and the separation of source and citation pages.
 test_endlist_type_sectioned() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
-secs = endlist_type_sections()
-# count [N] entry markers across the end-list pages; [1] recurrence = per-section restart signature
-num_re = re.compile(r'^\[(\d+)\]$')
-ones = 0
-total_entries = 0
-for i in refs_pages():
-    for b in doc[i].get_text('dict').get('blocks', []):
-        if b.get('type', 0) != 0: continue
-        for ln in b.get('lines', []):
-            sps = ln.get('spans', [])
-            if sps:
-                t = sps[0]['text'].strip()
-                m = num_re.match(t)
-                if m and 9 <= sps[0]['size'] <= 12:
-                    total_entries += 1
-                    if int(m.group(1)) == 1:
-                        ones += 1
-print('  end-list type-section headers=%d; entries=%d; [1] markers=%d' % (len(secs), total_entries, ones))
-for s in secs[:6]:
-    print('    p%d: %r' % (s['page']+1, s['text']))
-# AC-3: >=1 type-section header (先按照文献类型分类) AND [1] appears >=2 times (重新编号 per-section restart).
-type_ok = len(secs) >= 1
-restart_ok = ones >= 2
-print('  → type-sectioning=%s, per-section [1] restart=%s' % (type_ok, restart_ok))
-sys.exit(0 if (type_ok and restart_ok) else 1)
+expected = [
+    ('期刊论文', ['J', 'J', 'J']),
+    ('著作', ['M', 'M', 'M']),
+    ('论文集与文集', ['C', 'G']),
+    ('学位论文', ['D', 'D']),
+    ('专利', ['P']),
+    ('国际与国家标准', ['S']),
+    ('电子资源', ['EB']),
+]
+groups = []
+for p in refs_pages():
+    rows = {}
+    for block in doc[p].get_text('dict')['blocks']:
+        for line in block.get('lines', []):
+            for span in line['spans']:
+                x, y = span['origin']
+                if 84 < y < H - 67:
+                    rows.setdefault(round(y, 1), []).append((x, span['text']))
+    for spans in (v for _, v in sorted(rows.items())):
+        line = ' '.join(t.strip() for _, t in sorted(spans))
+        heading = re.fullmatch(r'([一二三四五六七八九十]+)、\s*(.+)', line)
+        label = re.match(r'^\[(\d+)\]\s*(.*)', line)
+        if heading:
+            groups.append((heading[1], heading[2], []))
+        elif label and groups:
+            groups[-1][2].append((int(label[1]), [label[2]]))
+        elif groups and groups[-1][2]:
+            groups[-1][2][-1][1].append(line)
+observed = []
+for ordinal, name, entries in groups:
+    items = [' '.join(lines) for _, lines in entries]
+    types = [m[1] if (m := type_re.search(text)) else None for text in items]
+    observed.append((ordinal, name, types, [n for n, _ in entries], items))
+print('Groups:', [(ordinal, name, types, nums) for ordinal, name, types, nums, _ in observed])
+if [(name, types) for _, name, types, _, _ in observed] != expected:
+    sys.exit(1)
+if [ordinal for ordinal, *_ in observed] != list('一二三四五六七'):
+    sys.exit(1)
+if any(nums != list(range(1, len(types) + 1)) for _, _, types, nums, _ in observed):
+    sys.exit(1)
+journal = observed[0][4]
+if not all(author in text.replace(' ', '') and pages in text for author, pages, text in
+           zip(('陈建军', '华罗庚', 'NADKARNI'), ('74-80', '339-357', '223-234'), journal)):
+    sys.exit(1)
+standard = observed[5][4][0]
+if '6447' not in standard or '文摘编写规则' not in standard.replace(' ', ''):
+    sys.exit(1)
+bibliography = ' '.join(text for row in observed for text in row[4])
+footnote = ' '.join(span['text'] for p in range(refs_title()['page'])
+                    for block in doc[p].get_text('dict')['blocks']
+                    for line in block.get('lines', [])
+                    for span in line['spans']
+                    if abs(span['size'] - 9.0) <= 0.25 and span['origin'][1] > H * 0.65)
+book_note = re.search(r'竺可桢.*?物候学.{0,60}?1973[,. :;]+([0-9-]+)', footnote)
+print('Cited page for 物候学:', book_note[1] if book_note else None)
+removed = ('104-107', '798-799', '17-36', '44-46', ': 1-4')
+sys.exit(0 if not any(pages in bibliography for pages in removed) and '105' not in bibliography
+         and book_note and book_note[1] == '105' else 1)
 "
 }
-run_test "P1" "ATDD-3.12-I08" "BEHAVIOR: end-list type-sectioned + per-section [1] restart (AC-3 §2.14 line 291; STRENGTHENED by code review F2)" test_endlist_type_sectioned
+run_test "P1" "ATDD-3.12-I08" "seven nonempty groups restart and preserve author order, type codes and cited page" test_endlist_type_sectioned
 
 echo ""
 

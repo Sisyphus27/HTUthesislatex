@@ -174,7 +174,15 @@
 % [基础] 目录深度（zzuthesis 原始模板 默认值 2）
 \def\htu@tocdepth{2}
 
+% [基础] 校规 §2.6：目录使用小四号字，每下一级缩进一格（12bp）。
+\newlength{\htu@toc@cell}
+\setlength{\htu@toc@cell}{12bp}
+
 % --- 摘要 ---
 
-% [基础] 摘要关键词前间距（zzuthesis 原始模板 默认值 12bp）
-\def\htu@abstract@keywordskip{12bp}
+% [基础] 校规 §2.7–2.8：中英文摘要末行与关键词之间空一行，使用各自的行距。
+\def\htu@abstract@keywordskip{\baselineskip}
+% [基础] 校规 §2.8：五号 Times New Roman 为比例字体，四字符缩进以四个等宽数字
+%   “0000”的宽度（21bp）计。该字体缺全角冒号 U+FF1A，标签的冒号使用加粗黑体；字母为粗体 Times New Roman。
+% [基础] 学校电子版博士封面及声明表：封面“博士学位论文”为 45bp 加粗宋体，论文题目为
+%   18bp 加粗黑体，五字段为 15bp 常规黑体。声明两标题为 16bp 加粗黑体，保密说明为 12bp 加粗宋体。

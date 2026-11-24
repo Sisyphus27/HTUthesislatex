@@ -80,14 +80,16 @@ run_test "P0" "ATDD-2.5-01" "def has \\htu@body@baselineskip{23.4bp} (REPOINTED 
 
 # --- AC-2: Level 1 (chapter) centered + 36bp spacing ---
 
-# ATDD-2.5-02: mainmatter centers chapters (chapter/format+=\centering, NOT \raggedright) (AC-2, TC-E2-22)
-# RED pre-impl: cls:111 is format+=\raggedright (chapters render LEFT-aligned).
+# ATDD-2.5-02: mainmatter assigns chapter alignment for both numbering modes.
 test_mainmatter_chapter_centered() {
   [[ -f "htuthesis.cls" ]] || return 1
-  sed -n '/\\renewcommand\\mainmatter/,/\\renewcommand\\backmatter/p' htuthesis.cls 2>/dev/null \
-    | grep -q 'chapter/format+=\\centering'
+  local block
+  block=$(sed -n '/\\renewcommand\\mainmatter/,/\\renewcommand\\backmatter/p' htuthesis.cls)
+  grep -qF '\ifhtu@numbersc' <<<"$block" &&
+    grep -qF '\let\htu@chapter@align\raggedright' <<<"$block" &&
+    grep -qF '\let\htu@chapter@align\centering' <<<"$block"
 }
-run_test "P0" "ATDD-2.5-02" "\\mainmatter centers chapters (format+=\\centering) (AC-2, TC-E2-22)" test_mainmatter_chapter_centered
+run_test "P0" "ATDD-2.5-02" "mainmatter centers HS chapters and left-aligns SC chapters (§2.10)" test_mainmatter_chapter_centered
 
 # ATDD-2.5-03: def chapter spacing = 46.8bp before AND after (AC-2; §2.10 一级 2 行 = 2×正文行 23.4bp; REPOINTED by Story 3.11)
 # Was 36bp = 2×18bp (naive old body); Story 3.11 re-anchored to 2×23.4bp = 46.8bp (§2.10 2行 under new body line).
@@ -123,12 +125,13 @@ run_test "P0" "ATDD-2.5-05" "def section spacing = 11.7bp/11.7bp (REPOINTED by S
 # ATDD-2.5-06: cls subsection format uses \sihao (14bp) AND indent=2\ccwd (AC-4, TC-E2-24, §2.10 三级四号居左空两格)
 # RED pre-impl: cls:408/411 is indent=0pt + \banxiaosi (13bp).
 test_subsection_sihao_indent() {
-  [[ -f "htuthesis.cls" ]] || return 1
   local block
-  block=$(sed -n '/subsection={/,/^  },/p' htuthesis.cls 2>/dev/null)
-  echo "$block" | grep -q 'indent=2\\ccwd' && echo "$block" | grep -q 'format={\\sffamily\\htu@tnr\\sihao'
+  block=$(sed -n '/^  subsection={/,/^  },/p' htuthesis.cls)
+  grep -qF 'indent=2\ccwd' <<<"$block" &&
+    grep -qF 'aftername={}' <<<"$block" &&
+    grep -qF 'format={\sffamily\htu@tnr\sihao' <<<"$block"
 }
-run_test "P0" "ATDD-2.5-06" "subsection = \\sihao + indent=2\\ccwd (AC-4, TC-E2-24)" test_subsection_sihao_indent
+run_test "P0" "ATDD-2.5-06" "HS level 3 uses four-size SimHei, two-cell indent and no number gap (§2.10)" test_subsection_sihao_indent
 
 # --- AC-5: Level 4 (subsubsection) Songti bold + indent 2ccwd ---
 
@@ -137,14 +140,15 @@ run_test "P0" "ATDD-2.5-06" "subsection = \\sihao + indent=2\\ccwd (AC-4, TC-E2-
 # Option A (verified empirically): \newCJKfontfamily\htu@songtibold{SimSun}[AutoFakeBold=2.5] → true 宋体加粗.
 # RED pre-impl: cls:415/418 is indent=0pt + \sffamily (Heiti); no \htu@songtibold family defined.
 test_subsubsection_songti_bold_indent() {
-  [[ -f "htuthesis.cls" ]] || return 1
   local block
-  block=$(sed -n '/subsubsection={/,/^  },/p' htuthesis.cls 2>/dev/null)
-  echo "$block" | grep -q 'indent=2\\ccwd' && echo "$block" | grep -q 'format={\\htu@songtibold\\bfseries\\xiaosi'
-  # also confirm the bold-SimSun family is defined
-  grep -q '\\newCJKfontfamily\\htu@songtibold{SimSun}' htuthesis.cls 2>/dev/null
+  block=$(sed -n '/^  subsubsection={/,/^  },/p' htuthesis.cls)
+  grep -qF 'indent=24bp' <<<"$block" &&
+    grep -qF 'aftername={}' <<<"$block" &&
+    grep -qF 'nameformat={\xeCJKsetup{PunctStyle=plain}}' <<<"$block" &&
+    grep -qF 'format={\htu@songtibold\bfseries\xiaosi' <<<"$block" &&
+    grep -qF '\newCJKfontfamily\htu@songtibold{SimSun}' htuthesis.cls
 }
-run_test "P0" "ATDD-2.5-07" "subsubsection = \\htu@songtibold (bold-SimSun, option A) + indent=2\\ccwd (AC-5, TC-E2-25)" test_subsubsection_songti_bold_indent
+run_test "P0" "ATDD-2.5-07" "HS level 4 uses bold 12bp SimSun, 24bp indent and full-width brackets (§2.10)" test_subsubsection_songti_bold_indent
 
 # --- Scope regression guards (must stay green) ---
 
@@ -217,13 +221,13 @@ test_sub_spacing_9bp() {
 }
 run_test "P1" "ATDD-2.5-14" "def subsection/subsubsection spacing = 11.7bp/11.7bp (REPOINTED by Story 3.11; AC-4/5, §2.10 0.5行=0.5×23.4)" test_sub_spacing_9bp
 
-# ATDD-2.5-15: backmatter still centers chapters (cls:117 unchanged — no regression from mainmatter change)
+# ATDD-2.5-15: backmatter centers chapters in both modes.
 test_backmatter_chapter_centered() {
   [[ -f "htuthesis.cls" ]] || return 1
   sed -n '/\\renewcommand\\backmatter/,/%% 中文配置/p' htuthesis.cls 2>/dev/null \
-    | grep -q 'chapter/format+=\\centering'
+    | grep -qF '\let\htu@chapter@align\centering'
 }
-run_test "P1" "ATDD-2.5-15" "backmatter chapter centering retained (cls:117 unchanged)" test_backmatter_chapter_centered
+run_test "P1" "ATDD-2.5-15" "backmatter restores chapter centering for both modes" test_backmatter_chapter_centered
 
 # ATDD-2.5-16: body font size unchanged — \htu@body@fontsize{12bp} (小四号, AC-1)
 test_body_fontsize_unchanged() {

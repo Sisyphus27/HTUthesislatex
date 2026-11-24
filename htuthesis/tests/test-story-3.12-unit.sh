@@ -154,13 +154,15 @@ run_test "P1" "ATDD-3.12-07" "end-list = \\printbibliography (thebibliography re
 
 # ATDD-3.12-08: end-list TYPE-SECTIONED re-grouping (AC-3 §2.14 case-2 "先按照文献类型分类") — RED driver
 # Pre-impl: single continuous \bibliography (no type-sectioning) → FAIL.
-# Post-impl: `\printbibliography[type=...]` sections (OR a biblatex sectioning config) → PASS.
+# Post-impl: `\printbibliography[category=...]` sections (OR a biblatex sectioning config) → PASS.
 test_endlist_type_sectioned() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  # type-sectioned: \printbibliography[type=...] (one or more sections by entry type), OR an explicit section config
-  grep -vE '^\s*%' htuthesis.cls | grep -qE '\\printbibliography\s*(\[type=|\[category=)'
+  grep -qF '\AtDataInput{' htuthesis.cls &&
+    grep -qF '\printbibliography[category=#1,heading=htu-refs-sub,title={#2},resetnumbers=true]' htuthesis.cls &&
+    grep -qF '\htu@printbibgroup{htu-standard}{国际与国家标准}' htuthesis.cls &&
+    grep -qF '\htu@printbibgroup{htu-news}{报纸文章}' htuthesis.cls &&
+    grep -qF 'sorting=nyt,sortlocale=zh__pinyin,defernumbers=true' htuthesis.cls
 }
-run_test "P1" "ATDD-3.12-08" "end-list type-sectioned (\\printbibliography[type=...]) (AC-3 §2.14 case-2; RED — pre-impl continuous)" test_endlist_type_sectioned
+run_test "P1" "ATDD-3.12-08" "reference groups use GB/T categories, pinyin sorting and per-group numbering (§2.14)" test_endlist_type_sectioned
 
 echo ""
 
@@ -212,7 +214,7 @@ if [[ "$SKIP" == "1" ]]; then
   echo "      3.12-05 \\footcite/\\footfullcite in chap03 (AC-1/AC-4)"
   echo "      3.12-06 natbib customizations (\\bibpunct/\\NAT@/\\onlinecite) REMOVED (AC-7 ripple)"
   echo "      3.12-07 end-list = \\printbibliography (thebibliography redef removed) (AC-3/AC-7)"
-  echo "      3.12-08 end-list type-sectioned (\\printbibliography[type=...]) (AC-3 §2.14 case-2)"
+  echo "      3.12-08 end-list type-sectioned (\\printbibliography[category=...]) (AC-3 §2.14 case-2)"
   echo "      3.12-10 §2.14 case-2 dual-mode truth-source comment (AC-7 Decision 4)"
   echo "   GREEN guard (PASS pre+post):"
   echo "      3.12-09 per-page footnote reset preserved (AC-5 Story 3.8 regression — \\@addtoreset OR footmisc)"

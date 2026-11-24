@@ -2,7 +2,7 @@
 # test-story-4.4-unit.sh — ATDD Unit (Doc-level + source-grep) Tests for Story 4.4 (format-review checklist + README)
 # TDD Phase: RED — the RED driver cluster is unit-01 (verify/checklist.md exists + §1.1–§2.17 coverage + ≥N rule rows +
 #             every row tagged 自动检查/人工确认 — NO verify/ dir at baseline 7e0d103), unit-02 (checklist auto-rows
-#             reference \htucheck / make target / ATDD + PROXIED caveat — absent), unit-03 (G-C/G-D/G-E transparent-
+#             reference \htucheck / make target / ATDD + PROXIED caveat — absent), unit-03 (G-D/G-E transparent-
 #             deviation section — absent), unit-04 (README zero 郑州大学/Zhengzhou/ZZU residual — README.md:3 = 郑州大学
 #             at baseline), unit-05 (README XeLaTeX + TeX Live 2025 + 5 fonts — absent; old README has none), unit-06
 #             (README FR-33 content: quick-start + metadata + compile sequence + file structure + data table + heading
@@ -14,10 +14,10 @@
 # Usage: bash tests/test-story-4.4-unit.sh [--run]
 #   --run    Remove SKIP marker (for green-phase verification)
 #
-# Priority: P0 (unit-01 checklist coverage + unit-02 self-check refs + unit-03 G-C/G-D/G-E + unit-04 README zero-ZZU +
+# Priority: P0 (unit-01 checklist coverage + unit-02 self-check refs + unit-03 G-D/G-E + unit-04 README zero-ZZU +
 #           unit-05 README env + unit-07 baseline snapshot — the 4.4 deliverables) / P1 (unit-06 README FR-33 content +
 #           GREEN guards unit-08/09)
-# Linked ACs: AC-1/2 (checklist rules + tags), AC-3 (auto-rows ref self-check + PROXIED), AC-4 (G-C/G-D/G-E),
+# Linked ACs: AC-1/2 (checklist rules + tags), AC-3 (auto-rows ref self-check + PROXIED), AC-4 (G-D/G-E),
 #             AC-5 (README zero ZZU), AC-6 (README FR-33 content), AC-7 (README env spec), AC-9 (verify/baseline),
 #             AC-10 (no regression — \htucheck + font gates untouched)
 # Linked Risk: R-27 (checklist completeness — #1 deliverable, unit-01/02/03), R-25 (wrong-target-AC — unit-02 enforces
@@ -33,7 +33,7 @@
 #
 # Truth source: 河南师范大学研究生学位论文格式要求.md §1.1–§2.17 (PRIORITY — ~122 rules); architecture.md §524–568
 #   (project structure + verify/ boundary §623–626) + §534/§542–552 (README requirements); test-design-epic-4.md R-27
-#   (checklist completeness) + R-28 (README fresh-user); Epic 3 retro action item #4 (G-C/G-D/G-E). spec PRIORITY
+#   (checklist completeness) + R-28 (README fresh-user); Epic 3 retro action item #4 (G-D/G-E). spec PRIORITY
 #   (CLAUDE.md Decision 4, corrected 2026-06-17).
 #
 # Line refs verified vs HEAD 7e0d103: NO verify/ dir; README.md:3 = 郑州大学本科毕业设计(论文)...; \htucheck =
@@ -203,38 +203,26 @@ PY
 run_test "P0" "ATDD-4.4-02" "checklist auto-rows cite \htucheck/make/ATDD + PROXIED caveat (AC-3, TC-E4-26; *** RED DRIVER *** — absent at 7e0d103)" test_checklist_auto_refs_and_proxied
 
 # ==========================================
-# P0 — AC-4, TC-E4-27: checklist documents G-C/G-D/G-E transparent deviations
+# P0 — AC-4, TC-E4-27: checklist documents G-D/G-E transparent deviations
 # ==========================================
-echo "=== P0: checklist G-C/G-D/G-E transparent-deviation section (AC-4, TC-E4-27, Epic 3 retro #4) ==="
+echo "=== P0: checklist G-D/G-E transparent-deviation section (AC-4, TC-E4-27, Epic 3 retro #4) ==="
 
-# ATDD-4.4-03: checklist must have a transparent-deviation section naming G-C (English title Title Case), G-D
-#   (line-spacing coincidence 23.4bp), G-E (inline ASCII 小四), each with a truth-source + measured-value reference.
-#   Closes Epic 3 retro action item #4. Pre-impl: no checklist.md. RED pre: absent.
+# ATDD-4.4-03: the checklist records G-D and G-E and verifies uppercase on the title page.
 test_checklist_transparent_deviations() {
-  [[ -f "verify/checklist.md" ]] || { echo "  (verify/checklist.md absent — RED)"; return 1; }
   python - <<'PY'
-import re, sys
-src = open("verify/checklist.md", encoding="utf-8").read()
-has_section = bool(re.search(r'(?i)transparent[ _-]?deviation|透明偏差|transparent[ _-]?deviation|文档化偏差|偏差说明', src))
-has_gc = bool(re.search(r'G-C', src))
-has_gd = bool(re.search(r'G-D', src))
-has_ge = bool(re.search(r'G-E', src))
-has_truth = bool(re.search(r'参考|reference|真值|truth', src, re.I))
-has_value = bool(re.search(r'23\.4|Title Case|小四', src))
-print("  deviation section: %s | G-C: %s | G-D: %s | G-E: %s | truth-source: %s | measured-value: %s" % (has_section, has_gc, has_gd, has_ge, has_truth, has_value))
-ok = has_section and has_gc and has_gd and has_ge and has_truth and has_value
-if not ok:
-    miss = []
-    if not has_section: miss.append("deviation-section header")
-    for tag, ok_ in (("G-C",has_gc),("G-D",has_gd),("G-E",has_ge)):
-        if not ok_: miss.append(tag)
-    if not has_truth: miss.append("truth-source")
-    if not has_value: miss.append("measured-value")
-    print("  RED: missing %s" % miss)
-sys.exit(0 if ok else 1)
+from pathlib import Path
+import re
+import sys
+
+checklist = Path("verify/checklist.md").read_text(encoding="utf-8")
+usage = Path("USAGE.md").read_text(encoding="utf-8")
+deviations = re.findall(r"^\| \*\*(G-[A-Z])\*\* \|", checklist, re.M)
+uppercase = next((line for line in checklist.splitlines() if line.startswith("| R1.1.1-f |")), "")
+print(f"Documented deviations: {deviations}; uppercase row: {uppercase}")
+sys.exit(0 if deviations == ["G-D", "G-E"] and "全大写" in uppercase and "G-C" not in usage else 1)
 PY
 }
-run_test "P0" "ATDD-4.4-03" "checklist G-C/G-D/G-E transparent-deviation section (AC-4, TC-E4-27; *** RED DRIVER *** — absent at 7e0d103)" test_checklist_transparent_deviations
+run_test "P0" "ATDD-4.4-03" "documented deviations are G-D and G-E; title uppercase is verified" test_checklist_transparent_deviations
 
 # ==========================================
 # P0 — AC-5, TC-E4-28: README zero 郑州大学/Zhengzhou/ZZU residual
@@ -411,7 +399,7 @@ if [[ "$SKIP" == "1" ]]; then
   echo "   RED drivers (FAIL pre-impl 7e0d103, PASS post-impl checklist+baseline+README):"
   echo "      01 checklist.md §1.1–§2.17 coverage + ≥40 rule rows + 自动检查/人工确认 tags (AC-1/2, TC-E4-25, R-27)"
   echo "      02 checklist auto-rows cite \\htucheck/make/ATDD + PROXIED caveat (AC-3, TC-E4-26, R-25)"
-  echo "      03 checklist G-C/G-D/G-E transparent-deviation section (AC-4, TC-E4-27, Epic 3 retro #4)"
+  echo "      03 checklist G-D/G-E transparent-deviation section (AC-4, TC-E4-27, Epic 3 retro #4)"
   echo "      04 README zero 郑州大学/Zhengzhou/ZZU residual (AC-5, TC-E4-28)"
   echo "      05 README XeLaTeX + TeX Live 2025 + 5 fonts (AC-7, TC-E4-29, NFR-1/NFR-2)"
   echo "      06 README FR-33 content quick-start+metadata+compile+structure+data+heading (AC-6, TC-E4-30)"

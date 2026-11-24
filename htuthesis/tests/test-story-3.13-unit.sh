@@ -193,14 +193,11 @@ echo ""
 # ==========================================
 echo "=== P1: GREEN guards (AC-2 appendix centered / AC-3a \\thechapter-not-Chinese / float counter Arabic) ==="
 
-# ATDD-3.13-08: appendix centered mechanism intact (AC-2 §2.15) — GREEN guard
-# The appendix chapter inherits the ctex chapter centered format (format+=\centering in backmatter cls:148) + the
-#   appendix env (cls:986). Already correct by construction. GREEN pre+post (regression watch).
+# ATDD-3.13-08: appendix chapters use centered alignment (§2.15).
 test_appendix_centered_mechanism() {
   [[ -f "htuthesis.cls" ]] || return 1
-  # chapter centered (format+=\centering OR chapter format has \centering) AND appendix env present
-  grep -vE '^\s*%' htuthesis.cls | grep -qE 'chapter/format\+=\\centering|chapter=\{[^}]*\\centering' && \
-  grep -vE '^\s*%' htuthesis.cls | grep -qE '\\renewenvironment\{appendix\}'
+  sed -n '/^\\renewenvironment{appendix}/,/^  }{}/p' htuthesis.cls |
+    grep -qF '\let\htu@chapter@align\centering'
 }
 run_test "P1" "ATDD-3.13-08" "appendix centered mechanism intact (AC-2 §2.15; GREEN — by construction; rendered=4.1)" test_appendix_centered_mechanism
 

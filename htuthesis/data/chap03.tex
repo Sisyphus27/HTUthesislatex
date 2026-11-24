@@ -200,8 +200,8 @@
 \section{参考文献}
 \label{sec:bib}
 
-关于参考文献模板推荐使用\BibTeX{}，文献库采用 \emph{bib} 格式
-的文献引用信息，通常的文献管理软件均能比较方便的导出该格式的文件。
+模板使用 biblatex 和 Biber 处理参考文献。文献库采用 \emph{bib} 格式，通常的文献
+管理软件都能导出该格式的文件。
 
 模板采用页下注（脚注）引文模式（spec §2.14 case-2 双模式）：引文以 \verb|\footfullcite{}|
 命令置于当页页下注，每页重新编号；文末另附按文献类型分节的参考文献表。
@@ -210,7 +210,8 @@
 
 页下注引用 \footfullcite{chen2001,nadkarni1992,hua1973}。
 
-单篇页下注引用 \footfullcite{zhu1973}。引文内容在原文献中的具体页码可用可选参数标注，如 \footfullcite[][26]{ding2001}。
+单篇页下注引用可用第二个可选参数标注引文所在页，如 \footfullcite[][105]{zhu1973}。
+也可以用同样的方法标注学位论文引文的页码\footfullcite[][26]{ding2001}。
 
 \section{其它部分}
 \label{sec:otherparts}

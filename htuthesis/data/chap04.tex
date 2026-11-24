@@ -36,7 +36,7 @@ convert [可选参数] 原文件名.原扩展名 新文件名.eps
 \begin{figure}[htbp]
 \centering
 \includegraphics[width = 0.3\textwidth]{golfer}
-\caption{打高尔夫球的人}
+\caption[打高尔夫球的人]{打高尔夫球的人。示例展示插图在正文中的位置、图题的编号和多行排版，以及如何在正文和插图清单中引用同一幅插图。}
 \label{fig:golfer}
 \end{figure}
 
@@ -193,7 +193,7 @@ l c r  % 横向居中、居左、居右对齐
 等命令表示。其标准格式如表~\ref{table1}~所示。
 
 \begin{table}[htbp]
-\caption{文献类型和标识代码}
+\caption[文献类型和标识代码]{文献类型和标识代码。表中并列列出常见纸本文献与电子资源的类型和代码，示范如何用三线表呈现多列的对照信息。}
 \label{table1}
 \centering
 \begin{tabular}{cccc}
@@ -236,7 +236,7 @@ l c r  % 横向居中、居左、居右对齐
 表格的换页接排功能，表格下方过长部分会排在表格第1页的页脚以下。
 
 \begin{longtable}{l@{\hspace{6.5mm}}l@{\hspace{5.5mm}}l}
-\multicolumn{3}{c}{续表~\thetable\hskip1em 中国省级行政单位一览}\\
+\multicolumn{3}{c}{续表~\thetable\hspace{.5\ccwd}中国省级行政单位一览}\\
 \toprule 名称 & 简称 & 省会或首府  \\ \midrule
 \endhead
 \caption{中国省级行政单位一览}
@@ -432,15 +432,17 @@ Value & Name & Alternate names, and names for sets of the given size\\
 \section{数学公式示例}
 \label{sec:equation}
 
-\LaTeX{} 的数学公式有两种形式：行间（inline）模式和独立（display）模式。前者是
-指在正文中插入数学内容；后者独立排列，可以有或者没有编号。行间公式和无编号独立
-公式都有多种输入方法，一般行间公式用 \verb|$|\ldots \verb|$|，无编号独立公式用
-\verb|\[|\ldots \verb|\]|。有编号独立公式则需要用 \texttt{equation} 环境。
+\LaTeX{} 可在正文行内插入数学表达式，也可将公式独立排版。行内表达式用
+\verb|$|\ldots \verb|$|。按校规，独立公式使用章内编号，可用
+\texttt{equation} 环境排版，并通过 \verb|\label| 和 \verb|\eqref| 引用。
 
 注意一下公式显示模式的不同，这个公式为行间模式：
 $\lim_{n \to \infty} \sum_{k=1}^n \frac{1}{k^2} = \frac{\pi^2}{6}$；下面的公式
-是独立模式：
-\[\lim_{n \to \infty} \sum_{k=1}^n \frac{1}{k^2} = \frac{\pi^2}{6}\]
+用独立模式排版见式\eqref{eq:series}。
+\begin{equation}
+\label{eq:series}
+\lim_{n \to \infty} \sum_{k=1}^n \frac{1}{k^2} = \frac{\pi^2}{6}
+\end{equation}
 
 \subsection{多行公式}
 
@@ -454,7 +456,7 @@ flalign & multline & alignat &  \\
 \end{tabular}
 \end{center}
 
-除了 \texttt{split} 外，其余环境均提供带*的版本，不生成公式编号。
+\texttt{split} 可放在有编号的公式环境中，用同一个编号标注多行公式。
 
 \subsubsection{长公式}
 
@@ -517,20 +519,25 @@ H_c&=\frac{1}{2n} \sum^n_{l=0}(-1)^{l}(n-{l})^{p-2}
 这样的公式组两侧不能再添加其它内容，比如大括号等。不过相应地用
 \texttt{gathered}、\texttt{aligned} 和 \texttt{alignedat} 环境则生成仅占据
 实际公式宽度的公式组。
-\begin{equation*}
+式\eqref{eq:maxwell}将两行对齐的表达式编为一组。
+\begin{equation}
+\label{eq:maxwell}
 \left. \begin{aligned}
   \symbf{B'}&=-\symbfit{\partial}\times \symbf{E},\\
   \symbf{E'}&=\symbfit{\partial}\times \symbf{B} - 4\pi j,
 \end{aligned}
 \right\}
 \qquad \text{Maxwell's equations}
-\end{equation*}
+\end{equation}
 
-有多种条件的公式组用 \texttt{cases} 次环境。
-\[ P_{r-j}=\begin{cases}
+有多种条件的公式可用 \texttt{cases} 次环境排版，见式\eqref{eq:cases}。
+\begin{equation}
+\label{eq:cases}
+P_{r-j}=\begin{cases}
   0& \text{if $r-j$ is odd},\\
   r!\,(-1)^{(r-j)/2}& \text{if $r-j$ is even}.
-\end{cases} \]
+\end{cases}
+\end{equation}
 
 这里仅简单介绍了 \textbf{amsmath} 的功能，更详尽的说明可参见该宏包的文档。
 

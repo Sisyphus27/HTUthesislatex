@@ -1,4 +1,4 @@
-# htuthesis 详细使用指南
+# htuthesis 详细使用指南（v1.3.0）
 
 > 本文档是 `README.md`（快速开始）的完整参考版。README 教你「5 分钟出 PDF」；本文教你「彻底用对、调对、排错」。
 >
@@ -52,7 +52,7 @@
 | `doctor` | **开** | 博士模式（唯一支持的学位） | — |
 | `bachelor` / `master` | — | **硬报错**——已移除，模板仅支持博士 | — |
 | `numbering=hs` | **默认** | 人文社科编号：`第一章/第一节/一、/（1）`，L1-L2 居中、L3+ 左缩进 2\ccwd，编号名后不空格 | §2.10 HS |
-| `numbering=sc` | 关 | 自然科学编号：`1/1.1/1.1.1/（1）`，全部顶格，编号名后空半格 | §2.10 NS |
+| `numbering=sc` | 关 | 正文自然科学编号 `1/1.1/1.1.1/（1）`，一至三级顶格，四级以下缩进两格，编号后空半格 | §2.10 NS |
 | `openany` | **默认** | 章节可在任意页起始 | — |
 | `openright` | 关 | 章节起始右页（奇数页） | §2.4 仅 2 起始页须右页 |
 | `debug` | 关 | 激活 `\ifhtu@debug` → `\htucheck` 追加 `--- debug diagnostics ---` 段（baseline 对比 + NFR-5 监视列表）。**ADD-only**：默认自检输出不变 | NFR-5 |
@@ -113,7 +113,9 @@
 | `cabstract` 环境 | `\begin{cabstract}...\end{cabstract}` | 中文摘要正文（`abstract.tex:8`） |
 | `eabstract` 环境 | `\begin{eabstract}...\end{eabstract}` | 英文摘要正文 |
 | `\ckeywords{k1, k2, ...}` | 逗号分隔 | 中文关键词，输出重连为全角分号 `；`（cls:221）。标签 `关键词：` 黑体 |
-| `\ekeywords{k1, k2, ...}` | 逗号分隔 | 英文关键词，输出重连为 `, `（cls:224）。标签 `KEY WORDS:` 加粗 |
+| `\ekeywords{k1, k2, ...}` | 逗号分隔 | 英文关键词以半角逗号分隔，标签 `KEY WORDS：` 加粗 |
+
+中英文摘要各自使用自然段，正文后空一行再顶格写关键词。中英文关键词一一对应，末项后省去标点。中文摘要用小四号宋体，首行缩进 24bp，标点占整格。英文摘要用五号 Times New Roman，首行按四个等宽数字的宽度缩进 21bp，标签的全角冒号用加粗黑体。两种摘要的行距均为 23.4bp，目录自动列出「摘要」和「ABSTRACT」。
 
 ### 3.4 正文命令
 
@@ -126,7 +128,7 @@
 | `\eqref{label}` | 公式交叉引用，渲染全角括号 `（1-1）`（cls:452 `\tagform@`） |
 | `\ref{label}` | 通用交叉引用。章引用渲染中文（`一/二`）；图表渲染阿拉伯（`图 1-1`）——双轨符合 HS 惯例 |
 | `\includegraphics[opts]{name}` | 插图。搜索路径 `{figures/}`，扩展名 `.pdf,.eps,.png,.jpg,.jpeg` |
-| `\caption{}` / `\label{}` | 浮动体题注。标签分隔符 = `\hspace{0.5\ccwd}`（空半格，cls:420） |
+| `\caption{}` / `\label{}` | 浮动体题注各行居中，编号与题名间空半格。可用 `\caption[短标题]{长标题}` 给图表清单另设短标题。 |
 | `\Xhline{width}` | 表格可控粗细横线（cls:439-441，替代 `\hline`） |
 
 ### 3.5 数学/定理命令（cls:458-480）
@@ -191,7 +193,7 @@
 | `main.tex` | 入口：documentclass、`\graphicspath`、front/main/backmatter、`\include` 顺序 | **是**（结构调整：增删章） |
 | `htuthesis.cls` | 文档类（~1176 行）：选项、宏包、字体、几何、标题、封面、文献、附录、自检 | **否**（排版引擎） |
 | `htuthesis.def` | 外置参数（带 `[基础]` 真值源注释）。User Zone（边距/字体/间距）+ Advanced Zone（浮动/题注） | **调格式时改** |
-| `htuthesis.bst` | GB/T 7714-2015 BibTeX 样式 | 否 |
+| `htuthesis.bst` | 历史 BibTeX 样式 | 否 |
 | `Makefile` | 构建目标 | 否（除非加目标） |
 | `docutils.sty` | 示例文档辅助包（listings 风格、`latex`/`shell` 环境、`\BibTeX`/`\TeXLive` logo） | 否 |
 | `README.md` | 快速开始 | 否 |
@@ -206,7 +208,7 @@
 | `data/app02.tex` | 附录 B（英文） | 是 |
 | `data/app03.tex` | 附录 C（app02 中文译） | 是 |
 | `data/ack.tex` | 致谢示例。末尾有作者姓名+日期占位（ack.tex:43-45） | 是 |
-| `data/resume.tex` | 发表论文目录示例。演示 `\resumeitem`、反悬挂 enumerate | 是 |
+| `data/resume.tex` | 发表论文目录示例。发表年份顺排，待刊项列末尾，条目编号顶格、正文悬挂对齐 | 是 |
 | `data/denotation.tex` | 符号表示例 | 是（不用则删 `\include`） |
 | `ref/refs.bib` | 13 条示例条目（@article/@book/@incollection/@phdthesis/@patent/@standard/@online） | **是**（替换为自己的） |
 | `figures/` | `htu-logo.pdf`、`htu-text-logo.pdf`（校徽/校名图）、`golfer.eps`/`qingming.eps`/`fanfu.eps`（示例图） | 替换为自己的图 |
@@ -334,7 +336,7 @@ xelatex main      # 第 3 遍：解析交叉引用
 
 ### 7.5 Advanced Zone（def:112-180）
 
-浮动体布局（`\htu@floatsep` `12bp`、`\htu@textfraction` `0.15`、`\htu@topfraction` `0.85`、`\htu@bottomfraction` `0.50`、`\htu@floatpagefraction` `0.80`）、题注间距（图表上下 `6bp`、图下 `12bp`、子图 `6bp`）、计数器分隔符 `\htu@counter@separator{-}`（§2.11/12/13 用 `-` 非 `.`）、页眉横线 `\htu@header@rule@thickness{.4\p@}`、脚注行距 `1.5`、`\htu@secnumdepth{3}`、`\htu@tocdepth{2}`、摘要关键词间距 `12bp`。
+浮动体布局（`\htu@floatsep` `12bp`、`\htu@textfraction` `0.15`、`\htu@topfraction` `0.85`、`\htu@bottomfraction` `0.50`、`\htu@floatpagefraction` `0.80`）、题注间距（图表上下 `6bp`、图下 `12bp`、子图 `6bp`）、计数器分隔符 `\htu@counter@separator{-}`、页眉横线 `\htu@header@rule@thickness{.4\p@}`、脚注行距 `1.5`、`\htu@secnumdepth{3}`、`\htu@tocdepth{2}`。目录每级缩进 12bp，摘要关键词前留一行。
 
 ---
 
@@ -397,7 +399,7 @@ sed-copy main.tex → `.debug-main.tex` 加 `[doctor,debug]`，编译，grep `.l
 - 真值源层次（spec 优先）
 - 图例：自动检查 / 人工确认 / PROXIED 警示
 - ~95 规则行：§1.1-§1.5 结构 + §2.1-§2.17 排版 + §3 通用标准
-- 透明偏差表：G-C（Title Case）/ G-D（行距 23.4bp 巧合）/ G-E（内联 ASCII 12pt）
+- 透明偏差表：G-D（行距 23.4bp）/ G-E（内联 ASCII 12pt）
 - 附录 A（`\htucheck` 输出参考）/ B（开发工具）/ C（ATDD 索引）
 
 ### 8.6 `verify/baseline/`
@@ -417,33 +419,29 @@ sed-copy main.tex → `.debug-main.tex` 加 `[doctor,debug]`，编译，grep `.l
 
 ### 9.2 `numbering=sc|hs` 双模式标题
 
-**hs 默认**（cls:493-535）：`第一章/第一节/一、/（1）`。L1-L2 居中，L3+ 左缩进 2\ccwd，`aftername={}`（不空格，§2.10 HS）。
+**hs 默认**使用 `第一章/第一节/一、/（1）`。一、二级标题居中，三级及以下左缩进两格，编号紧接标题名称。
 
-**sc 可选**（cls:540-561）：`1/1.1/1.1.1/（1）`。全顶格（无 `\centering`），`aftername=\hspace{0.5\ccwd}`（空半格，§2.10 NS）。
+**sc 可选**使用 `1/1.1/1.1.1/（1）`。正文一至三级左顶格，四级及以下左缩进两格，编号后空半格。五、六级启用编号时使用 `（a）` 和 `（i）`。摘要、目录、参考文献等前后置章题及附录章题居中。两种模式均用加粗小四号宋体排四级标题，五、六级标题用常规小四号宋体。
 
 **AC-3a 守卫**（cls:562-568，关键）：`\thechapter` 防御性锁为 `\@arabic\c@chapter`。因 ctex `number=\chinese{chapter}` 只写 `\CTEXthechapter`（显示），不写 `\thechapter`（计数器宏）。此锁确保图表公式编号保持 `图 1-1`/`表 1-1`/`(1-1)`（阿拉伯，§2.11/12/13），即使章显示是 `第一章`。`\appendix` 运行时 `\gdef\thechapter=\@Alph` 覆盖此锁以生成附录 `A-1`。
 
 **副作用**（2026-06-19 代码评审接受）：章 `\ref{ch:X}` 渲染中文（`一/二`），图 `\ref{fig:X}` 渲染阿拉伯——双轨符合 HS 惯例。
 
-### 9.3 biblatex gb7714-2015 + biber + 双模式引文
+### 9.3 biblatex gb7714-2015 + Biber + 两种文后表
 
-本模板支持 **两种引用模式**（同一 `ref/refs.bib`，仅正文命令不同，按学科惯例选）：
+两种用法都读取 `ref/refs.bib`，由 biblatex 的 `gb7714-2015` 样式排版，Biber 处理文献数据。
 
-**case-1 顺序编码制（一般学科默认，GB/T 7714 标准）**
-- 正文：`\cite{key}` 或 `\parencite{key}` → `[N]` 方括号编号（读者按 N 查文末表）。
-- 上标式：`\supercite{key}` 或 `\textsuperscript{\cite{key}}` → `^[N]`。
-- 文末表：`\makebibliography`（推荐，按类型分节）或 `\printbibliography`（仅列已引用条目，按 `sorting=nyt` 作者序）。
+**case-1 单表只列引文（校规 §2.14 情况一）**
 
-**case-2 分页脚注（政治学等需页下完整著录的学科，§2.14 + §1.2.4）**
-- 正文：`\footfullcite{key}` → 完整 GB/T 7714 条目作**每页脚注**，小五号宋体，每页重置（`footmisc[perpage]` cls:401）。
-- 带页号：`\footfullcite[][26]{key}`。
-- 文末表：`\makebibliography`（与 case-1 同）。
+在导言区加入 `\ExecuteBibliographyOptions{sorting=none}`，正文用 `\cite{key}` 或 `\parencite{key}`。文末用 `\printbibliography[heading=bibintoc]`，按引用次序列出已引用文献。正文与文末表使用同一套编号，引用的具体页码可写作 `\cite[105]{key}`。
 
-**两种模式共用**
-- `\makebibliography`（cls:1007-1019）= `\nocite{*}`（含全部条目：引用的 + 只读的）+ 6 类过滤 `\printbibliography`（每类 `resetnumbers=true`，从 [1] 重启）：
-  - 一、期刊论文（article）/ 二、著作（book）/ 三、论文集章节（incollection）/ 四、学位论文（thesis，biber 映射 @phdthesis→thesis）/ 五、专利（patent）/ 六、电子资源（online）/ 七、其他（catch-all，`\htu@printbibother` cls:1023-1029）
-- 后端 = **biber**（非 bibtex）。样式 = **gb7714-2015**。sorting=nyt（文末表作者序）；defernumbers=true + 每节 resetnumbers。
-- **示例论文（`data/*.tex`）默认用 case-2**（对齐参考博士论文，政治与公共管理学院）。改 case-1：把正文 `\footfullcite{...}` 全换 `\cite{...}`，`\makebibliography` 不变；若文末表只想列已引用条目（非 `\nocite{*}` 全量），用 `\printbibliography` 替换 `\makebibliography`。
+**case-2 分页脚注与全部文献表（示例默认，校规 §2.14 情况二）**
+
+- 正文用 `\footfullcite{key}`，每页按序编号。带引文页码用 `\footfullcite[][105]{key}`。
+- 文末用 `\makebibliography`，纳入引文和阅读文献。分组依次为期刊论文、著作、论文集与文集、学位论文、报告、专利、国际与国家标准、报纸文章、电子资源、其他。只显示有条目的分组，各组从 `[1]` 重新编号。
+- 组内按作者姓氏、年份、标题排序（`sorting=nyt,sortlocale=zh__pinyin`）。中西文混排时可为中文条目填写拼音 `sortname`，例如 `sortname={Chen, Jianjun}`。排版仍使用 `author` 中的姓名。
+- 文末著作、论文集、学位论文和报告省略原页段，期刊与报纸保留页段。脚注著作等条目给出引文具体页时，原页段由该页码替代。
+- 文献类型优先使用 GB/T 类型码。标准和报纸按原类别归组。可用 `keywords={htu-electronic}` 将条目归入电子资源，期刊的 DOI 无需额外标记。
 
 ### 9.4 `\appendix` 命令式 + 下游字体自重置
 
@@ -457,7 +455,6 @@ sed-copy main.tex → `.debug-main.tex` 加 `[doctor,debug]`，编译，grep `.l
 
 | ID | 偏差 | 真值源 | 理由 |
 |----|------|--------|------|
-| **G-C** | 英文题目用 **Title Case** 非 ALL CAPS | 参考 PDF（通过评审）+ spec §1.1.1「用大写字母」读作「正规大写」 | ALL CAPS 非论文题目惯例；参考论文以 Title Case 通过 |
 | **G-D** | 中文正文 + 英文摘要 baselineskip 均为 **23.4bp**（巧合） | 参考 PDF 行隙实测 + spec §2.7（1.5 倍）/§2.8（2 倍） | 1.5×小四 ≈ 2×五号 ≈ 23.4bp；两者均 spec 合规。非 31.2bp |
 | **G-E** | 正文内联 ASCII = **小四（12pt）** 非五号 | 参考 PDF | 贴 CJK 网格；§2.9 管 CJK 正文（小四），内联 ASCII 从之。低影响 |
 | 封面日期 | 用**编译日**中文数字 | spec §1.1.1「用中文表示」（字形合规） | 日期值非显式提交日；可 `\cdate{二〇二五年五月}` 覆盖 |
@@ -553,7 +550,7 @@ case-2（页下注）下，**一次** `\footfullcite{key1,key2,...}` 多键调�
 `.def` `\htu@body@baselineskip{23.4bp}`（def:66）。⚠ 这是 Word 1.5× 语义值，非朴素 ×fontsize。改前测参考 PDF 行隙。
 
 ### 加新文献类型分节
-`\makebibliography` 已硬编码 6 类 + catch-all。新类型走「七、其他」catch-all 即可（`\htu@printbibother`）。若需独立分节，编辑 cls:1007-1019 加 `\printbibliography[type=xxx,heading=htu-refs-sub,title={八、xxx}]`。
+未匹配到现有类别的条目归入「其他」。类型与示例见 §9.3。
 
 ### 覆盖封面日期
 `data/cover.tex`：`\cdate{二〇二五年五月}` / `\edate{May 2025}`。
@@ -594,8 +591,9 @@ case-2（页下注）下，**一次** `\footfullcite{key1,key2,...}` 多键调�
 
 ## 12. FAQ
 
-**Q: 为什么英文题目是 Title Case 不是 ALL CAPS？**
-A: spec §1.1.1「用大写字母」解读为「正规大写」。参考论文以 Title Case 通过评审。ALL CAPS 非论文题目惯例。（G-C 透明偏差）
+**Q: 英文题目需要手动写成全大写吗？**
+
+校规 §1.1.1 要求英文扉页题目全大写。模板会自动转换 `\etitle` 中的题名。
 
 **Q: 为什么行距是 23.4bp 不是 18bp（1.5×12）？**
 A: 「1.5 倍行距」是 Word 语义（×自然行高），非 ×fontsize。参考 PDF 行隙实测 = 23.4bp。（G-D，word-vs-latex-line-spacing）
@@ -696,4 +694,4 @@ bash tests/check-structure.sh                      # 结构检查
 
 ---
 
-**本文档基于** 2026-06-21 代码状态（v1.0.0）。所有命令/环境/参数引用均带 cls/def 行号，可回溯源码。
+**本文档对应** htuthesis v1.3.0。

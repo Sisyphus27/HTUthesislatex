@@ -136,21 +136,11 @@ test_ekeywords_comma_separator() {
 }
 run_test "P1" "ATDD-3.4-04" "\\htu@ekeywords@separator = \", \" half-width comma (AC-6, TC-E3-23; RED — cls:197 has \"; \")" test_ekeywords_comma_separator
 
-# ATDD-3.4-05: English KEY WORDS label NON-bold — no \textbf before \htu@ekeywords@title (AC-6, user decision)
-# Truth source: RESOLVED 2026-06-16 (user, reference wins) — spec §2.8 "加粗" vs reference p9 TimesNewRomanPSMT
-#   (non-bold) → NON-bold. Current cls:834 = "\textbf\htu@ekeywords@title" (bold). \textbf adjacent to the
-#   English keyword label = 1 pre-impl → RED. Post-impl (Task 3.3, drop \textbf) → 0 → GREEN.
-#   NOTE: grep targets the ENGLISH label (ekeywords@title), NOT the Chinese one (ckeywords@title) — the Chinese
-#   label keeps \textbf (→ SimHei, AC-3 unchanged).
-test_ekeywords_label_nonbold() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  local n
-  n=$(grep -cF 'textbf\htu@ekeywords@title' htuthesis.cls 2>/dev/null || true)
-  n=$(echo "$n" | tr -d '[:space:]' | head -1)
-  echo "  ('textbf\htu@ekeywords@title' matches: $n; expect 0 post-impl, 1 pre-impl cls:834)"
-  [[ "$n" -eq 0 ]]
+# ATDD-3.4-05: English keyword label is bold (§2.8).
+test_ekeywords_label_bold() {
+  grep -qF '\htu@put@keywords{\bfseries\htu@ekeywords@title}{\htu@ekeywords}' htuthesis.cls
 }
-run_test "P1" "ATDD-3.4-05" "English KEY WORDS label NON-bold (\\textbf dropped; AC-6, user decision; RED — cls:834 has \\textbf)" test_ekeywords_label_nonbold
+run_test "P1" "ATDD-3.4-05" "English keyword label uses bold type (§2.8)" test_ekeywords_label_bold
 
 # ATDD-3.4-06: \htu@ekeywords@title drops \enskip (AC-7, deferred-work §spec-defer)
 # Truth source: reference p9 text extraction = "KEY WORDS:Digitalization" (no character between colon and the
@@ -172,10 +162,9 @@ run_test "P1" "ATDD-3.4-06" "\\htu@ekeywords@title drops \\enskip (AC-7; RED —
 # Story 3.4 must NOT change the Chinese title text ("摘" + \ccwd space + "要" = spec §2.7 "空一格"). The macro
 #   must still carry the one-CJK-width space. GREEN pre- and post-impl.
 test_cabstractname_intact() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'newcommand\{?\\?cabstractname\}\{摘\\hspace\{\\ccwd\} 要\}' htuthesis.cls
+  grep -qF '\newcommand{\cabstractname}{摘\hspace{\ccwd}要}' htuthesis.cls
 }
-run_test "P1" "ATDD-3.4-07" "regression: \\cabstractname \"摘 要\" intact (AC-1, TC-E3-18; GREEN — already correct)" test_cabstractname_intact
+run_test "P1" "ATDD-3.4-07" "Chinese abstract title has one full-width gap (§2.7)" test_cabstractname_intact
 
 # ATDD-3.4-08: regression — \htu@ckeywords@separator = ； (full-width semicolon) intact (AC-3, TC-E3-20)
 # Story 3.4 must NOT change the Chinese keyword separator (spec §2.7 "分号隔开"). GREEN pre- and post-impl.

@@ -123,7 +123,7 @@ run_test "P1" "ATDD-3.7-03" "thebibliography \\wuhao[1.524] 五号宋体 (AC-2 w
 #   env removed. §2.14 case-2, gap M1. Decision 2. Behavior proof = integration I07/I08.
 test_refs_biblabel_list() {
   [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'printbibliography\[type=' htuthesis.cls && \
+  grep -qF '\printbibliography[category=#1,heading=htu-refs-sub,title={#2},resetnumbers=true]' htuthesis.cls && \
   grep -qE 'style=gb7714-2015' htuthesis.cls
 }
 run_test "P1" "ATDD-3.7-04" "end-list [N] via biblatex \\printbibliography (REPOINTED by 3.12 — was thebibliography \\@biblabel)" test_refs_biblabel_list

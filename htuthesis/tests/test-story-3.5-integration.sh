@@ -18,8 +18,8 @@
 #   - ATDD-3.5-I04: TOC title "目 录" SimHei ~16pt centered (AC-1, TC-E3-24) — GREEN (already correct)
 #   - ATDD-3.5-I05: L1 chapter entries SimHei 小四号 12pt (AC-2, TC-E3-25) — RED pre-impl (SimSun 14pt). THE FIX proof.
 #   - ATDD-3.5-I06: L1 page-number = TNR (not LMSans) (AC-2 Task 1.2 guard) — GREEN guard; RED if Task 1.2 omitted.
-#   - ATDD-3.5-I07: L2 section entries SimSun 小四号 12pt at 2\ccwd (AC-3, TC-E3-25) — GREEN
-#   - ATDD-3.5-I08: per-level indent delta ≈ 24pt (2\ccwd) (AC-5, TC-E3-27) — GREEN
+#   - ATDD-3.5-I07: L2 section entries SimSun 小四号 12pt at 12bp (AC-3, TC-E3-25) — GREEN
+#   - ATDD-3.5-I08: per-level indent delta = 12bp per level (AC-5, TC-E3-27) — GREEN
 #   - ATDD-3.5-I09: dot leaders present (AC-6, TC-E3-26) — GREEN
 #   - ATDD-3.5-I10: tocdepth=2, no 4th-level rows (AC-7, TC-E3-27) — GREEN
 #   - ATDD-3.5-I11: no \wuhao 10.5pt CJK span on TOC (AC-4 \wuhao-leak guard) — GREEN (no L3 row renders at depth 2;
@@ -160,34 +160,20 @@ def l1_entries(idx):
                     out.append((sp["font"], sp["size"], sp["bbox"][0], tx))
     return out
 def section_entries(idx):
-    # REPOINTED by Story 3.13 (spec §2.10, gap M4): L2 = humanities section "第N节 + title".
-    #   OLD Arabic detection: CJK span at x0 in [115,130] (the 2\ccwd section indent). Now the humanities
-    #   chapter TITLE (SimHei) sits at x0≈118.9-169.5 and bleeds into the [115,130] band → mixed
-    #   SimSun+SimHei → song=False. Detection now: a section title is the non-label CJK span sharing a
-    #   y-row with a "第N节" label (font-AGNOSTIC — excludes the SimHei chapter-title bleed by row
-    #   context, not by font). Returns list of (font, size, x0, text).
-    sec_lab_re = re.compile(r"^第[一二三四五六七八九十百]+节$")
     if idx is None: return []
-    pg = doc[idx]
+    section_label = re.compile(r"^第[一二三四五六七八九十百]+节")
     rows = {}
-    for b in pg.get_text("dict").get("blocks", []):
-        if b.get("type", 0) != 0: continue
-        for ln in b.get("lines", []):
-            for sp in ln.get("spans", []):
-                tx = sp["text"].strip()
-                if not cjk_re.search(tx): continue
-                if not (11 <= sp["size"] <= 13): continue
-                yr = round(sp["bbox"][1], 1)
-                rows.setdefault(yr, []).append(sp)
-    out = []
-    for yr, spans in rows.items():
-        if any(sec_lab_re.match(sp["text"].strip()) for sp in spans):
-            for sp in spans:
-                tx = sp["text"].strip()
-                if sec_lab_re.match(tx): continue             # skip the "第N节" label itself
-                if len(tx) >= 2:
-                    out.append((sp["font"], sp["size"], sp["bbox"][0], tx))
-    return out
+    for block in doc[idx].get_text("dict")["blocks"]:
+        for line in block.get("lines", []):
+            for span in line["spans"]:
+                if cjk_re.search(span["text"]) and 9 <= span["size"] <= 14:
+                    rows.setdefault(round(span["origin"][1], 1), []).append(span)
+    return [
+        span
+        for spans in rows.values()
+        if section_label.match(min(spans, key=lambda s: s["origin"][0])["text"].strip())
+        for span in spans
+    ]
 def subsection_entries(idx):
     # L3 subsection entries: CJK title span at x0 in [140,165], size in [9,13] (pre-impl 10.5pt, post-impl 12pt).
     # Our subsection indent = 4\ccwd renders x0≈150.4. chap04 has non-starred \subsection → L3 rows DO render at
@@ -203,17 +189,17 @@ def subsection_entries(idx):
                 if 140 <= x0 <= 165 and cjk_re.search(tx) and 9 <= sp["size"] <= 13 and len(tx) >= 2:
                     out.append((sp["font"], sp["size"], x0, tx))
     return out
-def pagenum_fonts(idx):
-    # Page-number spans: rightmost digit-only spans (x>500). Returns set of fonts (the \rmfamily-guard target).
-    if idx is None: return set()
-    pg = doc[idx]; out = set()
-    for b in pg.get_text("dict").get("blocks", []):
-        for ln in b.get("lines", []):
-            for sp in ln.get("spans", []):
-                tx = sp["text"].strip()
-                if sp["bbox"][0] > 500 and re.fullmatch(r"\d+", tx):
-                    out.add(sp["font"])
-    return out
+def page_number_chars(idx):
+    edge = W - 72.0 * 25.0 / 25.4
+    digits = []
+    for block in doc[idx].get_text("rawdict")["blocks"]:
+        for line in block.get("lines", []):
+            for span in line["spans"]:
+                for char in span["chars"]:
+                    c = char["c"]
+                    if char["origin"][1] < 772 and abs(char["bbox"][2] - edge) <= 0.5 and c in "0123456789IVXLCDM":
+                        digits.append((c, span["font"]))
+    return digits
 '
 
 # ==========================================
@@ -324,37 +310,30 @@ test_l1_pagenum_tnr() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 if toc is None:
-    print('  (TOC page not found — RED)'); sys.exit(1)
-fonts = pagenum_fonts(toc)
-if not fonts:
-    print('  (no page-number spans x>500 found — RED)'); sys.exit(1)
-all_tnr = all('Times' in f for f in fonts)
-any_lmsans = any('LMSans' in f for f in fonts)
-print('  page-number fonts=%s all_tnr=%s any_lmsans=%s (Task 1.2 \\\\rmfamily guard — TNR, NOT LMSans)' %
-      (fonts, all_tnr, any_lmsans))
-sys.exit(0 if (all_tnr and not any_lmsans) else 1)
+    sys.exit(1)
+digits = page_number_chars(toc)
+print('TOC right-edge Arabic and Roman page digits:', digits)
+has_arabic = any(c.isdigit() for c, _ in digits)
+has_roman = any(c in 'IVXLCDM' for c, _ in digits)
+sys.exit(0 if has_arabic and has_roman and all('Times' in font for _, font in digits) else 1)
 "
 }
-run_test "P1" "ATDD-3.5-I06" "BEHAVIOR: L1 page-number = TNR not LMSans (AC-2 Task 1.2 guard; GREEN — RED if Task 1.2 omitted)" test_l1_pagenum_tnr
+run_test "P1" "ATDD-3.5-I06" "TOC Roman and Arabic page numbers use Times New Roman" test_l1_pagenum_tnr
 
-# ATDD-3.5-I07: BEHAVIOR — L2 section entries SimSun 小四号 ~12pt at 2\ccwd (AC-3, TC-E3-25)
+# ATDD-3.5-I07: BEHAVIOR — L2 section entries SimSun 小四号 ~12pt at 12bp (AC-3, TC-E3-25)
 # GREEN guard (already correct: \titlecontents{section}[2\ccwd]{\vspace{6bp}\xiaosi[1]} → SimSun 12pt). Assert at
 #   least one L2 entry, median size ≈12, and the entries are SimSun (Songti). Reference p10: SimSun 12.00pt.
 test_l2_entries_simsun_xiaosi() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
-ents = section_entries(toc)
-if len(ents) < 1:
-    print('  (no L2 section entries found — regression)'); sys.exit(1)
-fonts = [e[0] for e in ents]; sizes = [e[1] for e in ents]
-med = median(sizes)
-song = all(('SimSun' in f or 'Song' in f or '宋' in f) for f in fonts)
-print('  L2 entries=%d fonts=%s median size=%.2fpt song=%s (spec §2.6 宋体小四号; ref p10 SimSun 12.0)' %
-      (len(ents), set(fonts), med, song))
-sys.exit(0 if (song and 11.3 <= med <= 12.7) else 1)
+entries = section_entries(toc)
+sizes = {round(span['size'], 2) for span in entries}
+fonts = {span['font'] for span in entries}
+print('TOC level 2 CJK font and size:', fonts, sizes)
+sys.exit(0 if entries and sizes == {12.0} and all('SimSun' in f for f in fonts) else 1)
 "
 }
-run_test "P1" "ATDD-3.5-I07" "BEHAVIOR: L2 section entries SimSun 小四号 ~12pt (AC-3, TC-E3-25; GREEN — already correct)" test_l2_entries_simsun_xiaosi
+run_test "P1" "ATDD-3.5-I07" "TOC level 2 labels and titles use 12bp SimSun (§2.6)" test_l2_entries_simsun_xiaosi
 
 # R-26 (L202): I12/I13/I14 self-check bands are SAMPLE-calibrated (textheight/baselineskip spec-derived;
 #   page-count content-dependent). A content/geometry change legitimately shifts page-count — not a regression.
@@ -411,7 +390,7 @@ echo ""
 # ==========================================
 echo "=== P2: indent per level + dot leaders + depth + L3 \\wuhao-leak guard ==="
 
-# ATDD-3.5-I08: BEHAVIOR — per-level indent ≈ 24pt (2\ccwd; AC-5, TC-E3-27)
+# ATDD-3.5-I08: BEHAVIOR — per-level indent = 12bp per level ( AC-5, TC-E3-27)
 # GREEN guard (AC-5 = VERIFY; story does NOT change indent). Measures the TRUE indent = label-start x0 delta
 #   (section label → subsection label), NOT the title-text x0 delta (confounded by label-width differences:
 #   L1 label 第N章 vs Latin 2.1/4.1.1). Reference PDF p10 = uniform +24.0pt/level (= 2\ccwd at 12pt).
@@ -423,42 +402,28 @@ test_indent_per_level() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 if toc is None:
-    print('  (TOC page not found — RED)'); sys.exit(1)
-# REPOINTED by Story 3.13: humanities labels (spec §2.10). OLD: re.fullmatch(r'\d+\.\d+', tx) (section) /
-#   re.fullmatch(r'\d+\.\d+\.\d+', tx) (subsection) — Arabic label detection that no longer matches.
-# R-26 (L303): the \$ end-anchors below rely on bash double-quote expansion \$->$; refactor to .py/heredoc needs \$->$ adjustment
-sec_lab_re = re.compile(r'^第[一二三四五六七八九十百]+节\$')      # L2 section contentslabel (第一节)
-sub_lab_re = re.compile(r'^[一二三四五六七八九十]+、')             # L3 subsection contentslabel (一、)
-chap_lab_re = re.compile(r'^第[一二三四五六七八九十百]+章\$')      # L1 chapter contentslabel (第一章)
-sec_lab = []; sub_lab = []; l1_edge = None
-for b in doc[toc].get_text('dict').get('blocks', []):
-    for ln in b.get('lines', []):
-        for sp in ln.get('spans', []):
-            tx = sp['text'].strip(); x0 = sp['bbox'][0]
-            if sec_lab_re.match(tx) and 11 <= sp['size'] <= 13:
-                sec_lab.append(x0)                                  # section label-start (第一节)
-            elif sub_lab_re.match(tx) and 9 <= sp['size'] <= 13:
-                sub_lab.append(x0)                                  # subsection label-start (一、)
-            elif chap_lab_re.match(tx) and 11 <= sp['size'] <= 15:
-                if l1_edge is None or x0 < l1_edge:
-                    l1_edge = x0                                    # chapter contentslabel left edge (margin)
-sec_x = median(sec_lab) if sec_lab else None
-sub_x = median(sub_lab) if sub_lab else None
-# Per-level delta (subsection − section) is the clean, reference-matching indent. If subsection labels are
-# absent (a build with no L3), fall back to section − margin.
-if sub_x is not None and sec_x is not None:
-    delta = sub_x - sec_x; where = 'subsection-section'
-elif sec_x is not None and l1_edge is not None:
-    delta = sec_x - l1_edge; where = 'section-margin'
-else:
-    print('  (no 第N节 or 一、 labels found to measure indent — L1=%s sec=%d sub=%d)' %
-          (l1_edge, len(sec_lab), len(sub_lab))); sys.exit(1)
-print('  l1_edge=%s sec_label_x0=%s sub_label_x0=%s | %s delta=%.1fpt (expect ≈24 = 2\\ccwd; ref p10 24/level)' %
-      (l1_edge, sec_x, sub_x, where, delta))
-sys.exit(0 if 22.0 <= delta <= 26.0 else 1)
+    sys.exit(1)
+patterns = [
+    re.compile(r'^第[一二三四五六七八九十百]+章'),
+    re.compile(r'^第[一二三四五六七八九十百]+节'),
+    re.compile(r'^[一二三四五六七八九十]+、'),
+]
+margin = 72 * 25 / 25.4
+positions = [[] for _ in patterns]
+for block in doc[toc].get_text('dict')['blocks']:
+    for line in block.get('lines', []):
+        for span in line['spans']:
+            if abs(span['size'] - 12.0) > 0.25:
+                continue
+            for level, pattern in enumerate(patterns):
+                if pattern.match(span['text'].strip()):
+                    positions[level].append(span['origin'][0] - margin)
+print('TOC label indents (bp):', [[round(x, 2) for x in level] for level in positions])
+sys.exit(0 if all(xs and all(abs(x - target) <= 0.5 for x in xs)
+                  for target, xs in zip([0, 12, 24], positions)) else 1)
 "
 }
-run_test "P2" "ATDD-3.5-I08" "BEHAVIOR: per-level indent ≈ 24pt (label-start delta; AC-5, TC-E3-27; GREEN — REPOINTED to humanities labels by Story 3.13)" test_indent_per_level
+run_test "P2" "ATDD-3.5-I08" "TOC indents measure 0, 12 and 24 ± 0.5bp (§2.6)" test_indent_per_level
 
 # ATDD-3.5-I09: BEHAVIOR — dot leaders present (AC-6, TC-E3-26)
 # GREEN guard. \titlerule*{.} produces a run of '.' spans between entry text and page number. Assert the TOC page
@@ -538,13 +503,12 @@ test_toc_layout_diagnostic() {
 if toc is None:
     print('  (TOC page not found — RED pre-impl)'); sys.exit(1)
 pg = doc[toc]
-print('  TOC=p%d rendered layout (for manual reference-overlay vs p10):' % (toc+1))
-ents = l1_entries(toc) + section_entries(toc)
+print('  TOC=p%d rendered layout:' % (toc+1))
+ents = l1_entries(toc) + [(s['font'], s['size'], s['origin'][0], s['text']) for s in section_entries(toc)]
 for f, s, x, t in ents[:8]:
     print('    x0=%5.1f size=%.1fpt font=%r | %s' % (x, s, f, t[:40]))
-print('  page-number fonts: %s' % pagenum_fonts(toc))
-print('  reference p10: 目录 SimHei 15.95pt centered; L1(章) SimHei 12.0pt x0=70.8;')
-print('                  L2(节) SimSun 12.0pt x0=94.8; L3(一、) SimSun 12.0pt x0=118.8; dot leaders present.')
+print('  page-number fonts: %s' % {f for _, f in page_number_chars(toc)})
+print('  §2.6 label starts: 70.87, 82.87 and 94.87bp, one 12bp cell per level.')
 sys.exit(0)
 "
 }
@@ -639,7 +603,7 @@ if [[ "$SKIP" == "1" ]]; then
   echo "   RED (fail pre-impl): I05 (L1 entries SimHei 12pt — pre-impl SimSun 14pt),"
   echo "      I11 (L3 subsection entries SimSun 12pt — pre-impl 10.5pt \wuhao; L3 rows DO render in sample)."
   echo "   GREEN guards: I01-I03 (compile), I04 (title SimHei ~16pt), I06 (L1 page-number TNR — catches a"
-  echo "      missing Task-1.2 \rmfamily), I07 (L2 SimSun 12pt), I08 (indent ≈24pt label-start delta),"
+  echo "      missing Task-1.2 \rmfamily), I07 (L2 SimSun 12pt), I08 (indent 12bp per level),"
   echo "      I09 (dot leaders), I10 (no N.N.N.N 4th-level), I12 (textheight), I13 (baselineskip 18bp),"
   echo "      I14 (pages), I15 (no headheight). I16 = diagnostic (reference-overlay positions)."
   echo ""

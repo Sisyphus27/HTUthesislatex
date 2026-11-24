@@ -1,12 +1,12 @@
-# HTU 博士学位论文格式审查对照清单 (Format Review Checklist)
+# HTU 博士学位论文格式审查对照清单（v1.3.0）
 
 > **#1 交付物** — 河南师范大学 (HTU) 博士学位论文 LaTeX 模板格式审查清单。
 > 将《河南师范大学研究生学位论文格式要求》(spec) §1.1–§2.17 的每一条规则映射到本模板的 LaTeX 实现，并标注检查方式。
 
 - **维护者：** htuthesis 项目
-- **最近更新：** 2026-06-21 (Story 4.4)
+- **最近更新：** 2026-11-24
 - **对应 spec：** `河南师范大学研究生学位论文格式要求.md` (repo root)
-- **对应实现基线：** commit `7e0d103`
+- **对应模板：** htuthesis v1.3.0
 
 ## 真值源层次 (Truth-Source Hierarchy)
 
@@ -52,7 +52,7 @@
 | R1.1.1-c | 题目 ≤20 字，避免缩略词/代号/公式 (§1.1.1) | `\ctitle`/`\etitle` (`data/cover.tex:15,33`) | 人工确认 | 字数核对 |
 | R1.1.1-d | 学科专业以 2022 版目录为准 (§1.1.1) | `\cmajor`/`\emajor` (`data/cover.tex:21,37`) | 人工确认 | 用户填写正确专业名 |
 | R1.1.1-e | 日期中文表示「二〇…年…月」(§1.1.1) | `\cdate` + `\CJK@todaybig` cls:208 (Story 3.15 G4) | 人工确认 | 封面日期字形；ATDD-3.1 |
-| R1.1.1-f | 扉页英文题目用大写字母 (§1.1.1) | `\etitle` Title Case (`data/cover.tex:33`) | 人工确认 | **G-C 透明偏差**（见末节） |
+| R1.1.1-f | 扉页英文题目用大写字母 (§1.1.1) | `\htu@engcover` 在排版时将 `\etitle` 转为全大写 | 自动检查 | 扉页 PDF 文本 |
 
 ## §1.1.2 摘要页
 
@@ -74,7 +74,7 @@
 
 | ID | 规则 (spec §ref) | LaTeX 实现 | 检查类型 | 证据 |
 |----|------------------|-----------|----------|------|
-| R1.1.4-a | 目录自动生成，含摘要→…→声明各序号/题名/页码 (§1.1.4) | `main.tex` `\tableofcontents` + cls TOC 配置 (cls:616–640) | 自动检查 | `main.toc` 生成；ATDD-3.5 |
+| R1.1.4-a | 目录自动生成，从摘要、ABSTRACT 到声明，显示题名和页码 (§1.1.4) | `\tableofcontents` 和 `\htu@chapter*` | 自动检查 | `main.toc` 条目及 PDF 跳转，ATDD-3.5 |
 
 ## §1.1.5 图表清单
 
@@ -95,7 +95,7 @@
 | R1.2.1-a | 博士自然科学 ≥8 万字 / 人文社科 ≥10 万字 (§1.2.1) | (内容) | 人工确认 | 正文字数核对 |
 | R1.2.2-a | 引言独立成章 (§1.2.2) | `data/chap01` (`\chapter`) | 人工确认 | 绪论章存在 |
 | R1.2.3-a | 正文科学合理、层次清晰 (§1.2.3) | `data/chap0*.tex` | 人工确认 | 内容核对 |
-| R1.2.4-a | 引文标注遵 GB/T 7714-2015，全文统一（顺序编码/著者-出版年） (§1.2.4) | cls 引文机制 + `htuthesis.bst` | 自动检查 | ATDD-3.7/3.12；`.bbl` 扫描 |
+| R1.2.4-a | 引文标注遵 GB/T 7714-2015，全文统一 (§1.2.4) | biblatex 的 `gb7714-2015` 样式，Biber 后端 | 自动检查 | ATDD-3.7/3.12，`.bbl` 扫描 |
 | R1.2.4-b | 脚注引文每页重新编号 (§1.2.4) | cls 脚注 per-page-reset (Story 3.12) | 自动检查 | ATDD-3.8-I08 / ATDD-3.12（fitz 多页扫描） |
 | R1.2.5-a | 结论含核心观点/创新成果/局限/未来工作 (§1.2.5) | (内容，末章) | 人工确认 | 内容核对 |
 
@@ -103,7 +103,7 @@
 
 | ID | 规则 (spec §ref) | LaTeX 实现 | 检查类型 | 证据 |
 |----|------------------|-----------|----------|------|
-| R1.3-a | 遵 GB/T 7714-2015 著录格式 (§1.3) | `htuthesis.bst` + cls `thebibliography` | 自动检查 | ATDD-3.7；`.bbl` 扫描 |
+| R1.3-a | 遵 GB/T 7714-2015 著录格式 (§1.3) | biblatex 的 `gb7714-2015` 样式，Biber 后端 | 自动检查 | ATDD-3.7，`.bbl` 扫描 |
 
 ## §1.4 附录部分
 
@@ -175,9 +175,9 @@
 |----|------------------|-----------|----------|------|
 | R2.6-a | 目录自动生成 (§2.6) | `main.tex` `\tableofcontents` | 自动检查 | `main.toc` 生成 |
 | R2.6-b | 「目录」两字空一格，三号黑体居中 (§2.6) | cls TOC title `\sanhao\heiti` 居中 | 自动检查 | ATDD-3.5 |
-| R2.6-c | 目录段前段后 2 行 (§2.6) | cls `\titlecontents` beforeskip/afterskip | 自动检查 | ATDD-3.5 |
+| R2.6-c | 目录标题段前段后 2 行 (§2.6) | cls 章题 `beforeskip` 和 `afterskip` | 自动检查 | ATDD-3.5 |
 | R2.6-d | 目录至三级标题 (§2.6) | cls `tocdepth` | 自动检查 | ATDD-3.5 |
-| R2.6-e | 每下一级向右缩进一格 (§2.6) | cls `\titlecontents` 缩进 2\ccwd/4\ccwd | 自动检查 | ATDD-3.5-I08 |
+| R2.6-e | 每下一级向右缩进一格 (§2.6) | `\htu@toc@cell` 为 12bp，三级分别缩进 0/12/24bp | 自动检查 | ATDD-3.5-I08 |
 | R2.6-f | 一级标题用小四号黑体 (§2.6) | cls `\titlecontents{chapter}` `\xiaosi\sffamily` (cls:622) | 自动检查 | ATDD-3.15-G1（全条 SimHei 含「第N章」前缀） |
 | R2.6-g | 其余用小四号宋体 (§2.6) | cls `\titlecontents{section/subsection}` `\xiaosi` (cls:625,628) | 自动检查 | ATDD-3.5 |
 | R2.6-h | 目录点引导线连页码 (§2.6) | cls `\titlerule*{.}` | 自动检查 | ATDD-3.5-I09 |
@@ -189,9 +189,9 @@
 | R2.7-a | 「摘要」两字空一格，三号黑体居中 (§2.7) | cls `\htu@makeabstract` 标题 `\sanhao\heiti` 居中 (cls:914) | 自动检查 | ATDD-3.4 |
 | R2.7-b | 段前段后 2 行 (§2.7) | cls abstract 标题 spacing | 自动检查 | ATDD-3.4 |
 | R2.7-c | 摘要内容小四号宋体，1.5 倍行距 (§2.7) | cls `\xiaosi\songti` + baselineskip 23.4bp（Word 1.5 倍语义，Story 3.11） | 自动检查 **PROXIED** | `\htucheck` `baselineskip = ~23.4bp`（代理）；真证据 ATDD-3.11-I07（fitz line-gap） |
-| R2.7-d | 首行缩进 2 字，标点占一格 (§2.7) | cls `\parindent=2\ccwd` | 自动检查 | ATDD-3.4 |
-| R2.7-e | 摘要后空一行，「关键词：」左顶格 (§2.7) | cls `\htu@put@keywords` (cls:908) | 自动检查 | ATDD-3.4 |
-| R2.7-f | 「关键词：」小四号黑体 (§2.7) | cls `\sffamily\htu@ckeywords@title` (cls:923) | 自动检查 | ATDD-3.4 |
+| R2.7-d | 首行缩进 2 字，标点占一格 (§2.7) | 中文摘要局部使用 `\parindent=24bp` 和 `PunctStyle=plain` | 自动检查 | ATDD-3.4 |
+| R2.7-e | 摘要后空一行，「关键词：」左顶格 (§2.7) | `\htu@abstract@keywordskip` 为一行，`\htu@put@keywords` 顶格并悬挂续行 | 自动检查 | ATDD-3.4 |
+| R2.7-f | 「关键词：」小四号黑体 (§2.7) | `\htu@put@keywords` 的标签使用 `\heiti` | 自动检查 | ATDD-3.4 |
 | R2.7-g | 关键词小四号宋体，分号隔开，末尾无标点 (§2.7) | cls `\htu@ckeywords` 分号 | 自动检查 | ATDD-3.4-I07/I11 |
 
 ## §2.8 ABSTRACT
@@ -201,8 +201,8 @@
 | R2.8-a | 「ABSTRACT」三号 TNR 加粗居中 (§2.8) | cls `\eabstractname` + `\sanhao\bfseries` TNR (cls:217,914) | 自动检查 | ATDD-3.4（fitz TNR bold） |
 | R2.8-b | 段前段后 2 行 (§2.8) | cls eabstract 标题 spacing | 自动检查 | ATDD-3.4 |
 | R2.8-c | 英文内容五号 TNR，2 倍行距 (§2.8) | cls `\wuhao` TNR + baselineskip 23.4bp（2×五号 = 1.5×小四 巧合） | 自动检查 **PROXIED** | `\htucheck` baselineskip（代理）；真证据 ATDD-3.4-I06 / ATDD-3.11-I07；**G-D 透明偏差** |
-| R2.8-d | 首行缩进 4 字符 (§2.8) | cls eabstract `\parindent` (Story 3.15 G2) | 自动检查 | ATDD-3.15-I07 |
-| R2.8-e | 「KEY WORDS:」五号 TNR 加粗 (§2.8) | cls `\bfseries\htu@ekeywords@title` (cls:942) | 自动检查 | ATDD-3.4-I08 |
+| R2.8-d | 首行缩进 4 字符 (§2.8) | 五号 TNR 的四个等宽数字 `0000` 计 21bp | 自动检查 | ATDD-3.15-I07 |
+| R2.8-e | 摘要后空一行，「KEY WORDS：」五号加粗、左顶格 (§2.8) | 字母用 TNR，缺字的全角冒号以加粗黑体补齐 | 自动检查 | ATDD-3.4-I08 |
 | R2.8-f | 关键词五号 TNR，半角逗号隔开，末尾无标点 (§2.8) | cls `\htu@ekeywords` 半角逗号 | 自动检查 | ATDD-3.4-I07 |
 
 ## §2.9 正文用字
@@ -220,8 +220,8 @@
 |----|------------------|-----------|----------|------|
 | R2.10-a | NS 可用 1/1.1/1.1.1（半角点） (§2.10) | cls option `numbering=sc` (Story 3.15 G3) | 自动检查 | ATDD-3.13/3.15（sc 模式 fitz） |
 | R2.10-b | HS 可用 第一章/第一节/一、（默认） (§2.10) | cls 默认 `numbering=hs` + `\ctexset` (cls:493–535) | 自动检查 | ATDD-2.5/3.15 |
-| R2.10-c | 一级标题三号黑体居中 (§2.10) | cls `\ctexset chapter` `\sanhao\sffamily\centering` | 自动检查 | ATDD-2.5/3.15-G6（Latin TNR） |
-| R2.10-d | 二级标题小三号黑体居中 (§2.10) | cls `\ctexset section` `\xiaosanhao\sffamily` | 自动检查 | ATDD-2.5 |
+| R2.10-c | 一级标题三号黑体。HS 和前后置章题居中，SC 正文章题顶格 (§2.10) | `\sanhao` 和 `\htu@chapter@align` | 自动检查 | ATDD-2.5/3.15 |
+| R2.10-d | 二级标题小三号黑体。HS 居中，SC 顶格 (§2.10) | cls `\ctexset section` `\xiaosan\sffamily` | 自动检查 | ATDD-2.5 |
 | R2.10-e | 三级标题四号黑体居左空两格 (§2.10) | cls `\ctexset subsection` `\sihao\sffamily` + 2\ccwd (cls:516) | 自动检查 | ATDD-2.5 |
 | R2.10-f | 四级标题小四号宋体加粗 (§2.10) | cls `\ctexset subsubsection` `\htu@songtibold\bfseries\xiaosi` (cls:525–530) | 自动检查 | ATDD-2.5-28（fitz ink-density，**非 flags**——G-B 教训） |
 | R2.10-g | L1 段前段后 2 行 (§2.10) | cls chapter beforeskip/afterskip | 自动检查 | ATDD-2.5 |
@@ -229,6 +229,7 @@
 | R2.10-i | HS：一二级居中，三级以下居左空两格 (§2.10) | cls `\ctexset` format + 缩进 | 自动检查 | ATDD-2.5 |
 | R2.10-j | 编号与名称间空半格（NS）/不空格（HS） (§2.10) | cls `\ctexset` name format | 自动检查 | ATDD-3.15 |
 | R2.10-k | sc 模式 L1–L3 居左顶格 (§2.10) | cls sc `\ctexset` (cls:541–558) | 自动检查 | ATDD-3.15（sc） |
+| R2.10-l | 四级以下标题小四号常规宋体，缩进两格 (§2.10) | `\paragraph` 和 `\subparagraph` 的 `format`、`indent` | 自动检查 | PDF 字体、字重和位置 |
 
 ## §2.11 插图
 
@@ -268,17 +269,17 @@
 
 | ID | 规则 (spec §ref) | LaTeX 实现 | 检查类型 | 证据 |
 |----|------------------|-----------|----------|------|
-| R2.14-a | 「参考文献」三号黑体居中，另起一页 (§2.14) | cls `\defbibheading{htu-refs}` (cls:998) + `\makebibliography` (cls:1007) 标题 `\sanhao\heiti` | 自动检查 | ATDD-3.7 |
+| R2.14-a | 「参考文献」三号黑体居中，另起一页 (§2.14) | `\makebibliography` 用 `\htu@chapter*{\bibname}` 排章题 | 自动检查 | ATDD-3.7 和参考文献标题哨兵 |
 | R2.14-b | 段前段后 2 行 (§2.14) | cls 标题 spacing | 自动检查 | ATDD-3.7 |
 | R2.14-c | 内容五号宋体 (§2.14) | cls `\wuhao\songti` | 自动检查 | ATDD-3.7 |
-| R2.14-d | 编号 [N] 方括号 (§2.14) | `htuthesis.bst` | 自动检查 | ATDD-3.7 |
-| R2.14-e | 序号左顶格，悬挂缩进（序号后内容左对齐） (§2.14) | cls `\leftmargin`/`\itemindent` 标准悬挂 (Story 3.13) | 自动检查 | ATDD-3.7-I05/I11（[15,28] 带，实测 21pt = 2\ccwd） |
-| R2.14-f | 顺序编码制：按引用顺序 (§2.14) | `htuthesis.bst` unsrt | 自动检查 | ATDD-3.7 |
-| R2.14-g | 双模式：脚注引文 per-page + 文后阅读型重编号 (§2.14 情况二) | cls 脚注 + `\printbibliography` 分组 (Story 3.12) | 自动检查 | ATDD-3.12 |
-| R2.14-h | 作者 ≤3 全列，>3 列前 3 加「等」(§2.14) | `htuthesis.bst` | 自动检查 | `.bbl` 扫描 |
-| R2.14-i | 期刊论文格式 [J] 起止页码 (§2.14) | `htuthesis.bst` | 自动检查 | ATDD-3.7 |
-| R2.14-j | 著作 [M] / 论文集 [C] / 学位论文 [D] / 报告 [R] (§2.14) | `htuthesis.bst` | 自动检查 | `.bbl` 扫描 |
-| R2.14-k | 专利 [P] / 标准 [S] / 报纸 [N] / 电子 [EB/OL] (§2.14) | `htuthesis.bst` | 自动检查 | `.bbl` 扫描 |
+| R2.14-d | 编号 [N] 方括号 (§2.14) | biblatex `gb7714-2015` | 自动检查 | ATDD-3.7 |
+| R2.14-e | 序号左顶格，悬挂缩进（续行与首行文字对齐） (§2.14) | biblatex 数字编号环境 | 自动检查 | ATDD-3.7-I05/I11 |
+| R2.14-f | 单表只列引文，编号与正文一致 (§2.14 情况一) | `sorting=none` 配合 `\printbibliography[heading=bibintoc]`，见使用指南 §9.3 | 自动检查 | 文末排序与正文编号 |
+| R2.14-g | 脚注逐页编号，全部文献表按类型分组，组内按姓氏排序 (§2.14 情况二) | `\footfullcite` 与 `\makebibliography`，各组从 [1] 起，中西文按拼音 `sortname` 混排 | 自动检查 | ATDD-3.12 |
+| R2.14-h | 作者 ≤3 全列，>3 列前 3 加「等」(§2.14) | biblatex `gb7714-2015` | 自动检查 | PDF 条目 |
+| R2.14-i | 期刊论文 [J] 保留起止页码 (§2.14) | `\makebibliography` 保留期刊 `pages` | 自动检查 | ATDD-3.12 |
+| R2.14-j | 著作 [M]、论文集 [C/G]、学位论文 [D]、报告 [R] 在全部文献表省略页段 (§2.14 情况二) | `\makebibliography` 局部清除 `pages` | 自动检查 | ATDD-3.12 |
+| R2.14-k | 专利 [P]、国际与国家标准 [S]、报纸 [N]、电子 [EB/OL] 分组 (§2.14 情况二) | `\AtDataInput` 按类型码与条目子类型归组 | 自动检查 | PDF 分组与 `.bbl` 条目 |
 
 ## §2.15 附录
 
@@ -302,7 +303,8 @@
 | ID | 规则 (spec §ref) | LaTeX 实现 | 检查类型 | 证据 |
 |----|------------------|-----------|----------|------|
 | R2.17-a | 「攻读学位期间发表的学术论文目录」三号黑体居中，段前段后 2 行 (§2.17) | cls `\htu@resume@title` + `\sanhao\heiti` 居中 (cls:237,1059) | 自动检查 | ATDD-3.8 |
-| R2.17-b | 书写格式同参考文献 (§2.17) | cls `resume` env 复用参考文献格式 (cls:1059) | 自动检查 | ATDD-3.8 |
+| R2.17-b | 书写格式同参考文献 (§2.17) | `resume` 内列表编号顶格，首行与续行正文悬挂对齐 | 自动检查 | ATDD-3.8-I14 |
+| R2.17-c | 论文按发表时间排序 (§1.5.2) | `data/resume.tex` 样例按年份正排，已录用待刊项列末尾 | 人工确认 | 核对年份和录用状态 |
 
 ---
 
@@ -316,11 +318,10 @@
 
 ## 透明偏差（文档化，非 bug）— Epic 3 retro action item #4
 
-> 以下 3 项是经 Epic 3 5-teammate 审计 + lead 实证确认的**已记录透明偏差**，非未修复 bug。列出以免未来审查重复告警（Epic 3 retro Lesson 4：行动前先验证）。
+> 以下两项记录了校规文字在字体和行距上的取值依据。
 
 | ID | 偏差 | 实测值 | 真值源 | 理由 |
 |----|------|--------|--------|------|
-| **G-C** | 英文题目用 **Title Case**，非 ALL CAPS | `An Introduction to ... Thesis Template of Henan Normal University` | 参考论文 PDF（已通过审查的论文）+ spec §1.1.1「用大写字母」解读为「proper capitalization」 | ALL CAPS 用于学位论文题目非典型；参考论文以 Title Case 通过审查。保持 Title Case。 |
 | **G-D** | 中文正文 + 英文摘要 baselineskip 巧合同为 **23.4bp** | CN = 1.5×小四-natural ≈ 23.4bp；EN = 2×五号-TNR ≈ 23.4bp | 参考论文 PDF（实测 line-gap）+ spec §2.7（1.5 倍）/ §2.8（2 倍） | 1.5×小四 ≈ 2×五号 是参考论文中的巧合；两者均 spec 正确。**非** 31.2bp（那会偏离参考）。 |
 | **G-E** | 正文 inline ASCII = **小四 (12pt)**，非五号 | ASCII 字形 12pt，对齐 CJK 行高 | 参考论文 PDF | 匹配参考；spec §2.9 治理 CJK 正文（小四），inline ASCII 跟随 CJK 网格。影响低。 |
 
@@ -376,7 +377,3 @@ page counter = <N>         ← §2.4 编号状态
 | 参考文献/附录 | ATDD-3.7, ATDD-3.12, ATDD-4.1 |
 | 致谢/论文目录/脚注/声明 | ATDD-3.8, ATDD-3.3 |
 | Latin 字体 TNR | ATDD-3.9, ATDD-3.15-G6 |
-
----
-
-**计数：** 本清单 ~95 规则行（§1.1.1–§2.17 全覆盖 + §1.x/§3 结构项），含 G-C/G-D/G-E 透明偏差 3 项。spec §1.1–§2.17 每一节均有对应规则行。

@@ -82,10 +82,10 @@ test_u01_sentinel_exists() {
 #   (which uses the fitz probe) is in place.
 test_u02_sentinel_rendered_anchored() {
   [[ -f "$SENTINEL" ]] || return 1
-  # fitz + get_text + main.pdf must ALL appear (the rendered-span probe is the gate).
-  grep -q 'import fitz' "$SENTINEL" \
-    && grep -q 'get_text' "$SENTINEL" \
-    && grep -q 'main.pdf' "$SENTINEL"
+  grep -qF 'import pymupdf' "$SENTINEL" &&
+    grep -qF 'with pymupdf.open(' "$SENTINEL" &&
+    grep -qF 'get_text("dict")' "$SENTINEL" &&
+    grep -qF 'main.pdf' "$SENTINEL"
 }
 
 # ATDD-5.2-U03 (P0, *** RED DRIVER ***, TC-E5-13, AC-4, R-35): the Makefile `test` target chain INCLUDES sentinel-check.
@@ -119,7 +119,7 @@ echo "=============================================="
 echo ""
 
 run_test P0 ATDD-5.2-U01 "sentinel script sentinel-bibliography-chapter.sh exists (AC-4)" test_u01_sentinel_exists
-run_test P0 ATDD-5.2-U02 "sentinel is rendered-span-anchored — fitz + get_text + main.pdf (TC-E5-14, AC-5, RED-construction-guard)" test_u02_sentinel_rendered_anchored
+run_test "P0" "ATDD-5.2-U02" "sentinel probes rendered PDF spans with PyMuPDF (TC-E5-14)" test_u02_sentinel_rendered_anchored
 run_test P0 ATDD-5.2-U03 "Makefile test chain includes sentinel-check (TC-E5-13, AC-4, RED driver)" test_u03_makefile_test_chain_has_sentinel
 run_test P0 ATDD-5.2-U04 "Makefile defines sentinel-check target (TC-E5-13, AC-4, RED driver)" test_u04_makefile_sentinel_target_defined
 run_test P0 ATDD-5.2-U05 "sentinel passes bash -n (TC-E5-23, AC-7, R-33)" test_u05_sentinel_bash_n_clean

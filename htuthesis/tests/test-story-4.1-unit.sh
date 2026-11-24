@@ -137,17 +137,17 @@ run_test "P0" "ATDD-4.1-02" "appendix data has figure + table + equation floats 
 # ==========================================
 echo "=== P1: check-structure.sh guards app01-03 existence (AC-7, data/ complete) ==="
 
-# ATDD-4.1-03: tests/check-structure.sh required_files array must list data/app01.tex, app02.tex, app03.tex so the
-#   structure gate catches a missing appendix file. Pre-impl (ed20363): required_files ends at data/chap04.tex +
-#   data/resume.tex — app01-03 NOT guarded (they exist but invisibly to the structure check). RED pre: <3 app entries.
+# ATDD-4.1-03: the structure check detects a missing appendix included from main.tex.
 test_check_structure_lists_appendix() {
-  [[ -f "tests/check-structure.sh" ]] || return 1
-  local n
-  n=$(grep -cE 'data/app0[1-3]\.tex' tests/check-structure.sh 2>/dev/null | tr -d '[:space:]')
-  echo "  (app01-03 entries in required_files: $n [expect 3])"
-  [[ "$n" -ge 3 ]]
+  (
+    fixture="$(mktemp -d)" || exit 1
+    trap 'rm -rf -- "$fixture"' EXIT
+    printf '%s\n' '\include{data/app03}' > "$fixture/main.tex"
+    result="$(bash tests/check-structure.sh "$fixture" 2>&1)"
+    [[ $? -eq 1 ]] && grep -qF 'data/app03.tex MISSING' <<<"$result"
+  )
 }
-run_test "P1" "ATDD-4.1-03" "check-structure.sh lists app01-03 in required_files (AC-7; *** RED DRIVER *** — absent at ed20363)" test_check_structure_lists_appendix
+run_test "P1" "ATDD-4.1-03" "check-structure reports a missing appendix included by main.tex" test_check_structure_lists_appendix
 
 # ==========================================
 # P1 — AC-5: no stale \ifzzu@bachelor in data/chap03.tex (bachelor removed Story 1.3)

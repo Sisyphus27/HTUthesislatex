@@ -20,7 +20,7 @@
 #   - ATDD-3.4-I05: English body ASCII spans median size ≈ 五号 10.5pt (AC-5) — RED pre-impl (inherits 12pt)
 #   - ATDD-3.4-I06: English body line-gap ≈ 23.4bp (R-14 — NOT 18bp body, NOT 25.2bp trap) — RED pre-impl (18bp)
 #   - ATDD-3.4-I07: English keyword separator = half-width comma (AC-6, TC-E3-23) — RED pre-impl ("; ")
-#   - ATDD-3.4-I08: English KEY WORDS label NON-bold (AC-6, user decision) — RED pre-impl (\textbf bold)
+#   - ATDD-3.4-I08: English KEY WORDS label is bold (§2.8)
 #   - ATDD-3.4-I09/I10/I11: Chinese title/body/keywords SimHei/SimSun (AC-1/2/3) — GREEN guards (already correct)
 #   - ATDD-3.4-I16: English abstract page 0 LMSans + 0 LMRoman (AC-9 — closes 3.9's deferred gap) — RED pre-impl
 #   A source-grep cannot prove rendered font/size/line-gap (a \fontsize/\setmainfont override could evade it).
@@ -77,23 +77,6 @@ run_test() {
   fi
 }
 
-# --- Story 3.15 Red-Phase Gate (wrong-target-AC refactor — G1–G6) ---
-# These assertions probe the RENDERED SPAN the spec governs (fitz font/size/position), NOT a code grep or a proxied
-# target — the root-cause discipline of the 2026-06-19 spec→code audit (sprint-change-proposal-2026-06-19, 6 residual
-# gaps G1–G6; D-22). Isolated from the global SKIP so the existing 575-PASS baseline is preserved while Story 3.15 code
-# is pending (sprint-status: backlog). Activate: ATDD_315_SKIP=0 bash tests/test-story-3.4-integration.sh --run
-SKIP_315="${ATDD_315_SKIP:-1}"
-run_test_315() {
-  local priority="$1"; local test_id="$2"; local description="$3"
-  if [[ "$SKIP_315" == "1" ]]; then
-    yellow "[$priority] $test_id: $description  [Story 3.15 RED-phase]"
-    ((SKIP_COUNT++)); return 0
-  fi
-  shift 3; "$@"
-  if [[ $? -eq 0 ]]; then green "[$priority] $test_id: $description"; ((PASS++)) || true
-  else red "[$priority] $test_id: $description"; ((FAIL++)); fi
-}
-
 echo "=============================================="
 echo "ATDD Integration Tests: Story 3.4 — Chinese and English abstract formatting"
 echo "TDD Phase: $([ "$SKIP" == "1" ] && echo "RED (skipped)" || echo "ACTIVE")"
@@ -107,16 +90,8 @@ doc = fitz.open("main.pdf")
 W = doc[0].rect.width; mid = W / 2.0
 ascii_re = re.compile(r"[A-Za-z0-9]")
 cjk_re = re.compile(r"[一-鿿]")
-# Chinese abstract page = first page containing the Chinese keyword label "关键词".
-ch_abs = None
-for i in range(doc.page_count):
-    if "关键词" in doc[i].get_text():
-        ch_abs = i; break
-# English abstract page = first page containing the uppercase keyword label "KEY WORDS".
-en_abs = None
-for i in range(doc.page_count):
-    if "KEY WORDS" in doc[i].get_text():
-        en_abs = i; break
+ch_abs = next((pi - 1 for _, title, pi in doc.get_toc() if re.sub(r"\s", "", title) == "摘要"), None)
+en_abs = next((pi - 1 for _, title, pi in doc.get_toc() if title == "ABSTRACT"), None)
 def mm(v): return v / 72.0 * 25.4
 def classify_font(fn):
     # 3.4-specific: distinguish LMRoman (\rmfamily defect, closed by 3.9), LMSans (\sffamily Latin — the
@@ -527,31 +502,29 @@ test_eabstract_firstline_indent_4chars() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
 if en_abs is None:
-    print('  (English abstract page not found — RED)'); sys.exit(1)
-xs = []
-for b in doc[en_abs].get_text('dict').get('blocks', []):
-    if b.get('type', 0) != 0: continue
-    for ln in b.get('lines', []):
-        sps = ln.get('spans', [])
-        if not sps: continue
-        txt = ''.join(s['text'] for s in sps)
-        ms = max(s['size'] for s in sps)
-        if 9 <= ms <= 13 and re.search(r'[A-Za-z]', txt):
-            xs.append(min(s['bbox'][0] for s in sps))
-if len(xs) < 2:
-    print('  (too few eabstract body lines: %d — RED/inconclusive)' % len(xs)); sys.exit(1)
-margin = min(xs)                       # flush continuation-line left edge
-first_lines = [x for x in xs if x > margin + 5.0]    # indented paragraph first lines
-if not first_lines:
-    print('  (no indented first line detected — eabstract may be 1 line; RED/inconclusive)'); sys.exit(1)
-indents = [x - margin for x in first_lines]; med = median(indents)
-print('  eabstract first-line indents=%d median=%.1fpt (4-char target ~36-48pt = 4\\ccwd; pre-impl ~21pt = 2 chars)' %
-      (len(indents), med))
-# G2 GREEN: ≈4\ccwd (4 chars). Pre-impl: ~21pt (2 chars) → RED.
-sys.exit(0 if 36.0 <= med <= 48.0 else 1)
+    sys.exit(1)
+page = doc[en_abs]
+rows = {}
+keyword_y = None
+for block in page.get_text('dict')['blocks']:
+    for line in block.get('lines', []):
+        for span in line['spans']:
+            text = span['text'].strip()
+            y = round(span['origin'][1], 1)
+            if text.startswith('KEY WORDS'):
+                keyword_y = y
+            if y >= 772:
+                continue
+            if 'Times' in span['font'] and abs(span['size'] - 10.5) <= 0.25 and re.search(r'[A-Za-z]', text):
+                x = span['origin'][0]
+                rows[y] = min(rows.get(y, x), x)
+margin = 72.0 * 25.0 / 25.4
+indents = [x - margin for y, x in rows.items() if keyword_y is not None and y < keyword_y and x > margin + 2]
+print('English abstract first-line indents (bp):', [round(x, 2) for x in indents])
+sys.exit(0 if len(indents) >= 2 and all(abs(x - 21.0) <= 0.5 for x in indents) else 1)
 "
 }
-run_test_315 "P1" "ATDD-3.4-I18" "BEHAVIOR: EN-abstract first-line indent = 4 chars (G2, TC-E3-59, §2.8; RED pre-impl — 2\\ccwd body)" test_eabstract_firstline_indent_4chars
+run_test "P1" "ATDD-3.4-I18" "English abstract first lines are indented four five-size TNR digits (21 ± 0.5bp)" test_eabstract_firstline_indent_4chars
 
 echo ""
 
@@ -568,7 +541,7 @@ if [[ "$SKIP" == "1" ]]; then
   echo "   Run with --run flag or ATDD_SKIP=0 to activate"
   echo "   RED (fail pre-impl): I04 (En title TNR Bold — LMSans 'Abstract'), I05 (En body 五号 — inherits 12pt),"
   echo "      I06 (En body line-gap ~23.4bp [R-14] — 18bp body), I07 (En keyword comma — ';' renders U+037E),"
-  echo "      I08 (KEY WORDS non-bold — \\textbf), I11 (Ch keyword label SimSun — needs \\sffamily Heiti),"
+  echo "      I08 (KEY WORDS bold), I11 (Ch keyword label SimSun — needs \\sffamily Heiti),"
   echo "      I16 (En abstract 0 LMSans — title is LMSans pre-impl)."
   echo "   GREEN guards: I01-I03 (compile), I09 (Ch title SimHei), I10 (Ch body SimSun),"
   echo "      I12 (textheight), I13 (baselineskip 18bp — R-3 LEAK GUARD), I14 (pages), I15 (no headheight)."

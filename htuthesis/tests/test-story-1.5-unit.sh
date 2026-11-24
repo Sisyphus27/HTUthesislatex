@@ -157,13 +157,32 @@ echo "=== P1: Mechanism 2 — clearemptydoublepage ==="
 #   are mainmatter=绪论/Arabic + makeabstract=Chinese-abstract/Roman). This guard now asserts the NEW reality:
 #   mainmatter KEEPS cleardoublepage (绪论 keeper); frontmatter+backmatter are clearpage (NOT cleardoublepage).
 test_matter_cleardoublepage() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  local front main back
-  front=$(grep -A2 '\\renewcommand\\frontmatter' htuthesis.cls 2>/dev/null | grep -c 'cleardoublepage' || true)
-  main=$(grep -A2 '\\renewcommand\\mainmatter' htuthesis.cls 2>/dev/null | grep -c 'cleardoublepage' || true)
-  back=$(grep -A2 '\\renewcommand\\backmatter' htuthesis.cls 2>/dev/null | grep -c 'cleardoublepage' || true)
-  echo "  (frontmatter: $front, mainmatter: $main, backmatter: $back cleardoublepage calls; expect front=0, main=1, back=0)"
-  [[ "$main" -ge 1 ]] && [[ "$front" -eq 0 ]] && [[ "$back" -eq 0 ]]
+  python - <<'PY'
+from pathlib import Path
+import re
+import sys
+
+source = re.sub(r"(?<!\\)%[^\n]*", "", Path("htuthesis.cls").read_text(encoding="utf-8"))
+for name, expected in [
+    ("frontmatter", "clearpage"),
+    ("mainmatter", "cleardoublepage"),
+    ("backmatter", "clearpage"),
+]:
+    start = re.search(r"\\renewcommand\s*\{?\\%s\}?\s*\{" % name, source)
+    if start is None:
+        sys.exit(f"{name}: definition missing")
+    depth = 1
+    for end in range(start.end(), len(source)):
+        char = source[end]
+        depth += (char == "{") - (char == "}")
+        if depth == 0:
+            break
+    else:
+        sys.exit(f"{name}: unclosed definition")
+    calls = re.findall(r"\\(clearpage|cleardoublepage)\b", source[start.end():end])
+    if calls != [expected]:
+        sys.exit(f"{name}: expected {expected}, got {calls}")
+PY
 }
 run_test "P1" "ATDD-1.5-06" "mainmatter retains cleardoublepage (keeper); frontmatter+backmatter clearpage (REPPOINTED by Story 3.14: §2.4 line 189)" test_matter_cleardoublepage
 

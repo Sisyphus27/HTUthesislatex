@@ -10,10 +10,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{htuthesis}
-[2026/06/12 1.0.0 HTU Doctoral Thesis Template]
+[2026/11/24 v1.3.0 HTU Doctoral Thesis Template]
 \hyphenation{Htu-Thesis}
 \def\htuthesis{HtuThesis}
-\def\version{1.0.0}
+\def\version{1.3.0}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 声明选项(Declaration options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,6 +99,7 @@
 % 用法：\htu@songtibold\bfseries —— \htu@songtibold 切换到带 AutoFakeBold 的 SimSun 族，
 % \bfseries 触发算法加粗（字体名仍为 SimSun，区别于 ctex 默认把 CJK 粗体映射到 SimHei）。
 \newCJKfontfamily\htu@songtibold{SimSun}[AutoFakeBold=2.5]
+\newCJKfontfamily\htu@heibold{SimHei}[AutoFakeBold=2.5]
 % [基础] 拉丁主字体 = Times New Roman（真值来源：HTU 格式要求 §2.7/§2.8/§2.9 + architecture.md:83 硬约束）。
 %   cls 上方 \IfFontExistsTF{Times New Roman} 已保证 TNR 存在（缺失则 \PackageError 终止），
 %   此处再次门控为防御性双保险（AC-1, NFR-2）。
@@ -136,7 +137,7 @@
 \RequirePackage{booktabs}%三线表格
 \RequirePackage[labelformat=simple]{subcaption}% subcaption with labelformat=simple
 \RequirePackage{graphicx}%图形支持
-\RequirePackage[backend=biber,style=gb7714-2015,sorting=nyt,defernumbers=true]{biblatex}% biblatex GB/T 7714-2015 (Story 3.12 Option A, §2.14 case-2 双模式). 替换 natbib [numbers,super] 末端 case-1。sorting=nyt = 文末表按作者姓名序（§2.14 line 291 每一类再按照作者姓氏字母顺序编号；CJK 为 Unicode 码点序≈拼音需 .bib sortkeys 精化，4.1）；defernumbers=true + 每节 resetnumbers=true = 每类 [1] 重启（§2.14 line 291 重新编号）。
+\RequirePackage[backend=biber,style=gb7714-2015,sorting=nyt,sortlocale=zh__pinyin,defernumbers=true]{biblatex}
 \addbibresource{ref/refs.bib}% 参考文献（GB/T 7714-2015；Zy 决策 2026-06-17 Option A）
 \RequirePackage{hyperref}%超链接、书签
   \hypersetup{%
@@ -166,7 +167,7 @@
 %   即 problem-solution-2026-06-24 已验证的 S3b \markboth 机制）；编号路径完全委托原命令，零修改。
 %   真值源：spec §2.5 line 193「正文奇数页=一级标题」+ fitz 实测 p10-39 残留/p40 刷新 +
 %   problem-solution-2026-06-24.md（S3b 在 v1.0.0 验证 p11="绪论" ✅；S2 mainmatter 清洗被 fitz 否决）。
-%   安全：\htu@chapter* 是独立 \def，不触发此包装 → 无双重 \@mkboth；
+%   \htu@chapter* 直接调用下方保存的 ctex 章命令，并自行设置可选短页眉。
 %   附录 \chapter{附录}（\appendix 下编号 A/B/C）走编号路径委托，不受影响。\NewCommandCopy 为
 %   LaTeX2e 2020-10+ 内建（等同 letltxmacro），无需额外包。
 \NewCommandCopy{\htu@orig@chapter}{\chapter}
@@ -175,9 +176,10 @@
     {\htu@orig@chapter*{#3}\@mkboth{#3}{#3}}%
     {\IfNoValueTF{#2}{\htu@orig@chapter{#3}}{\htu@orig@chapter[#2]{#3}}}%
 }
+\let\htu@chapter@align\centering
 \renewcommand\frontmatter{%
   \clearpage
-  \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
+  \let\htu@chapter@align\centering
   \@mainmatterfalse
   \pagenumbering{Roman}
   \pagestyle{htu@plain}}
@@ -189,19 +191,23 @@
   %%   （见 v1.0.0 data/chap01.tex 绪论）；编号章由 ctex \@chapter→\chaptermark 自动设。
   %%   spec §2.5「正文奇数页=一级标题」；三源三角（spec/参考PDF/.cls）。
   \cleardoublepage
-  \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
+  \ifhtu@numbersc
+    \let\htu@chapter@align\raggedright
+  \else
+    \let\htu@chapter@align\centering
+  \fi
   \@mainmattertrue
   \pagenumbering{arabic}%
   \pagestyle{htu@headings}}
 \renewcommand\backmatter{%
   \clearpage
-  \ifhtu@numbersc\else\ctexset{chapter/format+=\centering}\fi% sc 模式章标题顶格不居中（§2.10 NS；Story 3.15 G3）
+  \let\htu@chapter@align\centering
   \@mainmattertrue}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 中文配置
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \ctexset{%
-  contentsname={目\hspace{\ccwd} 录},
+  contentsname={\texorpdfstring{目\hspace{\ccwd}录}{目录}},
   listfigurename={插图清单},
   listtablename={表格清单},
   figurename={图},
@@ -242,7 +248,7 @@
     \or\def\CJK@today{\CJK@todaysmall}
     \or\def\CJK@today{\CJK@todaybig}
   \fi}
-\newcommand{\cabstractname}{摘\hspace{\ccwd} 要}
+\newcommand{\cabstractname}{摘\hspace{\ccwd}要}
 % [基础] 英文摘要标题 = ABSTRACT（大写）。三号 TNR 加粗居中——字体在 \htu@makeabstract 的标题调用中
 %   覆盖章节 \sffamily 格式（避免 Latin 渲染为 LMSans；Story 3.4 AC-4，闭合 Story 3.9 遗留缺口）。
 %   真值源：HTU 格式要求 §2.8 + 参考论文 PDF page 6（TimesNewRomanPS-BoldMT 15.9pt）。
@@ -252,12 +258,7 @@
 %   "governance, Responsive politics"。\htu@parse@keywords 按逗号切分 \ekeywords 参数后用此分隔符重组输出。
 \def\htu@ekeywords@separator{, }
 \newcommand{\htu@ckeywords@title}{关键词：}
-% [基础] 英文关键词标签 = KEY WORDS 后接半角冒号（U+003A），冒号后无间距，标签加粗。真值源：spec §2.8 line 223
-%   PRIORITY「'KEY WORDS：'用五号'Times New Roman'字体，加粗」（CLAUDE.md Decision 4 修正 2026-06-17）。半角冒号
-%   保留（参考论文 PDF page 9 实测半角冒号紧接首关键词；Epic 2 retro D-14 已闭合冒号宽度问题）。加粗 = Story 3.13
-%   翻案 Story 3.4（2026-06-16 reference-wins 非加粗）→ 回归 spec §2.8 加粗（gap 1b）；仅标签加粗，关键词非加粗
-%   （§2.8「其后的关键词用五号 TNR」）。加粗在 \htu@makeabstract 的 \htu@put@keywords 调用处 \bfseries 包裹。
-\newcommand{\htu@ekeywords@title}{KEY WORDS:}
+\newcommand{\htu@ekeywords@title}{KEY WORDS\hbox{\xeCJKsetup{PunctStyle=plain}\htu@heibold\bfseries ：}}
 \newcommand{\htu@denotation@name}{主要符号对照表}
 \newcommand{\htu@ackname}{致\hspace{\ccwd} 谢}
   % [基础] 发表论文目录标题文本（真值来源：spec §2.17「攻读学位期间发表的学术论文目录」用三号黑体字居中）。
@@ -470,10 +471,13 @@
 \renewcommand{\floatpagefraction}{\htu@floatpagefraction}%浮动页由浮动对象占用的最小比例(0.5)
 \DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.jpeg}%搜索指定扩展名
 \DeclareCaptionLabelSeparator{htu}{\hspace{0.5\ccwd}}%图表序与图表名之间空半格（spec §2.11/§2.12「编号和图题间空半格」= 0.5\ccwd 半字距）。真值源：spec PRIORITY（CLAUDE.md Decision 4 修正 2026-06-17）。参考论文 PDF pp.58/95/138/140/207 实测为全角冒号「：」（参考为 Word 填充实例，此处偏离 spec）。Story 3.13 翻案 Story 3.6 Option A（2026-06-16 reference-wins 取冒号）→ 回归 spec 空半格（gap 1a）。
-\DeclareCaptionFont{htu}{\wuhao[1.5]}
+% 按完整字格排题注的句末标点，使两行题注的可见行宽与居中盒一致。
+\DeclareCaptionFont{htu}{\wuhao[1.5]\xeCJKsetup{PunctStyle=plain}}
 \captionsetup{
   font           = htu,
   labelsep       = htu,
+  justification  = centering,
+  singlelinecheck = false,
   figureposition = bottom,
   tableposition  = top,
 }
@@ -549,7 +553,7 @@
     beforeskip=\htu@chapter@beforeskip,
     aftername={},%§2.10 人文社科「标题编号和标题名称间不空格」（原 \hskip\ccwd 为自然科学制，删）
     afterskip=\htu@chapter@afterskip,
-    format={\sffamily\htu@tnr\sanhao[\htu@chapter@linespread]},
+    format={\sffamily\htu@tnr\sanhao[\htu@chapter@linespread]\htu@chapter@align},
     name={第,章},
     number=\chinese{chapter},
     nameformat=\relax,
@@ -559,6 +563,7 @@
   },
   section={%二级标题：黑体小三号(15bp)，居中，段前段后0.5行（HTU §2.10 人文社科 第一节）
     afterindent=true,
+    aftername={},
     beforeskip={\htu@section@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@section@afterskip \@plus .2ex},
     format={\sffamily\htu@tnr\xiaosan[\htu@section@linespread]\centering},
@@ -567,6 +572,7 @@
   },
   subsection={%三级标题：黑体四号(14bp)，居左空两格，段前段后0.5行（HTU §2.10 人文社科 一、）
     afterindent=true,
+    aftername={},
     indent=2\ccwd,
     beforeskip={\htu@subsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsection@afterskip \@plus .2ex},
@@ -576,24 +582,33 @@
   },
   subsubsection={%四级标题：宋体小四号(12bp)加粗，居左空两格（HTU §2.10 人文社科 L4 （1）；段前段后为推断值）
     afterindent=true,
-    indent=2\ccwd,
+    aftername={},
+    indent=24bp,
     beforeskip={\htu@subsubsection@beforeskip \@plus .5ex \@minus .2ex},
     afterskip={\htu@subsubsection@afterskip \@plus .2ex},
     format={\htu@songtibold\bfseries\xiaosi[\htu@subsubsection@linespread]},
+    nameformat={\xeCJKsetup{PunctStyle=plain}},
     name={（,）},
     number=\arabic{subsubsection},
   },
-  paragraph/afterindent=true,
-  subparagraph/afterindent=true}
-% [基础] 自然科学制（numbering=sc）ctex 覆盖（spec §2.10 line 235-237；Story 3.15 G3 / D-22）。
-%   默认 hs（上方 \ctexset）。sc 模式覆盖：name={,}（去 第/章 节 包装）+ number=Arabic（章 1，节 1.1，小节 1.1.1 半角）
-%   + aftername=\hspace{0.5\ccwd}（编号名空半格 §2.10 line 237）+ format 不居中（顶格；章/节标题）。
-%   beforeskip/afterskip/indent 沿用 hs 默认。\thechapter Arabic 锁（cls 下方）+ 图表编号 图 1-1 不受影响（§2.11/2.12/2.13）。
+  paragraph={%
+    afterindent=true,
+    aftername={},
+    indent=24bp,
+    format={\normalfont\rmfamily\songti\mdseries\xiaosi},
+  },
+  subparagraph={%
+    afterindent=true,
+    aftername={},
+    indent=24bp,
+    format={\normalfont\rmfamily\songti\mdseries\xiaosi},
+  },
+}
+% [基础] §2.10 自然科学制：一至三级顶格，四级以下缩进两格，编号后空半格。
 \ifhtu@numbersc
   \ctexset{%
     chapter={%一级标题：黑体三号(16bp)，顶格，段前段后2行（NS §2.10「1」）
       aftername=\hspace{0.5\ccwd},%§2.10 NS 编号名空半格（hs 为不空格）
-      format={\sffamily\htu@tnr\sanhao[\htu@chapter@linespread]},%顶格（sc 不居中；format 无 \centering）
       name={,},%NS 去包装（hs name={第,章}）
       number=\arabic{chapter},%NS Arabic（hs \chinese{chapter}）
     },
@@ -605,9 +620,23 @@
     },
     subsection={%三级标题：黑体四号(14bp)，顶格（NS §2.10「1.1.1」）
       aftername=\hspace{0.5\ccwd},
+      indent=0pt,
       format={\sffamily\htu@tnr\sihao[\htu@subsection@linespread]},
       name={,},
       number=\arabic{chapter}.\arabic{section}.\arabic{subsection},%NS 1.1.1 半角
+    },
+    subsubsection/aftername={\hspace{.5\ccwd}},
+    paragraph={%
+      name={（,）},
+      number=\alph{paragraph},
+      nameformat={\xeCJKsetup{PunctStyle=plain}},
+      aftername={\hspace{.5\ccwd}},
+    },
+    subparagraph={%
+      name={（,）},
+      number=\roman{subparagraph},
+      nameformat={\xeCJKsetup{PunctStyle=plain}},
+      aftername={\hspace{.5\ccwd}},
     },
   }%
 \fi
@@ -618,7 +647,6 @@
 %   （cls 上方 cls:413-418）仍呈 图 1-1 / 表 1-1 / (1-1)（§2.11/2.12/2.13）。\appendix 运行时（文档体内，晚于此处）
 %   \gdef \thechapter=\@Alph（附录 A）覆盖此行，故附录 A-1 编号不受影响。ATDD I05（rendered 24 Arabic）+ unit-09/10 守卫。
 \renewcommand{\thechapter}{\@arabic\c@chapter}
-\newcounter{htu@bookmark}
 \def\htu@chapter*{%\htu@chapter*[tocline]{title}[header]
   %% \@ifnextchar peeks at the following character and compares it with its first argument. 
   %% If both are the same it executes its second argument, otherwise its third.
@@ -631,16 +659,15 @@
     {\htu@@@chapter[#1]{#2}}
     {\htu@@@chapter[#1]{#2}[]}}
 \def\htu@@@chapter[#1]#2[#3]{%
-  \clearpage\phantomsection%
+  % ctex 完成换页并设置章首目标。页眉只写入一次，保留可选的简短标题。
+  \htu@orig@chapter*{#2}%
   \def\@tmpa{#1}
   \def\@tmpb{#3}
   \ifx\@tmpa\@empty
-    \addtocounter{htu@bookmark}\@ne
-    \pdfbookmark[0]{#2}{htuchapter.\thehtu@bookmark}
+    \Hy@writebookmark{}{#2}{\@currentHref}{0}{toc}%
   \else
     \addcontentsline{toc}{chapter}{#1}
   \fi
-  \chapter*{#2}
   \ifx\@tmpb\@empty
     \@mkboth{#2}{#2}
   \else
@@ -654,7 +681,7 @@
 %%   标题"目 录"= 三号黑体居中（\htu@chapter* → \sffamily\sanhao，cls:510）。
 %%   一级标题（章）= 小四号黑体（\xiaosi[1]\sffamily → 12pt SimHei，via 3.9 \setCJKsansfont{SimHei}）。
 %%   二级/三级标题（节/小节）= 小四号宋体（\xiaosi[1] → 12pt SimSun，文档默认 CJK 面）。
-%%   每下一级向右缩进一格（[0]/[2\ccwd]/[4\ccwd]；参考 p10 delta=24pt=2\ccwd/级）。
+%%   每下一级向右缩进一格（§2.6，小四字宽 12bp）。
 %%   点引导线 \titlerule*{.}；显示至三级标题（\htu@tocdepth=2）。
 %%   Latin（页码/章号/点引导线）：label + leader 内 \rmfamily 守卫渲染 TNR（防 \sffamily→LMSans 退化；Story 3.5）。
 %%   [基础] 旧 zzuthesis 原始值（章 14 磅宋体 / 小节 10.5 磅）已按 HTU §2.6 校正——spec+参考 PDF 一致，
@@ -674,10 +701,10 @@
 \titlecontents{chapter}[\z@]{\vspace{6bp}\xiaosi[1]\sffamily\htu@tnr}
   {\thecontentslabel\quad}{}
   {\rmfamily\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
-\titlecontents{section}[2\ccwd]{\vspace{6bp} \xiaosi[1]}
+\titlecontents{section}[\htu@toc@cell]{\vspace{6bp}\normalfont\songti\xiaosi[1]}
   {\thecontentslabel\quad}{}
   {\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
-\titlecontents{subsection}[4\ccwd]{\vspace{6bp} \xiaosi[1]}
+\titlecontents{subsection}[2\htu@toc@cell]{\vspace{6bp}\normalfont\songti\xiaosi[1]}
   {\thecontentslabel\quad}{}
   {\hspace{.5em}\titlerule*{.}\xiaosi\contentspage}
 \titlecontents{figure}[\z@]{\wuhao[1.524]}%10.5bp，16bp
@@ -793,11 +820,11 @@
     % --- 「博士学位论文」标签（宋体45pt，居中，y=89.1mm）---
     \node[anchor=north, inner sep=0pt]
       at ($(current page.north) + (0mm, -89.1mm)$)
-      {\fontsize{45bp}{54bp}\selectfont\htu@subtitle};
+      {\rmfamily\htu@songtibold\bfseries\fontsize{45bp}{54bp}\selectfont\htu@subtitle};
     % --- 论文题目（黑体小二18pt，居中，y=133.4mm）---
     \node[anchor=north, inner sep=0pt, text width=160mm, align=center]
       at ($(current page.north) + (0mm, -133.4mm)$)
-      {\sffamily\htu@tnr\xiaoer[1.5]\htu@ctitle};
+      {\rmfamily\htu@heibold\bfseries\xiaoer[1.5]\htu@ctitle};
     % --- 五字段（黑体小三15pt，左 x=60mm，label：value 格式）---
     \node[anchor=north west, inner sep=0pt]
       at ($(current page.north west) + (60.3mm, -191.9mm)$)
@@ -887,21 +914,23 @@
 %   故 .doc 为唯一 verbatim 文本源。正文用字面“河南师范大学”（法律文本安全，不用 \htu@schoolname 宏）。
 %   Story 3.3 (2026-06-15)：替换旧模板文本为 HTU .doc verbatim；标题/签名/日期标签同步对齐。
 \newcommand{\htu@declarename}{独创性声明}
+\newcommand{\htu@declare@heading}{%
+  \texorpdfstring{\htu@heibold\bfseries 独\hspace{.25\ccwd}创\hspace{.25\ccwd}性\hspace{.25\ccwd}声\hspace{.25\ccwd}明}{\htu@declarename}}
 \newcommand{\htu@authtitle}{关于论文使用授权的说明}
 \newcommand{\htu@declaretocname}{独创性声明和关于论文使用授权的说明}
 \newcommand{\htu@authorsigtitle}{作者签名：}
 \newcommand{\htu@supervisorsigtitle}{导师签名：}
 \newcommand{\htu@datesigtitle}{日期：}
 \newcommand{\htu@declaretext}{\hspace{2\ccwd}本人郑重声明：所呈交的学位论文是我个人在导师指导下进行的研究工作及取得的研究成果。尽我所知，除了文中特别加以标注和致谢的地方外，论文中不包含其他人已经发表或撰写的研究成果，也不包含为获得河南师范大学或其他教育机构的学位或证书所使用过的材料。与我一同工作的同志对本研究所做的任何贡献均已在论文中作了明确的说明并表示了谢意。}
-\newcommand{\htu@authorization}{\hspace{2\ccwd}本人完全了解河南师范大学有关保留、使用学位论文的规定，即：有权保留并向国家有关部门或机构送交论文的复印件和磁盘，允许论文被查阅和借阅。本人授权河南师范大学可以将学位论文的全部或部分内容编入有关数据库进行检索，可以采用影印、缩印或扫描等复制手段保存、汇编学位论文。（保密的学位论文在解密后适用本授权书）}
+\newcommand{\htu@authorization}{\hspace{2\ccwd}本人完全了解河南师范大学有关保留、使用学位论文的规定，即：有权保留并向国家有关部门或机构送交论文的复印件和磁盘，允许论文被查阅和借阅。本人授权河南师范大学可以将学位论文的全部或部分内容编入有关数据库进行检索，可以采用影印、缩印或扫描等复制手段保存、汇编学位论文。{\htu@songtibold\bfseries （保密的学位论文在解密后适用本授权书）}}
 \newcommand{\htu@authorization@mk}{%独创性声明 + 授权说明（HTU 后置页；spec §1.1 结尾部分末项；FR-14）
   % 复用 Epic 2 \htu@chapter* 机制：独立页 + 三号黑体居中标题 + 目录条目（组合名）+ 页眉 + 阿拉伯页码（spec §2.4/§1.1.4）。
-  \htu@chapter*[\htu@declaretocname]{\htu@declarename}[\htu@declarename]
-  \xiaosi[1.6]\htu@declaretext
+  \htu@chapter*[\htu@declaretocname]{\htu@declare@heading}[\htu@declarename]
+  \rmfamily\songti\mdseries\xiaosi[1.6]\htu@declaretext
   \vskip 16pt
   \htu@authorsigtitle\,\underline{\hspace{3cm}}\hfill\htu@datesigtitle\,\underline{\hspace{2cm}}\par
   \vskip 22pt
-  \begin{center}\sffamily\htu@tnr\sanhao \htu@authtitle\end{center}
+  \begin{center}\htu@heibold\bfseries\sanhao \htu@authtitle\end{center}
   \vskip 10pt
   \xiaosi[1.6]\htu@authorization
   \vskip 16pt
@@ -919,18 +948,18 @@
   \ifx\htu@ctitle\@empty\PackageError{htuthesis}{htuthesis ERROR: Chinese title (\string\ctitle) is empty -- cover cannot render without a title (Story 4.2, deferred-work §3.2).}{Set the title via \string\ctitle{...} in the preamble.}\fi
   \ifx\htu@etitle\@empty\PackageError{htuthesis}{htuthesis ERROR: English title (\string\etitle) is empty (Story 4.2, deferred-work §3.2).}{Set the title via \string\etitle{...} in the preamble.}\fi
   \htu@setup@pdfinfo
-  \phantomsection
-  \pdfbookmark[-1]{\htu@ctitle}{ctitle}
   \normalsize%
-  \begin{titlepage}
-    \htu@first@titlepage
-    \clearpage
-    \htu@engcover
-    % 声明页在后置部分渲染（main.tex \makedeclaration，spec §1.1 结尾部分末项；FR-14），
-    %   不在前置 \makecover（Story 3.2 移除；Story 3.3 在后置恢复）。
-    %   Story 3.14 (2026-06-19)：\htu@abstractcover「摘要封面」从 \makecover 删除（spec §1.1 line 5 无）；
-    %     \clearpage（非 cleardoublepage）— spec §2.4 line 189 仅 2 个起始页须右页（绪论 + 中文摘要）。
-  \end{titlepage}
+  \begingroup
+    % 封面和扉页不编号，保留题名书签，将 page.I 留给中文摘要。
+    \hypersetup{pageanchor=false}%
+    \begin{titlepage}
+      \normalfont
+      \pdfbookmark[-1]{\htu@ctitle}{ctitle}%
+      \htu@first@titlepage
+      \clearpage
+      \htu@engcover
+    \end{titlepage}
+  \endgroup
   \normalsize
   \htu@makeabstract
   \let\@tabular\htu@tabular
@@ -939,10 +968,7 @@
   \htu@authorization@mk}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 中英文摘要及关键词
-%% 中文摘要部分的标题为"摘要"
-%%   关键词之间空两个汉字符宽度，悬挂缩进
-%% 英文摘要部分的标题为 Abstract，用 Arial 体三号字
-%%   关键词之间空四个英文字符宽度，悬挂缩进
+%% 中文关键词以分号分隔，英文以半角逗号分隔。两者均顶格、续行悬挂。
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\htu@@cabstract}[1]{\long\gdef\htu@cabstract{#1}}
 \newenvironment{cabstract}{\Collect@Body\htu@@cabstract}{}
@@ -964,41 +990,37 @@
 \newbox\htu@kw
 \newcommand\htu@put@keywords[2]{%
   \begingroup
+    \interlinepenalty=10000
     \setbox\htu@kw=\hbox{#1}
     \noindent\hangindent\wd\htu@kw\hangafter1%
     \box\htu@kw#2\par
   \endgroup}
 \newcommand{\htu@makeabstract}{%
   \cleardoublepage
-  \htu@chapter*[]{\cabstractname} % no tocline；中文标题 摘 要 = SimHei 三号（\sffamily CJK via 3.9）
-  \pagestyle{htu@plain}
   \pagenumbering{Roman}
-  \htu@cabstract
-  \vskip\htu@abstract@keywordskip
-  % 中文关键词标签 = 黑体（SimHei via 3.9 \setCJKsansfont）。\sffamily 仅限标签 \hbox，关键词仍宋体。
-  %   Story 3.4 AC-3：原 \textbf 渲染为 SimSun（非黑体），改 \sffamily（RED-confirmed SimSun→SimHei）。
-  \htu@put@keywords{\sffamily\htu@ckeywords@title}{\htu@ckeywords}
-  % 英文标题：覆盖章节 \sffamily 格式（Latin→LMSans 缺口）使标题渲染为 TNR 加粗三号居中（Story 3.4 AC-4，
-  %   闭合 Story 3.9 ATDD-3.9-16 的 1 个 LMSans span）。三号行距/居中由 chapter 格式提供。
-  %   \texorpdfstring：文本态用 \rmfamily\bfseries（渲染 TNR Bold），PDF 书签/页眉标记态用空（洁净 ABSTRACT，
-  %   避免 hyperref "Token not allowed in a PDF string"；Story 3.4 code-review patch）。
-  \htu@chapter*[]{\texorpdfstring{\rmfamily\bfseries}{}\eabstractname} % no tocline
-  % 英文摘要正文 + 关键词 scope：五号 TNR + 独立行距 ≈23.4bp（参考论文 page 6 Word "2倍行距"=2×自然行高，
-  %   非 2×字号 21bp；Story 3.4 R-14/AC-5，透明偏离 architecture.md:151 的 21bp 假设，用户决策 2026-06-16）。
-  %   显式 baselineskip + 锁 baselinestretch=1 防 ctex 1.2× 系数（R-3 陷阱）；不用拉伸类行距命令（architecture.md:84）。
+  \pagestyle{htu@plain}
+  \htu@chapter*[摘要]{\cabstractname}[摘要]
   \begingroup
-    \rmfamily
-    \renewcommand{\baselinestretch}{1}% 先锁系数=1，再设字号（避免首个 \selectfont 以环境 \baselinestretch 瞬态算错；Story 3.4 code-review patch）
-    \fontsize{10.5bp}{23.4bp}\selectfont
-    % [基础] 英文摘要首行缩进 = 4 字符（spec §2.8 line 221「每段开头空 4 个字符」；Story 3.15 G2）。
-    %   原继承正文 2\ccwd（≈2 字）；G2 显式设 4\ccwd（4 字，五号 \ccwd≈10.5pt → ≈42pt）。ATDD-3.15-I07 4-字区间 [24,44]。
-    \setlength{\parindent}{4\ccwd}%
-    \htu@eabstract
-    \vskip\htu@abstract@keywordskip
-    % 英文关键词标签加粗（spec §2.8 line 223「加粗」，Story 3.13 翻案 3.4 reference-wins 非加粗）；分隔符为半角逗号。
+    \rmfamily\songti\mdseries\normalsize
+    \setlength{\parindent}{24bp}%
+    \setlength{\parskip}{0pt}%
+    \xeCJKsetup{PunctStyle=plain}%
+    \htu@cabstract\par
+    \nobreak\vskip\htu@abstract@keywordskip\nobreak
+    \htu@put@keywords{\sffamily\heiti\htu@ckeywords@title}{\htu@ckeywords}%
+  \endgroup
+  \htu@chapter*[ABSTRACT]{\texorpdfstring{\rmfamily\bfseries}{}\eabstractname}[ABSTRACT]
+  \begingroup
+    \ctexset{autoindent=false}%
+    \renewcommand{\baselinestretch}{1}%
+    \rmfamily\mdseries\fontsize{10.5bp}{23.4bp}\selectfont
+    \settowidth{\parindent}{0000}%
+    \setlength{\parskip}{0pt}%
+    \htu@eabstract\par
+    \nobreak\vskip\htu@abstract@keywordskip\nobreak
     \htu@put@keywords{\bfseries\htu@ekeywords@title}{\htu@ekeywords}%
   \endgroup
-  \normalsize% R-3 leak guard：恢复正文 12pt/23.4bp，防 scope 泄漏到 \AtEndDocument 自检（Story 3.3 模式；3.11 重校准正文行距 18→23.4bp）
+  \normalsize
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 主要符号对照表
@@ -1050,61 +1072,99 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % biblatex GB/T 7714-2015 文末表正文字体 = 五号宋体（Story 3.7 AC-2 §2.14 line 285）
 \renewcommand*{\bibfont}{\wuhao[1.524]}%
-% [基础] htu-refs（主标题+子标题）——Story 5.1（2026-06-23）后不再挂任何分节：入口 \htu@chapter*{\bibname}
-%   已独立 emit 主标题（见 \makebibliography）。定义保留供溯源；如需清理可删（htu-refs-sub 已覆盖全部分节）。
-\defbibheading{htu-refs}[1]{\htu@chapter*{\bibname}\par\vspace{0.6\baselineskip}{\xiaosi\sffamily\htu@tnr\centerline{#1}}\par\vspace{0.3\baselineskip}}%
-% [基础] 文末表类型分节子标题：一、期刊论文 … 六、电子资源（§2.14 line 291 按文献类型分类）。
-%   Story 5.1 Change 1（sprint-change-proposal-2026-06-23）：宋体小四【左对齐】——参考论文 p228-249 实测
-%   font=SimSun size=12.0 x0=114/595（非居中）；spec §2.14 对分节标题格式沉默 → 参考 PDF 辅助 → 原
-%   \sffamily(SimHei)+\centerline(居中) 是偏离。改 \songti(SimSun) + 去 \centerline(左对齐)。保留
-%   \htu@tnr Latin 守卫（F2 结构性，Epic 4 retro；分节标题为 CJK 无实时 Latin 泄漏，守卫作结构性保留）。
-%   Epic 5 复盘修复（2026-06-24，Zy 裁决；spec §2.14 对分节标题格式沉默→允许）：
-%   (a) 加粗：\songti→\htu@songtibold\bfseries（cls:98-101 SimSun+AutoFakeBold=2.5 算法粗宋；字体名仍
-%       SimSun，不退化成 SimHei，区别于 ctex 默认 CJK 粗体映射；复用四级标题 cls:546 已验机制）。原因：
-%       宋体 12pt 标题 vs 宋体 10.5pt 条目同族仅差字号、无层级区分度（Zy 目视）；加粗增区分度且保留宋体字面。
-%   (b) \noindent 顶格：原继承正文 \parindent 2 字缩进（实测 x0=94.9）偏离参考 flush-left（x0=114≈条目 111）。
-%   (c) 标题后 \vspace{0.3\baselineskip}→-0.2：标题→首条目实测 37→25.2pt 对齐参考 24.1pt
-%       （Story 5.1 Change 1 原 AC 漏检间距维度——"渲染存在≠正确形态"）。
-%   fitz 实证（4 维）：font=SimSun(非 SimHei) + 粗体墨度比 1.59-1.77(同文 regular 对照,>1.3,L4=1.48) + x0=70.9(原 94.9) + 标题→首条目 25.2pt(原 37,参考 24.1)。
-\defbibheading{htu-refs-sub}[1]{\par\vspace{0.6\baselineskip}{\noindent\xiaosi\htu@songtibold\bfseries\htu@tnr #1}\par\vspace{-0.2\baselineskip}}%
-% [基础] 文末表：按文献类型分节重组（引文 + 阅读型，§2.14 case-2 line 291）。
-%   Story 5.1（2026-06-23，NFR-6）：入口无条件 emit \htu@chapter*{\bibname}——章标题独立于分节数据分布。
-%   Story 3.12 曾将主标题 heading（htu-refs）只挂 type=article 分节；真实 refs.bib 无 @article 时该节空
-%   → biblatex 跳过空节 heading → "参考文献"章蒸发 + 不入目录（FR-20/NFR-6 违反，Story 3.12 盲点）。
-%   7 个 \printbibliography 全部改用 htu-refs-sub（仅子标题）。见 architecture.md §参考文献章标题与分节数据分布解耦。
-%   R-34（空节警告 gate）：外层 \begingroup 静默 \blx@warn@bibempty——任何分布（含真实稀疏 bib，如仅
-%   @online → 5 个具名分节空）都不超 NFR-1 ≤3 警告门。空节仍不渲染（行为不变，仅去警告）。
+% [基础] 文末表分组标题：小四加粗宋体、顶格；标题到首条目的间距据参考论文 pp.228–249 校准。
+\newcounter{htu@bibgroup}
+\defbibheading{htu-refs-sub}[1]{%
+  \stepcounter{htu@bibgroup}%
+  \par\vspace{0.6\baselineskip}%
+  {\noindent\xiaosi\htu@songtibold\bfseries\htu@tnr \chinese{htu@bibgroup}、#1}%
+  \par\nobreak\vspace{0.3\baselineskip}%
+  \@afterheading
+}
+% [基础] §2.14：按 GB/T 类型标识分组，标准和报纸保留映射前的类别。
+\forcsvlist{\DeclareBibliographyCategory}{htu-journal,htu-book,htu-collection,htu-thesis,htu-report,htu-patent,htu-standard,htu-news,htu-electronic,htu-other}
+\def\htu@bibcat@J{htu-journal}
+\def\htu@bibcat@M{htu-book}
+\def\htu@bibcat@C{htu-collection}
+\let\htu@bibcat@G\htu@bibcat@C
+\def\htu@bibcat@D{htu-thesis}
+\def\htu@bibcat@R{htu-report}
+\def\htu@bibcat@P{htu-patent}
+\def\htu@bibcat@S{htu-standard}
+\def\htu@bibcat@N{htu-news}
+\def\htu@bibcat@EB{htu-electronic}
+\let\htu@bibcat@article\htu@bibcat@J
+\let\htu@bibcat@periodical\htu@bibcat@J
+\let\htu@bibcat@book\htu@bibcat@M
+\let\htu@bibcat@inbook\htu@bibcat@M
+\let\htu@bibcat@inproceedings\htu@bibcat@C
+\let\htu@bibcat@proceedings\htu@bibcat@C
+\let\htu@bibcat@incollection\htu@bibcat@G
+\let\htu@bibcat@collection\htu@bibcat@G
+\let\htu@bibcat@thesis\htu@bibcat@D
+\let\htu@bibcat@report\htu@bibcat@R
+\let\htu@bibcat@patent\htu@bibcat@P
+\let\htu@bibcat@standard\htu@bibcat@S
+\let\htu@bibcat@newspaper\htu@bibcat@N
+\let\htu@bibcat@online\htu@bibcat@EB
+\newcommand{\htu@addbibcategory}[1]{%
+  \edef\htu@bibitemcategory{\noexpand\addtocategory{#1}{\thefield{entrykey}}}%
+  \htu@bibitemcategory
+}
+\AtDataInput{%
+  \ifkeyword{htu-electronic}
+    {\htu@addbibcategory{htu-electronic}}%
+    {\iffieldequalstr{entrysubtype}{standard}
+       {\htu@addbibcategory{htu-standard}}%
+       {\iffieldequalstr{entrysubtype}{news}
+          {\htu@addbibcategory{htu-news}}%
+          {\ifcsdef{htu@bibcat@\thefield{usera}}
+             {\htu@addbibcategory{\csuse{htu@bibcat@\thefield{usera}}}}%
+             {\ifcsdef{htu@bibcat@\thefield{entrytype}}
+                {\htu@addbibcategory{\csuse{htu@bibcat@\thefield{entrytype}}}}%
+                {\htu@addbibcategory{htu-other}}}}}}%
+}
+% 著作、论文集、学位论文和报告在文末全部文献表中省略原页段；
+% 页下注已给出具体引文页码时，使用该页码。
+\newif\ifhtu@fullbib
+\newbibmacro*{htu:clear-source-pages}{%
+  \ifboolexpr{test {\iffieldequalstr{usera}{M}} or
+              test {\iffieldequalstr{usera}{C}} or
+              test {\iffieldequalstr{usera}{G}} or
+              test {\iffieldequalstr{usera}{D}} or
+              test {\iffieldequalstr{usera}{R}}}
+    {\clearfield{pages}}{}%
+}
+\AtEveryBibitem{\ifhtu@fullbib\usebibmacro{htu:clear-source-pages}\fi}
+\AtUsedriver{%
+  \ifboolexpr{test {\ifcitation} and test {\iffootnote} and not test {\iffieldundef{postnote}}}
+    {\usebibmacro{htu:clear-source-pages}}{}%
+}
+\newcommand{\htu@printbibgroup}[2]{%
+  \printbibliography[category=#1,heading=htu-refs-sub,title={#2},resetnumbers=true]%
+}
 \BiblatexSplitbibDefernumbersWarningOff
 \newcommand{\makebibliography}{%
-  \nocite{*}% 收录全部参考文献（引文 + 阅读型，§2.14 line 291）
-  % [基础] 参考文献 章标题入口（Story 5.1 解耦，NFR-6）：\htu@chapter*{\bibname} 无条件 emit
-  %   章标题（三号黑体居中 + \clearpage + \addcontentsline{toc}）——独立于下述 7 个分节的空/非空。
+  \nocite{*}% 收录全部参考文献（引文 + 阅读型，§2.14）
+  % [基础] 参考文献 章标题入口独立于各分组，电子资源单独成组时仍排章题。
   \htu@chapter*{\bibname}%
   \begingroup
-    % R-34：静默 biblatex 空节 "Empty bibliography" 警告（\blx@warn@bibempty，biblatex.sty）——真实稀疏
-    %   refs.bib（如仅 @online → 5 具名分节空）不再触发 NFR-1 ≤3 警告门。空节仍不渲染（行为不变）。
+    \htu@fullbibtrue
+    \setcounter{htu@bibgroup}{0}%
+    % 未使用的类别不输出标题或空组警告。
     \def\blx@warn@bibempty{}%
-    \printbibliography[type=article,heading=htu-refs-sub,title={一、期刊论文},resetnumbers=true]%
-    \printbibliography[type=book,heading=htu-refs-sub,title={二、著作},resetnumbers=true]%
-    \printbibliography[type=incollection,heading=htu-refs-sub,title={三、论文集（章节）},resetnumbers=true]%
-    \printbibliography[type=thesis,heading=htu-refs-sub,title={四、学位论文},resetnumbers=true]%
-    \printbibliography[type=patent,heading=htu-refs-sub,title={五、专利},resetnumbers=true]%
-    \printbibliography[type=online,heading=htu-refs-sub,title={六、电子资源},resetnumbers=true]%
-    % 七、其他 catch-all（code review 2026-06-17 决策 a）：未映射到前 6 类的条目（@report/@manual/
-    %   @misc/@unpublished/@software 等，biblatex 别名→@misc）。\htu@printbibother 内含自身空节静默。
-    \htu@printbibother{七、其他}%
+    \htu@printbibgroup{htu-journal}{期刊论文}%
+    \htu@printbibgroup{htu-book}{著作}%
+    \htu@printbibgroup{htu-collection}{论文集与文集}%
+    \htu@printbibgroup{htu-thesis}{学位论文}%
+    \htu@printbibgroup{htu-report}{报告}%
+    \htu@printbibgroup{htu-patent}{专利}%
+    \htu@printbibgroup{htu-standard}{国际与国家标准}%
+    \htu@printbibgroup{htu-news}{报纸文章}%
+    \htu@printbibgroup{htu-electronic}{电子资源}%
+    \htu@printbibgroup{htu-other}{其他}%
   \endgroup
 }%
-% \htu@printbibother{<title>} — guarded catch-all（code review 2026-06-17 F2 决策 a）。本地静默 biblatex 空节
-%   警告 \blx@warn@bibempty（biblatex.sty:1511），再无条件 \printbibliography：空时节头不渲染、无输出、
-%   无警告；非空时正常打印 七、其他。比 \ifboolexpr{citecount}（用户态不可读 biber 计数）简单且稳健。
-\newcommand{\htu@printbibother}[1]{%
-  \begingroup
-    % 静默 biblatex 空节 "Empty bibliography" 警告（仅此组，仅当七、其他 实际为空时触发）
-    \def\blx@warn@bibempty{}%
-    \printbibliography[nottype=article,nottype=book,nottype=incollection,nottype=thesis,nottype=patent,nottype=online,heading=htu-refs-sub,title={#1}]%
-  \endgroup
-}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 附录
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1114,10 +1174,10 @@
   \gdef\@chapapp{\appendixname~\thechapter}%
   % [基础] 附录章节 aftername + 居中本地恢复（Story 3.13 code review 2026-06-19 决策 a，§2.15 line 437）：
   %   全局 chapter aftername={}（cls:458）服从 §2.10 正文「不空格」，但 §2.15 要求附录「序号和标题间空半格」。
-  %   \appendix 后（其后无正文章）本地覆盖 aftername=半字距 + 防御性重申居中（不依赖 \backmatter format+= 持久）。
+  %   \appendix 单独设定半字距和章题居中。
   %   Story 4.1 接入 main.tex \appendix 渲染验证：TC-E4-02 (G5a 正文小四宋体) + TC-E4-03 (G5b 图A-1 counter)。
   \ctexset{chapter/aftername=\hspace{0.5\ccwd}}%
-  \ctexset{chapter/format+=\centering}%
+  \let\htu@chapter@align\centering
   % [基础] 附录正文字体 = 小四号宋体（spec §2.15 line 439「附录内容一般用小四号宋体字」；Story 3.15 G5a）。
   %   原依赖隐式 \normalsize；G5a 显式 \xiaosi\songti。Story 4.1 接入 main.tex \appendix → 首次渲染验证 TC-E4-02。
   \xiaosi\songti%
@@ -1135,7 +1195,10 @@
 %% 个人简历、在学期间发表的学术论文及研究成果
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newenvironment{resume}[1][\htu@resume@title]{%
-  \htu@chapter*{#1}\wuhao[1.524]}{}
+  \htu@chapter*{#1}\wuhao[1.524]%
+  \setlist[enumerate,1]{label={[\arabic*]},align=left,labelindent=0pt,itemindent=0pt,
+    listparindent=0pt,widest=99,labelsep=.4em,leftmargin=*,nosep}%
+}{}
 \newcommand{\resumeitem}[1]{\vspace{2em}{\sihao\sffamily\htu@tnr{#1}}\vspace{.5em}\par}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Self-Check Infrastructure (Story 2.2)

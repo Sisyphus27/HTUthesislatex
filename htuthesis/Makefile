@@ -5,7 +5,7 @@ THESISMAIN = main
 PACKAGE = htuthesis
 
 THESISCONTENTS=$(THESISMAIN).tex data/*.tex
-CLSFILES=$(PACKAGE).cls
+CLSFILES=$(PACKAGE).cls $(PACKAGE).def
 
 # make deletion work on Windows
 ifdef SystemRoot
@@ -20,7 +20,7 @@ all: thesis a3cover
 
 thesis: $(THESISMAIN).pdf
 
-$(THESISMAIN).pdf: $(CLSFILES) $(THESISCONTENTS)
+$(THESISMAIN).pdf: $(CLSFILES) $(THESISCONTENTS) ref/refs.bib
 	latexmk $(LATEXMKOPTS) $(THESISMAIN)
 
 ###### for a3cover
@@ -54,11 +54,11 @@ lint-check:
 	done
 	@echo "[PASS] Lint check complete"
 
-structure-check:
+structure-check: $(THESISMAIN).pdf
 	@bash tests/check-structure.sh
 
 ###### sentinel-check (Story 5.2；NFR-4 #15 detection layer；参考文献 chapter-vanish guard；runs every make test)
-#   fitz rendered-span probe on main.pdf for 参考文献 chapter title (SimHei 三号). FAIL (exit≠0) if the chapter vanished.
+#   PyMuPDF rendered-span probe on main.pdf for 参考文献 chapter title (SimHei 三号).
 #   Reuses compile-check's main.pdf (zero extra compile). Rendered-span-anchored (NOT proxied .bbl/.aux — R-35/TC-E5-14).
 sentinel-check: $(THESISMAIN).pdf
 	@bash tests/sentinel-bibliography-chapter.sh

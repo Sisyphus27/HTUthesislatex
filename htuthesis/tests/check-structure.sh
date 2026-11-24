@@ -3,8 +3,8 @@
 # Usage: ./tests/check-structure.sh [project-dir]
 set -uo pipefail
 
-DIR="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$DIR"
+DIR="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
+cd "$DIR" || exit 1
 
 PASS=0
 FAIL=0
@@ -16,21 +16,15 @@ yellow() { printf "\033[33m  [WARN] %s\033[0m\n" "$1"; }
 
 # --- 1. Required files ---
 echo "=== Required Files ==="
-required_files=(
-  "main.tex"
-  "data/cover.tex"
-  "data/abstract.tex"
-  "data/chap01.tex"
-  "data/chap02.tex"
-  "data/chap03.tex"
-  "data/chap04.tex"
-  "data/app01.tex"
-  "data/app02.tex"
-  "data/app03.tex"
-  "data/ack.tex"
-  "data/resume.tex"
-  "ref/refs.bib"
+mapfile -t includes < <(
+  sed 's/%.*//' main.tex | grep -oE '\\(input|include)\{[^}]+\}' |
+    sed -E 's/^[^{]*\{//; s/\}$//' | sort -u
 )
+tex_files=(main.tex)
+for f in "${includes[@]}"; do
+  tex_files+=("${f%.tex}.tex")
+done
+required_files=("${tex_files[@]}" ref/refs.bib)
 for f in "${required_files[@]}"; do
   if [ -f "$f" ]; then
     green "$f exists"
@@ -44,7 +38,12 @@ done
 # --- 2. Chapter count ---
 echo ""
 echo "=== Chapter Count ==="
-chap_count=$(ls data/chap*.tex 2>/dev/null | wc -l)
+chap_count=0
+for f in "${tex_files[@]}"; do
+  if [[ "$f" == data/chap*.tex && -f "$f" ]]; then
+    ((chap_count++))
+  fi
+done
 if [ "$chap_count" -ge 4 ]; then
   green "Found $chap_count chapter files (>= 4)"
   ((PASS++)) || true
@@ -56,13 +55,12 @@ fi
 # --- 3. Figure references ---
 echo ""
 echo "=== Figure References ==="
-tex_files="main.tex data/*.tex"
 missing_figs=0
-# Extract \includegraphics references
-fig_refs=$(grep -hro '\\includegraphics[^{]*{[^}]*}' $tex_files 2>/dev/null | \
-  sed 's/.*{//' | sed 's/}//' | sort -u)
-for fig in $fig_refs; do
-  [ -z "$fig" ] && continue
+mapfile -t fig_refs < <(
+  sed 's/%.*//' "${tex_files[@]}" | grep -oE '\\includegraphics(\[[^]]*\])?\{[^}]+\}' |
+    sed -E 's/^[^{]*\{//; s/\}$//' | sort -u
+)
+for fig in "${fig_refs[@]}"; do
   found=false
   for ext in "" ".pdf" ".png" ".jpg" ".eps"; do
     if [ -f "figures/${fig}${ext}" ]; then
@@ -86,32 +84,29 @@ fi
 # --- 4. Bibliography references ---
 echo ""
 echo "=== Bibliography References ==="
-if [ -f "ref/refs.bib" ]; then
-  # Extract all cite keys from tex files
-  cite_keys=$(grep -rho '\\cite[tp]*\*\{[^}]*\}' $tex_files 2>/dev/null | \
-    sed 's/.*{//;s/}//' | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | sort -u)
+if python - <<'PY'
+from pathlib import Path
+import re
+import sys
+from xml.etree import ElementTree
 
-  bib_keys=$(grep -o '@[a-zA-Z]*{[^,]*' "ref/refs.bib" 2>/dev/null | \
-    sed 's/.*{//;s/^[[:space:]]*//;s/[[:space:]]*$//' | sort -u)
+try:
+    control = ElementTree.parse("main.bcf")
+    bib = Path("main.bbl").read_text(encoding="utf-8")
+except (OSError, ElementTree.ParseError) as exc:
+    sys.exit(f"Cannot read Biber outputs (build main.pdf first): {exc}")
 
-  missing_cites=0
-  for key in $cite_keys; do
-    [ -z "$key" ] && continue
-    if ! echo "$bib_keys" | grep -qx "$key"; then
-      red "Cite key not in bib: $key"
-      ((missing_cites++))
-    fi
-  done
-
-  if [ "$missing_cites" -eq 0 ]; then
-    green "All cite keys found in refs.bib"
-    ((PASS++)) || true
-  else
-    red "$missing_cites cite key(s) missing from refs.bib"
-    ((FAIL++))
-  fi
+cited = {node.text for node in control.findall(".//{*}citekey") if node.text}
+available = set(re.findall(r"^\s*\\(?:entry|keyalias)\{([^{}]+)\}", bib, re.M))
+missing = sorted(cited - available - {"*"})
+if missing:
+    sys.exit("Unresolved cite keys in main.bbl: " + ", ".join(missing))
+PY
+then
+  green "All explicit main.bcf cite keys found in main.bbl"
+  ((PASS++)) || true
 else
-  red "refs.bib not found, skipping bibliography check"
+  red "Bibliography reference check failed"
   ((FAIL++))
 fi
 
@@ -121,7 +116,7 @@ echo "=== Build Product ==="
 if [ -f "main.pdf" ]; then
   size=$(stat --printf="%s" "main.pdf" 2>/dev/null || stat -f%z "main.pdf" 2>/dev/null)
   if [ "$size" -gt 0 ]; then
-    green "main.pdf exists ($(echo "scale=1; $size/1024" | bc 2>/dev/null || echo "$size") bytes)"
+    green "main.pdf exists ($size bytes)"
     ((PASS++)) || true
   else
     red "main.pdf is empty"
@@ -136,7 +131,7 @@ fi
 echo ""
 echo "=== File Encoding ==="
 bad_encoding=false
-for f in main.tex data/*.tex; do
+for f in "${tex_files[@]}"; do
   if [ -f "$f" ]; then
     if file "$f" | grep -qi "utf-8\|ascii\|text"; then
       : # ok

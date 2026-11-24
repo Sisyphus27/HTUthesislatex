@@ -125,7 +125,7 @@ run_test "P2" "ATDD-3.5-02" "\titlecontents{chapter} before has \sffamily (黑�
 
 # ATDD-3.5-03: \titlecontents{subsection} before-arg uses \xiaosi (12pt), NOT \wuhao (10.5pt) (AC-4, TC-E3-27)
 # Truth source: spec §2.6 "其余用小四号宋体字" + reference p10 (SimSun 12.00pt). Current cls:524 =
-#   \titlecontents{subsection}[4\ccwd]{\vspace{6bp}\wuhao[1]} → 10.5pt. The subsection before-arg must read
+#   \titlecontents{subsection}[24bp]{\vspace{6bp}\wuhao[1]} → 10.5pt. The subsection before-arg must read
 #   \xiaosi, not \wuhao. RED pre-impl (\wuhao present). Post-impl (Task 2.1) → \xiaosi → GREEN. (No L3 row
 #   renders at \tocdepth=2 in the sample, so the behavior proof is the scratch depth-3 raise — see the
 #   integration suite I11 + story Dev Notes Task 2.2; this source-grep is the standing guard.)
@@ -169,10 +169,9 @@ echo "=== P1: title 目 录 + depth + font stack + L2/L2-scope guards (GREEN inv
 # ATDD-3.5-05: regression — \contentsname "目 录" intact (AC-1, TC-E3-24)
 # Story 3.5 must NOT change the title text ("目" + \ccwd space + "录" = spec §2.6 "两字间空一格"). GREEN pre/post.
 test_contentsname_intact() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'contentsname=\{目\\hspace\{\\ccwd\} 录\}' htuthesis.cls
+  grep -qF 'contentsname={\texorpdfstring{目\hspace{\ccwd}录}{目录}}' htuthesis.cls
 }
-run_test "P1" "ATDD-3.5-05" "regression: \contentsname \"目 录\" intact (AC-1, TC-E3-24; GREEN — already correct)" test_contentsname_intact
+run_test "P1" "ATDD-3.5-05" "TOC has a one-cell title gap and a plain-text bookmark (§2.6)" test_contentsname_intact
 
 # ATDD-3.5-06: regression — \htu@tocdepth{2} preserved (AC-7, TC-E3-27)
 # Story 3.5 must NOT change the TOC depth (spec §1.1.4 "显示到三级标题" → tocdepth=2 = subsection). GREEN pre/post.
@@ -205,17 +204,13 @@ echo ""
 # ==========================================
 echo "=== P2: L2 section unchanged + figure/table lists out-of-scope + \tableofcontents intact ==="
 
-# ATDD-3.5-09: regression — \titlecontents{section} unchanged (L2 宋体小四号 at 2\ccwd; AC-3, TC-E3-25)
+# ATDD-3.5-09: regression — \titlecontents{section} unchanged (L2 宋体小四号 at 12bp; AC-3, TC-E3-25)
 # Story 3.5 must NOT change the L2 section entry (spec §2.6 "其余用小四号宋体字"; already correct). The section
-#   before-arg must remain \xiaosi[1] at indent 2\ccwd. GREEN pre/post.
+#   before-arg must remain \xiaosi[1] at indent 12bp. GREEN pre/post.
 test_section_titlecontents_unchanged() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  local line
-  line=$(grep -E 'titlecontents\{section\}' htuthesis.cls 2>/dev/null | head -1)
-  [[ -n "$line" ]] || return 1
-  echo "$line" | grep -q '2\\ccwd' && echo "$line" | grep -q 'xiaosi'
+  grep -qF '\titlecontents{section}[\htu@toc@cell]{\vspace{6bp}\normalfont\songti\xiaosi' htuthesis.cls
 }
-run_test "P2" "ATDD-3.5-09" "regression: \titlecontents{section} L2 宋体小四号 2\ccwd unchanged (AC-3, TC-E3-25; GREEN)" test_section_titlecontents_unchanged
+run_test "P2" "ATDD-3.5-09" "TOC level 2 uses 12bp SimSun and one indent cell (§2.6)" test_section_titlecontents_unchanged
 
 # ATDD-3.5-10: scope guard — \titlecontents{figure}/\titlecontents{table} UNCHANGED (out-of-scope; §1.1.5)
 # Story 3.5 must NOT touch the figure/table LIST formatting (插图清单/表格清单 — spec §1.1.5, NOT §2.6/FR-17).
@@ -241,15 +236,15 @@ test_tableofcontents_intact() {
 run_test "P2" "ATDD-3.5-11" "regression: \tableofcontents + \htu@chapter*[]{\contentsname} intact (AC-1 structural guard; GREEN)" test_tableofcontents_intact
 
 # ATDD-3.5-12: regression — \titlecontents indent per level preserved (AC-5, TC-E3-27)
-# chapter [0] / section [2\ccwd] / subsection [4\ccwd] = one CJK char per level (≈24pt at 12pt; ref p10 delta).
+# chapter [0] / section [12bp] / subsection [24bp] = one CJK char per level (≈24pt at 12pt; ref p10 delta).
 #   GREEN pre/post — the indents already match the reference.
 test_indent_per_level_preserved() {
-  [[ -f "htuthesis.cls" ]] || return 1
-  grep -qE 'titlecontents\{chapter\}\[\\z@' htuthesis.cls && \
-  grep -qE 'titlecontents\{section\}\[2\\ccwd' htuthesis.cls && \
-  grep -qE 'titlecontents\{subsection\}\[4\\ccwd' htuthesis.cls
+  grep -qF '\setlength{\htu@toc@cell}{12bp}' htuthesis.def &&
+    grep -qF '\titlecontents{chapter}[\z@]' htuthesis.cls &&
+    grep -qF '\titlecontents{section}[\htu@toc@cell]' htuthesis.cls &&
+    grep -qF '\titlecontents{subsection}[2\htu@toc@cell]' htuthesis.cls
 }
-run_test "P2" "ATDD-3.5-12" "regression: indent 0/2\ccwd/4\ccwd per level preserved (AC-5, TC-E3-27; GREEN)" test_indent_per_level_preserved
+run_test "P2" "ATDD-3.5-12" "TOC levels use 0, 12 and 24bp indents (§2.6)" test_indent_per_level_preserved
 
 echo ""
 

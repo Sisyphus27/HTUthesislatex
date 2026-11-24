@@ -461,46 +461,55 @@ echo ""
 # ==========================================
 echo "=== P2: papers entry-format DIAGNOSTIC (AC-4; decision-pending enumerate vs references-style) ==="
 
-# ATDD-3.8-I14: BEHAVIOR — papers entries = references reversed-hanging ~2\ccwd (AC-4 Option A RESOLVED)
-# AC-4 DECISION RESOLVED: Zy chose Option A — "书写格式同参考文献" (spec §2.17 line 453) = Story 3.7 thebibliography
-#   Option B reversed-hanging ([N] indented ~2\ccwd into the body, continuation at the margin). main.pdf p49 post-impl:
-#   [N]_x0≈92.2, continuation_x0≈70.9 → [N]-indent≈21.4pt ≈ 2\ccwd (matches references 21.0pt). PROMOTED from diagnostic
-#   to assert the reversed-hanging geometry (band 10-28pt ≈ 2\ccwd) — guards Option A against revert to flat enumerate.
-test_papers_entry_format_diagnostic() {
+# ATDD-3.8-I14: verify published-paper hanging indent, chronological order and the final accepted item.
+test_papers_entry_hanging_indent() {
   if [[ ! -f "main.pdf" ]]; then return 1; fi
   python -c "$PY_HEAD
-import re as _re
-pt = papers_title()
-if not pt:
-    print('  (no papers title page — cannot probe entries)'); sys.exit(1)
-num_re = _re.compile(r'^\[\d+\]$')
-start = pt['page']; end = min(start + 3, doc.page_count)
-nums = []; conts = []
-for i in range(start, end):
-    for b in doc[i].get_text('dict').get('blocks', []):
-        if b.get('type', 0) != 0: continue
-        for ln in b.get('lines', []):
-            spans = ln.get('spans', [])
-            if not spans: continue
-            t0 = spans[0]['text'].strip(); x0 = spans[0]['bbox'][0]; y0 = spans[0]['bbox'][1]
-            if num_re.match(t0) and 9 <= spans[0]['size'] <= 12 and y0 > 120:
-                nums.append(x0)
-            elif x0 < 80 and 9.8 <= spans[0]['size'] <= 11.2 and y0 < H - 70 and len(t0) >= 2:
-                conts.append(x0)
-if not nums:
-    print('  (no [N] entries detected — RED; papers list may not render)'); sys.exit(1)
-num_x0 = sum(nums) / len(nums)
-cont_x0 = min(conts) if conts else None
-indent = (num_x0 - cont_x0) if cont_x0 is not None else None
-reversed_ok = indent is not None and 10.0 <= indent <= 28.0  # ~2\ccwd (references baseline 21pt)
-print('  papers [N] entries=%d [N]_x0=%.1f continuation_x0=%s [N]-indent=%s → %s' %
-      (len(nums), num_x0, ('%.1f' % cont_x0) if cont_x0 is not None else None,
-       ('%.1fpt' % indent) if indent is not None else None,
-       'REVERSED ~2\\ccwd (matches references 21pt)' if reversed_ok else 'NOT reversed-hanging'))
-sys.exit(0 if reversed_ok else 1)
+title = papers_title()
+if not title:
+    sys.exit(1)
+page = doc[title['page']]
+rows = {}
+bounds = {}
+for block in page.get_text('dict')['blocks']:
+    for line in block.get('lines', []):
+        for span in line['spans']:
+            text = span['text'].strip()
+            y = round(span['origin'][1], 1)
+            if text in ('发表的学术论文', '研究成果') and abs(span['size'] - 14.0) < 0.25:
+                bounds[text] = y
+            if text and abs(span['size'] - 10.5) < 0.25:
+                rows.setdefault(y, []).append((span['origin'][0], text))
+if len(bounds) != 2:
+    sys.exit(1)
+entries = []
+for y, spans in sorted(rows.items()):
+    if not bounds['发表的学术论文'] < y < bounds['研究成果']:
+        continue
+    (left, first), *rest = sorted(spans)
+    label = re.fullmatch(r'\[(\d+)\]', first)
+    if label:
+        entries.append((int(label[1]), left, []))
+        left, first = rest.pop(0)
+    if entries:
+        entries[-1][2].append((left, ' '.join([first] + [t for _, t in rest])))
+margin = 72 * 25 / 25.4
+years = []
+line_offsets = []
+for _, x, lines in entries:
+    if abs(x - margin) > 0.5 or not lines:
+        sys.exit(1)
+    line_offsets.extend(abs(line_x - lines[0][0]) for line_x, _ in lines[1:])
+    text = ' '.join(t for _, t in lines)
+    year = re.search(r'\b(19|20)\d{2}\b', text)
+    years.append(int(year[0]) if year else ('待刊' if 'In press' in text and '待刊' in text else None))
+print('Papers years:', years, 'maximum hanging-indent difference (bp):', max(line_offsets, default=None))
+sys.exit(0 if [n for n, _, _ in entries] == list(range(1, 8))
+         and years == [2003, 2003, 2003, 2005, 2005, 2006, '待刊']
+         and line_offsets and max(line_offsets) <= 0.5 else 1)
 "
 }
-run_test "P2" "ATDD-3.8-I14" "BEHAVIOR: papers entries reversed-hanging ~2\\ccwd (AC-4 Option A resolved; PROMOTED from diagnostic)" test_papers_entry_format_diagnostic
+run_test "P2" "ATDD-3.8-I14" "papers labels are flush left, wrapping aligns and years are in order (§1.5.2, §2.17)" test_papers_entry_hanging_indent
 
 echo ""
 
